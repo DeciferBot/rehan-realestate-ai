@@ -32,6 +32,16 @@ Surgical, alive, trustworthy. The interface should feel like a Bloomberg termina
 4. **The machine should disappear.** When the AI system is running smoothly, the broker shouldn't be thinking about the interface — only about the leads.
 5. **Earned moments.** Motion and emphasis are used at genuine state transitions: call going live, lead qualifying, appointment confirmed. Nothing animates just to animate.
 
+## Absolute Color Rules
+
+**Grey is banned.** No achromatic neutrals anywhere in the system — not in text, surfaces, borders, or icons.
+
+- Every neutral must carry a minimum chroma of `0.003` directed toward hue `55` (the brand warm). Pure `oklch(L 0.000 0)` values are illegal except for `--bg` and `--surface` at full white (`L 1.000`).
+- Typography: `--ink`, `--muted`, `--dim` all have chroma ≥ `0.008` at hue `55`. Inactive nav items use `--muted`, which must remain legible (L ≥ `0.78` in dark context, L ≤ `0.50` in light).
+- Borders: minimum chroma `0.004` at hue `55`. Never `oklch(* 0.000 0)`.
+- Hardcoded hex greys (`#666`, `#999`, `#ccc`, `rgba(0,0,0,0.x)`) are banned. Use tokens.
+- When adding new tokens: run the "grey check" — if chroma < `0.003`, it's grey, add chroma before committing.
+
 ## Accessibility & Inclusion
 
 WCAG AA minimum. Arabic content must render properly (RTL-aware where shown). Reduced motion respected throughout. All interactive elements keyboard-accessible.
