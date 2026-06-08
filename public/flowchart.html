@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rehan Real Estate AI — System Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0A0F1E;
+    --navy-2:  #0D1328;
+    --navy-3:  #111B38;
+    --gold:    #D4AF37;
+    --gold-l:  #F0D060;
+    --gold-d:  #A08020;
+    --green:   #10B981;
+    --blue:    #3B82F6;
+    --purple:  #8B5CF6;
+    --orange:  #F59E0B;
+    --red:     #EF4444;
+    --cream:   #F8F6F0;
+  }
+
+  html { background: var(--navy); color: var(--cream); font-family: 'Outfit', sans-serif; font-weight: 300; }
+
+  body {
+    min-width: 1300px;
+    padding: 60px 48px 80px;
+    background: var(--navy);
+    position: relative;
+    overflow-x: auto;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 0%, rgba(212,175,55,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 90% 100%, rgba(59,130,246,0.05) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center; margin-bottom: 64px; position: relative; z-index: 2;
+  }
+  .header-eyebrow {
+    font-family: 'Outfit', sans-serif; font-weight: 400;
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold-d); margin-bottom: 14px;
+  }
+  .header-title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 500;
+    font-size: 3.2rem; letter-spacing: -0.01em; line-height: 1;
+    background: linear-gradient(135deg, var(--gold-d) 0%, var(--gold-l) 45%, var(--gold) 65%, var(--gold-d) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 5s linear infinite;
+  }
+  .header-sub {
+    font-size: 0.85rem; color: rgba(248,246,240,0.42); margin-top: 10px; letter-spacing: 0.04em;
+  }
+  .header-rule {
+    width: 120px; height: 1px; margin: 22px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* ── STAGE BAND ── */
+  .stage-band {
+    position: relative; z-index: 2;
+    margin-bottom: 8px;
+  }
+  .stage-label {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  }
+  .stage-badge {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; letter-spacing: 0;
+    flex-shrink: 0;
+  }
+  .stage-name {
+    font-family: 'Outfit', sans-serif; font-weight: 500;
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .stage-desc {
+    font-size: 10px; color: rgba(248,246,240,0.35); margin-left: auto;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── NODE ROW ── */
+  .node-row {
+    display: flex; align-items: flex-start; gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .node-row.centered { justify-content: center; }
+
+  /* ── NODE ── */
+  .node {
+    border-radius: 14px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 5px;
+    min-width: 140px; max-width: 200px;
+    position: relative; transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: default;
+    animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .node:hover { transform: translateY(-3px); }
+
+  .node-icon {
+    font-size: 20px; line-height: 1; margin-bottom: 2px;
+  }
+  .node-title {
+    font-family: 'Outfit', sans-serif; font-weight: 500;
+    font-size: 12px; line-height: 1.3; color: var(--cream);
+  }
+  .node-sub {
+    font-size: 9.5px; color: rgba(248,246,240,0.45); line-height: 1.4;
+  }
+  .node-tag {
+    display: inline-block; font-size: 8px; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px; margin-top: 2px;
+    align-self: flex-start;
+  }
+
+  /* ── NODE COLOURS ── */
+  .node-gold {
+    background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.06) 100%);
+    border: 1px solid rgba(212,175,55,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(212,175,55,0.12);
+  }
+  .node-gold:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.12), inset 0 1px 0 rgba(212,175,55,0.2); }
+  .node-green {
+    background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.05) 100%);
+    border: 1px solid rgba(16,185,129,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(16,185,129,0.1);
+  }
+  .node-green:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(16,185,129,0.12); }
+  .node-blue {
+    background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0.05) 100%);
+    border: 1px solid rgba(59,130,246,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(59,130,246,0.1);
+  }
+  .node-blue:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(59,130,246,0.1); }
+  .node-purple {
+    background: linear-gradient(135deg, rgba(139,92,246,0.14) 0%, rgba(139,92,246,0.06) 100%);
+    border: 1px solid rgba(139,92,246,0.35);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(139,92,246,0.12);
+  }
+  .node-purple:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(139,92,246,0.12); }
+  .node-orange {
+    background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.05) 100%);
+    border: 1px solid rgba(245,158,11,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(245,158,11,0.1);
+  }
+  .node-orange:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(245,158,11,0.12); }
+  .node-red {
+    background: linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.05) 100%);
+    border: 1px solid rgba(239,68,68,0.3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(239,68,68,0.1);
+  }
+  .node-closed {
+    background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.08) 100%);
+    border: 2px solid rgba(16,185,129,0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 30px rgba(16,185,129,0.18), inset 0 1px 0 rgba(16,185,129,0.15);
+  }
+
+  .tag-gold  { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.25); }
+  .tag-green { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+  .tag-blue  { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+  .tag-purple { background: rgba(139,92,246,0.15); color: #A78BFA; border: 1px solid rgba(139,92,246,0.25); }
+  .tag-orange { background: rgba(245,158,11,0.15); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* ── CONNECTOR (arrow between rows) ── */
+  .connector {
+    display: flex; justify-content: center;
+    padding: 6px 0; position: relative; z-index: 1;
+  }
+  .connector-line {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .connector-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    animation: flow-down 1.2s ease-in-out infinite;
+  }
+  .connector-dot:nth-child(2) { animation-delay: 0.3s; opacity: 0.7; }
+  .connector-dot:nth-child(3) { animation-delay: 0.6s; opacity: 0.4; }
+
+  /* ── INLINE ARROW between nodes in a row ── */
+  .arrow {
+    display: flex; align-items: center; padding-top: 20px; flex-shrink: 0;
+  }
+  .arrow svg { width: 28px; height: 16px; }
+
+  /* ── PARALLEL BLOCK (Stage 3) ── */
+  .parallel-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 16px;
+    position: relative;
+    background: rgba(139,92,246,0.04);
+    border: 1px dashed rgba(139,92,246,0.2);
+    flex: 1;
+  }
+  .parallel-label {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: var(--navy);
+    padding: 2px 12px;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(139,92,246,0.8); font-weight: 500;
+    border: 1px solid rgba(139,92,246,0.2); border-radius: 4px;
+    white-space: nowrap;
+  }
+  .sub-agent-node {
+    border-radius: 12px; padding: 12px;
+    display: flex; flex-direction: column; gap: 4px;
+    animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    transition: transform 0.2s ease;
+  }
+  .sub-agent-node:hover { transform: translateY(-2px); }
+
+  /* ── FOLLOW-UP TIMELINE ── */
+  .timeline {
+    display: flex; align-items: flex-start; gap: 0; width: 100%;
+  }
+  .timeline-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; position: relative;
+  }
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute; top: 20px; left: 50%; width: 100%; height: 2px;
+    background: linear-gradient(90deg, rgba(245,158,11,0.4), rgba(245,158,11,0.15));
+  }
+  .timeline-dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; position: relative; z-index: 1; margin-bottom: 10px;
+    border: 2px solid rgba(245,158,11,0.3);
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+    box-shadow: 0 0 20px rgba(245,158,11,0.1);
+  }
+  .timeline-day {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 4px;
+  }
+  .timeline-text {
+    font-size: 10px; color: rgba(248,246,240,0.55); text-align: center; line-height: 1.4; max-width: 100px;
+  }
+
+  /* ── STAGE DIVIDERS ── */
+  .stage-divider {
+    height: 1px; margin: 20px 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.12) 20%, rgba(212,175,55,0.12) 80%, transparent 100%);
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    margin-top: 60px; display: flex; align-items: center; justify-content: center;
+    gap: 24px; flex-wrap: wrap;
+    padding: 20px 32px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    position: relative; z-index: 2;
+  }
+  .legend-title {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(248,246,240,0.3); font-weight: 500; width: 100%; text-align: center;
+    margin-bottom: 4px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+  .legend-text { font-size: 10px; color: rgba(248,246,240,0.5); letter-spacing: 0.03em; }
+
+  /* ── SVG OVERLAY ── */
+  #svg-overlay {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 3;
+    overflow: visible;
+  }
+
+  /* ── KEYFRAMES ── */
+  @keyframes shimmer {
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes flow-down {
+    0%   { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(10px); opacity: 0; }
+  }
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -40; }
+  }
+  @keyframes dot-travel {
+    0%   { offset-distance: 0%; opacity: 0.8; }
+    90%  { opacity: 0.8; }
+    100% { offset-distance: 100%; opacity: 0; }
+  }
+  @keyframes pulse-closed {
+    0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 20px rgba(16,185,129,0.15); }
+    50%       { box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 50px rgba(16,185,129,0.35); }
+  }
+  .node-closed { animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both, pulse-closed 3s ease-in-out 1s infinite; }
+
+  .node { animation-delay: var(--nd, 0s); }
+
+  /* Animated SVG paths */
+  .flow-path {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 6 5;
+    animation: dash-flow 1.4s linear infinite;
+  }
+  .flow-path-solid {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.5;
+  }
+  .flow-dot {
+    r: 3.5;
+    animation: dot-travel 2.2s ease-in-out infinite;
+    offset-rotate: 0deg;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-eyebrow">System Architecture · End-to-End Flow</div>
+  <div class="header-title">Rehan Real Estate AI</div>
+  <div class="header-sub">From ad impression to signed deal — the complete intelligence pipeline</div>
+  <div class="header-rule"></div>
+</div>
+
+<!-- Main diagram wrapper (relative for SVG overlay) -->
+<div id="diagram" style="position:relative;">
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 1: LEAD CAPTURE -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s1">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.35);color:var(--gold);">1</div>
+    <div class="stage-name" style="color:var(--gold);">Lead Capture</div>
+    <div class="stage-desc">Meta &amp; Instagram advertising pipeline → Supabase</div>
+  </div>
+  <div class="node-row" id="s1-row">
+    <div class="node node-gold" id="n-ad" style="--nd:0.05s">
+      <div class="node-icon">📱</div>
+      <div class="node-title">Meta / Instagram Ad</div>
+      <div class="node-sub">Targeted to investor &amp; buyer segments</div>
+      <div class="node-tag tag-gold">PAID AD</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(212,175,55,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-gold" id="n-click" style="--nd:0.12s">
+      <div class="node-icon">👆</div>
+      <div class="node-title">Lead Clicks Ad</div>
+      <div class="node-sub">Interest signal fired — form submitted</div>
+      <div class="node-tag tag-gold">INTENT</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(212,175,55,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-webhook" style="--nd:0.19s">
+      <div class="node-icon">⚡</div>
+      <div class="node-title">Meta Webhook</div>
+      <div class="node-sub">Real-time POST to API endpoint &lt;200ms</div>
+      <div class="node-tag tag-blue">WEBHOOK</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-db" style="--nd:0.26s">
+      <div class="node-icon">🗄️</div>
+      <div class="node-title">Supabase DB</div>
+      <div class="node-sub">Lead record created — name, phone, source, timestamp</div>
+      <div class="node-tag tag-blue">DATABASE</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-gold" id="n-queue" style="--nd:0.33s">
+      <div class="node-icon">🤖</div>
+      <div class="node-title">AI Agent Queue</div>
+      <div class="node-sub">Lead assigned — call scheduled immediately</div>
+      <div class="node-tag tag-gold">QUEUED</div>
+    </div>
+  </div>
+</div>
+
+<!-- Connector 1→2 -->
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--gold);"></div>
+  <div class="connector-dot" style="background:var(--gold);"></div>
+  <div class="connector-dot" style="background:var(--gold);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 2: AI OUTBOUND CALL -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s2">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.35);color:var(--gold);">2</div>
+    <div class="stage-name" style="color:var(--gold);">AI Outbound Call</div>
+    <div class="stage-desc">Vapi.ai voice engine · multi-language · &lt;60 second response</div>
+  </div>
+  <div class="node-row" id="s2-row">
+    <div class="node node-gold" id="n-dial" style="--nd:0.1s">
+      <div class="node-icon">📞</div>
+      <div class="node-title">AI Dials Lead</div>
+      <div class="node-sub">Within 60 seconds of lead capture</div>
+      <div class="node-tag tag-gold">≤60 SEC</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(212,175,55,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-vapi" style="--nd:0.17s">
+      <div class="node-icon">🎙️</div>
+      <div class="node-title">Vapi.ai Engine</div>
+      <div class="node-sub">Real-time voice synthesis &amp; STT pipeline</div>
+      <div class="node-tag tag-blue">VAPI.AI</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-purple" id="n-lang" style="--nd:0.24s">
+      <div class="node-icon">🌍</div>
+      <div class="node-title">Language Detection</div>
+      <div class="node-sub">Arabic · English · Hindi · Russian · Mandarin</div>
+      <div class="node-tag tag-purple">NLP</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(139,92,246,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-gold" id="n-adapt" style="--nd:0.31s">
+      <div class="node-icon">🎭</div>
+      <div class="node-title">AI Adapts in Real-Time</div>
+      <div class="node-sub">Tone, accent &amp; language matched to caller</div>
+      <div class="node-tag tag-gold">ADAPTIVE</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(212,175,55,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-green" id="n-convo" style="--nd:0.38s" style="min-width:180px">
+      <div class="node-icon">💬</div>
+      <div class="node-title">Conversation Begins</div>
+      <div class="node-sub">"You showed interest in our property on Instagram…"</div>
+      <div class="node-tag tag-green">LIVE</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--gold);"></div>
+  <div class="connector-dot" style="background:var(--gold);"></div>
+  <div class="connector-dot" style="background:var(--gold);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 3: QUALIFICATION + PARALLEL SUB-AGENTS -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s3">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);color:var(--purple);">3</div>
+    <div class="stage-name" style="color:var(--purple);">Qualification Conversation · Parallel Sub-Agents Fire</div>
+    <div class="stage-desc">AI gathers profile data while 4 sub-agents run simultaneously</div>
+  </div>
+
+  <!-- Top: AI Asks Questions -->
+  <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;" id="s3-top">
+    <div class="node node-gold" id="n-ai-q" style="--nd:0.08s;min-width:170px">
+      <div class="node-icon">🤖</div>
+      <div class="node-title">AI Asks Qualifying Questions</div>
+      <div class="node-sub">Investment or live-in? · Married? Kids? · Budget? · Area? · Cash or mortgage?</div>
+      <div class="node-tag tag-gold">AI VOICE</div>
+    </div>
+    <div style="display:flex;flex-direction:column;justify-content:center;padding-top:18px;font-size:9px;color:rgba(139,92,246,0.6);letter-spacing:0.15em;text-transform:uppercase;gap:4px;flex-shrink:0;padding-left:6px;padding-right:6px;">
+      <div>TRIGGERS</div>
+      <div style="width:1px;height:20px;background:rgba(139,92,246,0.3);margin:0 auto;"></div>
+      <div>PARALLEL</div>
+    </div>
+
+    <!-- 4 Sub-Agents -->
+    <div class="parallel-block">
+      <div class="parallel-label">4 Sub-Agents Running in Parallel</div>
+
+      <!-- School Mapper -->
+      <div class="sub-agent-node node-purple" style="--nd:0.12s">
+        <div style="font-size:18px;">🏫</div>
+        <div style="font-size:11px;font-weight:500;color:var(--cream);">School Mapper</div>
+        <div style="font-size:9px;color:rgba(248,246,240,0.45);line-height:1.4;">Google Maps API → nearby schools → morning commute times → school fees from web</div>
+        <div style="font-size:8px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(139,92,246,0.15);color:#A78BFA;border:1px solid rgba(139,92,246,0.25);align-self:flex-start;margin-top:4px;">MAPS API</div>
+      </div>
+
+      <!-- Mortgage Calculator -->
+      <div class="sub-agent-node node-purple" style="--nd:0.18s">
+        <div style="font-size:18px;">🏦</div>
+        <div style="font-size:11px;font-weight:500;color:var(--cream);">Mortgage Calculator</div>
+        <div style="font-size:9px;color:rgba(248,246,240,0.45);line-height:1.4;">Loan amount · down payment · monthly EMI · interest rate bands · 20–25yr terms</div>
+        <div style="font-size:8px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(139,92,246,0.15);color:#A78BFA;border:1px solid rgba(139,92,246,0.25);align-self:flex-start;margin-top:4px;">MATH ENGINE</div>
+      </div>
+
+      <!-- Property Recommender -->
+      <div class="sub-agent-node node-purple" style="--nd:0.24s">
+        <div style="font-size:18px;">🏢</div>
+        <div style="font-size:11px;font-weight:500;color:var(--cream);">Property Recommender</div>
+        <div style="font-size:9px;color:rgba(248,246,240,0.45);line-height:1.4;">Filters DB by budget · area · bedrooms · investment type · returns top 3 matches</div>
+        <div style="font-size:8px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(139,92,246,0.15);color:#A78BFA;border:1px solid rgba(139,92,246,0.25);align-self:flex-start;margin-top:4px;">SUPABASE</div>
+      </div>
+
+      <!-- Profile Builder -->
+      <div class="sub-agent-node node-purple" style="--nd:0.30s">
+        <div style="font-size:18px;">👤</div>
+        <div style="font-size:11px;font-weight:500;color:var(--cream);">Profile Builder</div>
+        <div style="font-size:9px;color:rgba(248,246,240,0.45);line-height:1.4;">Captures: name · marital status · kids ages · investment vs live-in · budget · area</div>
+        <div style="font-size:8px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(139,92,246,0.15);color:#A78BFA;border:1px solid rgba(139,92,246,0.25);align-self:flex-start;margin-top:4px;">NLP + DB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reconvergence indicator -->
+  <div style="display:flex;justify-content:center;align-items:center;gap:16px;padding:10px 0;">
+    <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.3));"></div>
+    <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(139,92,246,0.6);padding:4px 14px;border:1px solid rgba(139,92,246,0.2);border-radius:4px;background:rgba(139,92,246,0.05);">All results merged into unified lead dossier</div>
+    <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(139,92,246,0.3),transparent);"></div>
+  </div>
+</div>
+
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--purple);"></div>
+  <div class="connector-dot" style="background:var(--purple);"></div>
+  <div class="connector-dot" style="background:var(--purple);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 4: REAL-TIME ACTIONS DURING CALL -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s4">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:var(--green);">4</div>
+    <div class="stage-name" style="color:var(--green);">Real-Time Actions During Call</div>
+    <div class="stage-desc">Deliverables pushed to lead via WhatsApp mid-conversation</div>
+  </div>
+  <div class="node-row" id="s4-row">
+    <div class="node node-green" id="n-wa-b" style="--nd:0.08s">
+      <div class="node-icon">📲</div>
+      <div class="node-title">Property Brochures</div>
+      <div class="node-sub">Top 3 matched properties sent via WhatsApp mid-call</div>
+      <div class="node-tag tag-green">WHATSAPP</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(16,185,129,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-green" id="n-wa-s" style="--nd:0.15s">
+      <div class="node-icon">🏫</div>
+      <div class="node-title">School Report</div>
+      <div class="node-sub">Nearby schools with distances, commute &amp; fees — WhatsApp PDF</div>
+      <div class="node-tag tag-green">WHATSAPP</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(16,185,129,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-green" id="n-wa-m" style="--nd:0.22s">
+      <div class="node-icon">💰</div>
+      <div class="node-title">Mortgage Breakdown</div>
+      <div class="node-sub">Monthly payment, loan amount &amp; down payment — WhatsApp</div>
+      <div class="node-tag tag-green">WHATSAPP</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(16,185,129,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-log" style="--nd:0.29s">
+      <div class="node-icon">📊</div>
+      <div class="node-title">Real-Time Logging</div>
+      <div class="node-sub">All call data, profile updates logged to Supabase continuously</div>
+      <div class="node-tag tag-blue">SUPABASE</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-gold" id="n-dash" style="--nd:0.36s">
+      <div class="node-icon">🖥️</div>
+      <div class="node-title">Dashboard Updates</div>
+      <div class="node-sub">Agent Console shows live transcript, profile, sub-agent status</div>
+      <div class="node-tag tag-gold">LIVE UI</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--green);"></div>
+  <div class="connector-dot" style="background:var(--green);"></div>
+  <div class="connector-dot" style="background:var(--green);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 5: APPOINTMENT BOOKING -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s5">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);color:var(--blue);">5</div>
+    <div class="stage-name" style="color:var(--blue);">Appointment Booking</div>
+    <div class="stage-desc">AI proposes slots → calendar locked → confirmations dispatched</div>
+  </div>
+  <div class="node-row" id="s5-row">
+    <div class="node node-gold" id="n-slots" style="--nd:0.07s">
+      <div class="node-icon">🗓️</div>
+      <div class="node-title">AI Proposes 2–3 Slots</div>
+      <div class="node-sub">Based on human agent availability</div>
+      <div class="node-tag tag-gold">AI</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-gcal" style="--nd:0.14s">
+      <div class="node-icon">📅</div>
+      <div class="node-title">Google Calendar</div>
+      <div class="node-sub">Event created for both lead and agent</div>
+      <div class="node-tag tag-blue">GCAL API</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-email-c" style="--nd:0.21s">
+      <div class="node-icon">✉️</div>
+      <div class="node-title">Email to Lead</div>
+      <div class="node-sub">Confirmation + property summary via Resend</div>
+      <div class="node-tag tag-blue">RESEND</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-orange" id="n-email-a" style="--nd:0.28s">
+      <div class="node-icon">👔</div>
+      <div class="node-title">Agent Notified</div>
+      <div class="node-sub">Email with full lead brief + property interest</div>
+      <div class="node-tag tag-orange">ALERT</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(245,158,11,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-blue" id="n-crm" style="--nd:0.35s">
+      <div class="node-icon">📋</div>
+      <div class="node-title">CRM Updated</div>
+      <div class="node-sub">Lead status → Appointed. Score, notes &amp; dossier saved.</div>
+      <div class="node-tag tag-blue">SUPABASE</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--orange);"></div>
+  <div class="connector-dot" style="background:var(--orange);"></div>
+  <div class="connector-dot" style="background:var(--orange);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 6: AUTO FOLLOW-UP SEQUENCE -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s6">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:var(--orange);">6</div>
+    <div class="stage-name" style="color:var(--orange);">Automated Follow-Up Sequence</div>
+    <div class="stage-desc">Cadenced multi-channel nurture — no lead goes cold</div>
+  </div>
+  <div class="timeline" id="s6-row">
+    <div class="timeline-item">
+      <div class="timeline-dot" style="border-color:rgba(37,211,102,0.4);background:linear-gradient(135deg,rgba(37,211,102,0.2),rgba(37,211,102,0.05));box-shadow:0 0 20px rgba(37,211,102,0.15);">📲</div>
+      <div class="timeline-day">Day 1</div>
+      <div class="timeline-text">WhatsApp check-in — "Did you review the brochures?"</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="border-color:rgba(59,130,246,0.4);background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(59,130,246,0.05));box-shadow:0 0 20px rgba(59,130,246,0.15);">✉️</div>
+      <div class="timeline-day">Day 2</div>
+      <div class="timeline-text">Email — property highlights, ROI data, market comparison</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="border-color:rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.05));box-shadow:0 0 20px rgba(212,175,55,0.15);">🤖</div>
+      <div class="timeline-day">Day 3</div>
+      <div class="timeline-text">AI follow-up call — address concerns, share new availability</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="border-color:rgba(245,158,11,0.4);background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.05));box-shadow:0 0 20px rgba(245,158,11,0.15);">👔</div>
+      <div class="timeline-day">Day 7</div>
+      <div class="timeline-text">Human agent personal call — relationship building</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="border-color:rgba(239,68,68,0.4);background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.05));box-shadow:0 0 20px rgba(239,68,68,0.15);">🎯</div>
+      <div class="timeline-day">Day 14</div>
+      <div class="timeline-text">Final offer + alternative properties if primary not converting</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector"><div class="connector-line">
+  <div class="connector-dot" style="background:var(--red);"></div>
+  <div class="connector-dot" style="background:var(--red);"></div>
+  <div class="connector-dot" style="background:var(--red);"></div>
+</div></div>
+<div class="stage-divider"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- STAGE 7: HUMAN ESCALATION & CLOSURE -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="stage-band" id="s7">
+  <div class="stage-label">
+    <div class="stage-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.35);color:var(--green);">7</div>
+    <div class="stage-name" style="color:var(--green);">Human Escalation &amp; Deal Closure</div>
+    <div class="stage-desc">Full dossier handed to human agent → site visit → signed</div>
+  </div>
+  <div class="node-row" id="s7-row">
+    <div class="node node-orange" id="n-alert" style="--nd:0.05s">
+      <div class="node-icon">🔔</div>
+      <div class="node-title">Dashboard Alert</div>
+      <div class="node-sub">Human agent notified — lead is hot &amp; ready</div>
+      <div class="node-tag tag-orange">ALERT</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(245,158,11,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-purple" id="n-dossier" style="--nd:0.12s">
+      <div class="node-icon">📁</div>
+      <div class="node-title">Full Lead Dossier</div>
+      <div class="node-sub">Transcript · profile · mortgage · schools · property interest · score</div>
+      <div class="node-tag tag-purple">AI PACKAGE</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(139,92,246,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-orange" id="n-visit" style="--nd:0.19s">
+      <div class="node-icon">🏗️</div>
+      <div class="node-title">Site Visit</div>
+      <div class="node-sub">Human agent conducts physical property tour with lead</div>
+      <div class="node-tag tag-orange">HUMAN</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(245,158,11,0.6)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-green" id="n-sign" style="--nd:0.26s">
+      <div class="node-icon">✍️</div>
+      <div class="node-title">Deal Signed</div>
+      <div class="node-sub">Contract executed — payment terms agreed</div>
+      <div class="node-tag tag-green">SIGNED</div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 28 16"><path d="M2 8 L22 8 M16 3 L22 8 L16 13" stroke="rgba(16,185,129,0.7)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="node node-closed" id="n-closed" style="--nd:0.33s">
+      <div class="node-icon">🏆</div>
+      <div class="node-title" style="font-size:14px;font-family:'Cormorant Garamond',serif;font-weight:500;">CLOSED</div>
+      <div class="node-sub">Lead marked Closed in CRM — commission tracked</div>
+      <div class="node-tag tag-green">✓ DONE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- LEGEND -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="legend">
+  <div class="legend-title">Legend</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(212,175,55,0.6);border:1px solid rgba(212,175,55,0.8);"></div><div class="legend-text">AI Action</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(139,92,246,0.6);border:1px solid rgba(139,92,246,0.8);"></div><div class="legend-text">Sub-Agent</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(59,130,246,0.6);border:1px solid rgba(59,130,246,0.8);"></div><div class="legend-text">External API / Database</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(16,185,129,0.6);border:1px solid rgba(16,185,129,0.8);"></div><div class="legend-text">Success / Delivery</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(245,158,11,0.6);border:1px solid rgba(245,158,11,0.8);"></div><div class="legend-text">Human Escalation</div></div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(37,211,102,0.6);border:1px solid rgba(37,211,102,0.8);"></div><div class="legend-text">WhatsApp</div></div>
+
+  <div style="width:100%;height:1px;background:rgba(255,255,255,0.05);margin:8px 0;"></div>
+  <div style="font-size:10px;color:rgba(248,246,240,0.3);text-align:center;line-height:1.7;">
+    Vapi.ai · OpenAI / Anthropic · Supabase · Google Maps API · Google Calendar API · Meta Webhooks · Twilio / WhatsApp Business · Resend
+  </div>
+</div>
+
+<!-- SVG overlay for inter-stage arrows -->
+<svg id="svg-overlay" aria-hidden="true"></svg>
+
+</div><!-- /diagram -->
+
+<script>
+// Draw animated inter-stage connector arrows after layout
+function getCenter(el) {
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  const pr = document.getElementById('diagram').getBoundingClientRect();
+  return {
+    x: r.left - pr.left + r.width / 2,
+    y: r.top - pr.top + r.height / 2,
+    top: r.top - pr.top,
+    bottom: r.top - pr.top + r.height,
+    left: r.left - pr.left,
+    right: r.left - pr.left + r.width,
+  };
+}
+
+function makePath(x1, y1, x2, y2, bend = 60) {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  return `M ${x1} ${y1} C ${x1} ${y1 + bend}, ${x2} ${y2 - bend}, ${x2} ${y2}`;
+}
+
+function drawArrow(svg, x1, y1, x2, y2, color, delay = 0, label = '') {
+  const d = makePath(x1, y1, x2, y2);
+
+  // Background ghost path
+  const ghost = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  ghost.setAttribute('d', d);
+  ghost.setAttribute('fill', 'none');
+  ghost.setAttribute('stroke', color.replace('0.7', '0.12'));
+  ghost.setAttribute('stroke-width', '1.5');
+  ghost.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(ghost);
+
+  // Animated dashed path
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('class', 'flow-path');
+  path.setAttribute('stroke', color);
+  path.setAttribute('style', `animation-delay: ${delay}s`);
+  svg.appendChild(path);
+
+  // Arrowhead
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  if (len > 20) {
+    const angle = Math.atan2(y2 - (y2 - 20), x2 - x2) * 180 / Math.PI;
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    arrow.setAttribute('points', `${x2},${y2} ${x2-5},${y2-10} ${x2+5},${y2-10}`);
+    arrow.setAttribute('fill', color.replace('0.7','0.9'));
+    svg.appendChild(arrow);
+  }
+
+  // Travelling dot
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('r', '3.5');
+  circle.setAttribute('fill', color.replace('0.7','1'));
+  circle.setAttribute('filter', `drop-shadow(0 0 4px ${color})`);
+
+  const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+  anim.setAttribute('dur', '2.4s');
+  anim.setAttribute('repeatCount', 'indefinite');
+  anim.setAttribute('begin', `${delay}s`);
+
+  const mpath = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+  const pathId = 'fp-' + Math.random().toString(36).slice(2);
+  path.setAttribute('id', pathId);
+  mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + pathId);
+  anim.appendChild(mpath);
+  circle.appendChild(anim);
+  svg.appendChild(circle);
+}
+
+function buildArrows() {
+  const svg = document.getElementById('svg-overlay');
+  svg.innerHTML = '';
+
+  // Stage 1 last node → Stage 2 first node
+  const n_queue  = getCenter(document.getElementById('n-queue'));
+  const n_dial   = getCenter(document.getElementById('n-dial'));
+  if (n_queue && n_dial) drawArrow(svg, n_queue.x, n_queue.bottom, n_dial.x, n_dial.top, 'rgba(212,175,55,0.7)', 0);
+
+  // Stage 2 last → Stage 3 AI Q
+  const n_convo  = getCenter(document.getElementById('n-convo'));
+  const n_ai_q   = getCenter(document.getElementById('n-ai-q'));
+  if (n_convo && n_ai_q) drawArrow(svg, n_convo.x, n_convo.bottom, n_ai_q.x, n_ai_q.top, 'rgba(212,175,55,0.7)', 0.4);
+
+  // Stage 3 → Stage 4
+  const n_wa_b   = getCenter(document.getElementById('n-wa-b'));
+  const s3       = document.getElementById('s3');
+  if (s3 && n_wa_b) {
+    const s3r = s3.getBoundingClientRect();
+    const pr  = document.getElementById('diagram').getBoundingClientRect();
+    const s3b = s3r.bottom - pr.top;
+    drawArrow(svg, n_wa_b.x, s3b - 20, n_wa_b.x, n_wa_b.top, 'rgba(139,92,246,0.6)', 0.2);
+  }
+
+  // Stage 4 last → Stage 5 first
+  const n_dash2  = getCenter(document.getElementById('n-dash'));
+  const n_slots  = getCenter(document.getElementById('n-slots'));
+  if (n_dash2 && n_slots) drawArrow(svg, n_dash2.x, n_dash2.bottom, n_slots.x, n_slots.top, 'rgba(16,185,129,0.65)', 0.1);
+
+  // Stage 5 last → Stage 6 start
+  const n_crm    = getCenter(document.getElementById('n-crm'));
+  const s6       = document.getElementById('s6');
+  if (n_crm && s6) {
+    const s6r = s6.getBoundingClientRect();
+    const pr  = document.getElementById('diagram').getBoundingClientRect();
+    drawArrow(svg, n_crm.x, n_crm.bottom, n_crm.x, s6r.top - pr.top + 20, 'rgba(59,130,246,0.6)', 0.3);
+  }
+
+  // Stage 6 last → Stage 7 alert
+  const s6el     = document.getElementById('s6');
+  const n_alert  = getCenter(document.getElementById('n-alert'));
+  if (s6el && n_alert) {
+    const s6r = s6el.getBoundingClientRect();
+    const pr  = document.getElementById('diagram').getBoundingClientRect();
+    const s6b = s6r.bottom - pr.top;
+    drawArrow(svg, n_alert.x, s6b - 20, n_alert.x, n_alert.top, 'rgba(245,158,11,0.65)', 0);
+  }
+}
+
+// Run after fonts + layout settle
+window.addEventListener('load', () => {
+  setTimeout(buildArrows, 400);
+  window.addEventListener('resize', buildArrows);
+});
+</script>
+</body>
+</html>
