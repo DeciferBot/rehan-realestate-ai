@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY ?? "noop");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     /* send confirmation to user */
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Simmer Properties <register@simmerproperties.com>",
       to: email,
       subject: "You're on the Simmer Properties waitlist",
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
     });
 
     /* notify Rehan */
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Simmer Properties <register@simmerproperties.com>",
       to: "rehan.merchant@engworldwide.com",
       subject: `New waitlist signup: ${email}`,
