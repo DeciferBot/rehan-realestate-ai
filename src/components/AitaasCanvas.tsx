@@ -38,8 +38,9 @@ export default function AitaasCanvas({ className }: { className?: string }) {
   const raf = useRef<number>(0);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const canvasEl = canvasRef.current;
+    if (!canvasEl) return;
+    const canvas: HTMLCanvasElement = canvasEl;
     const ctx = canvas.getContext("2d")!;
     if (!ctx) return;
 
