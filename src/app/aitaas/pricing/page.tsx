@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import Link from "next/link";
+import { IconCheck } from "@/components/AitaasIcons";
 
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -290,7 +291,7 @@ export default function PricingPage() {
                 <div className="pp-tier-features">
                   {t.features.map((f) => (
                     <div key={f} className="pp-tier-feature">
-                      <span className="pp-check">✓</span>
+                      <span className="pp-check"><IconCheck size={14} color="currentColor" /></span>
                       <span>{f}</span>
                     </div>
                   ))}

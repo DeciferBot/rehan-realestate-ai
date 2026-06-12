@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { IconVideo, IconChart, IconRocket, IconShield, IconCheck, IconArrowRight } from "@/components/AitaasIcons";
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -304,13 +305,13 @@ export default function ContactPage() {
           <div className="ac-sidebar-block">
             <span className="ac-sidebar-label">What to expect</span>
             {[
-              { icon: "◎", title: "Live demo", desc: "See your use-case scenario played out by a real AI agent in real time." },
-              { icon: "◑", title: "ROI projection", desc: "We calculate hours recovered, revenue recaptured, and cost per interaction for your volume." },
-              { icon: "◐", title: "Deployment roadmap", desc: "A concrete 30-day plan — integration, QA, training, and go-live — specific to your stack." },
-              { icon: "●", title: "No obligation", desc: "The demo is free. If it&apos;s not a fit, we&apos;ll tell you directly rather than waste your time." },
+              { Icon: IconVideo, title: "Live demo", desc: "See your use-case scenario played out by a real AI agent in real time." },
+              { Icon: IconChart, title: "ROI projection", desc: "We calculate hours recovered, revenue recaptured, and cost per interaction for your volume." },
+              { Icon: IconRocket, title: "Deployment roadmap", desc: "A concrete 30-day plan — integration, QA, training, and go-live — specific to your stack." },
+              { Icon: IconShield, title: "No obligation", desc: "The demo is free. If it's not a fit, we'll tell you directly rather than waste your time." },
             ].map((f) => (
               <div className="ac-feature" key={f.title}>
-                <div className="ac-feature-icon">{f.icon}</div>
+                <div className="ac-feature-icon"><f.Icon size={18} color="currentColor" /></div>
                 <div className="ac-feature-text">
                   <h4>{f.title}</h4>
                   <p dangerouslySetInnerHTML={{ __html: f.desc }} />
@@ -353,7 +354,7 @@ export default function ContactPage() {
         >
           {submitted ? (
             <div className="ac-success">
-              <div className="ac-success-icon">✓</div>
+              <div className="ac-success-icon"><IconCheck size={28} color="currentColor" /></div>
               <h3>You&apos;re on the list.</h3>
               <p>
                 Our team will reach out within one business day to confirm your demo
@@ -433,7 +434,7 @@ export default function ContactPage() {
                     Sending…
                   </>
                 ) : (
-                  "Request Demo →"
+                  <>Request Demo <IconArrowRight size={14} color="currentColor" /></>
                 )}
               </motion.button>
               <p className="ac-submit-note">We respond within 1 business day. No spam.</p>

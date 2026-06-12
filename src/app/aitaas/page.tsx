@@ -3,6 +3,10 @@
 import { motion, useInView, useMotionValue, useTransform, animate, useSpring } from "framer-motion";
 import { useRef, useEffect } from "react";
 import Link from "next/link";
+import {
+  IconBuilding, IconHospital, IconShoppingBag, IconGraduationCap, IconGrid,
+  IconRocket, IconGlobe, IconLayers, IconCheck, IconArrowRight,
+} from "@/components/AitaasIcons";
 
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -90,11 +94,11 @@ const PRODUCTS = [
 ];
 
 const INDUSTRIES = [
-  { name: "Real Estate", icon: "◈", desc: "Lead qualification, brochure delivery, viewing bookings. Revenue share model available — you pay only when deals close." },
-  { name: "Healthcare", icon: "◉", desc: "Appointment booking, reminder calls, post-visit follow-up. Multilingual support for international patient bases." },
-  { name: "Retail & E-commerce", icon: "◇", desc: "Cart recovery, loyalty outreach, abandoned browse campaigns. BNPL link generation mid-call." },
-  { name: "Education", icon: "◎", desc: "Admissions qualification, scholarship scoring, campus tour booking. Arabic, Hindi, Urdu, English." },
-  { name: "Enterprise", icon: "◈", desc: "Inbound qualification, proposal generation, executive approval flows. Multilingual outbound sales fleet in 7 languages." },
+  { name: "Real Estate", Icon: IconBuilding, desc: "Lead qualification, brochure delivery, viewing bookings. Revenue share model available — you pay only when deals close." },
+  { name: "Healthcare", Icon: IconHospital, desc: "Appointment booking, reminder calls, post-visit follow-up. Multilingual support for international patient bases." },
+  { name: "Retail & E-commerce", Icon: IconShoppingBag, desc: "Cart recovery, loyalty outreach, abandoned browse campaigns. BNPL link generation mid-call." },
+  { name: "Education", Icon: IconGraduationCap, desc: "Admissions qualification, scholarship scoring, campus tour booking. Arabic, Hindi, Urdu, English." },
+  { name: "Enterprise", Icon: IconGrid, desc: "Inbound qualification, proposal generation, executive approval flows. Multilingual outbound sales fleet in 7 languages." },
 ];
 
 const METRICS = [
@@ -668,12 +672,12 @@ export default function AitaasHome() {
               <FadeUp key={ind.name} delay={i * 0.06}>
                 <Link href="/aitaas/solutions" style={{ textDecoration: "none" }}>
                   <div className="ah-ind-row">
-                    <div className="ah-ind-icon">{ind.icon}</div>
+                    <div className="ah-ind-icon"><ind.Icon size={18} color="currentColor" /></div>
                     <div className="ah-ind-content">
                       <div className="ah-ind-name">{ind.name}</div>
                       <div className="ah-ind-desc">{ind.desc}</div>
                     </div>
-                    <div className="ah-ind-arrow">→</div>
+                    <div className="ah-ind-arrow"><IconArrowRight size={16} color="currentColor" /></div>
                   </div>
                 </Link>
               </FadeUp>
@@ -785,12 +789,12 @@ export default function AitaasHome() {
             <FadeUp delay={0.1}>
               <div className="ah-cta-right">
                 {[
-                  { icon: "◎", title: "Deployed in ~2 weeks", desc: "From signed agreement to live agent. Not months — weeks." },
-                  { icon: "◉", title: "7 languages on day one", desc: "Arabic, English, Hindi, Urdu, and more. No retrofitting." },
-                  { icon: "◈", title: "Configuration, not code", desc: "Your industry vertical is configured from a battle-tested platform — not rebuilt from scratch." },
+                  { Icon: IconRocket, title: "Deployed in ~2 weeks", desc: "From signed agreement to live agent. Not months — weeks." },
+                  { Icon: IconGlobe, title: "7 languages on day one", desc: "Arabic, English, Hindi, Urdu, and more. No retrofitting." },
+                  { Icon: IconLayers, title: "Configuration, not code", desc: "Your industry vertical is configured from a battle-tested platform — not rebuilt from scratch." },
                 ].map((f) => (
                   <div key={f.title} className="ah-cta-feature">
-                    <div className="ah-cta-feature-icon">{f.icon}</div>
+                    <div className="ah-cta-feature-icon"><f.Icon size={18} color="currentColor" /></div>
                     <div>
                       <div className="ah-cta-feature-title">{f.title}</div>
                       <div className="ah-cta-feature-desc">{f.desc}</div>

@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { IconArrowRight } from "@/components/AitaasIcons";
 
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -407,7 +408,7 @@ export default function SolutionsPage() {
               </h2>
               <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
                 <Link href="/aitaas/contact" className="a-btn">Book a Discovery Call</Link>
-                <Link href="/aitaas/pricing" className="a-btn a-btn--ghost">View Pricing →</Link>
+                <Link href="/aitaas/pricing" className="a-btn a-btn--ghost" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>View Pricing <IconArrowRight size={14} color="currentColor" /></Link>
               </div>
             </div>
           </FadeUp>
