@@ -6,11 +6,32 @@ import {
   AnimatePresence,
   useScroll,
   useTransform,
+  useMotionValue,
+  useSpring,
+  animate,
 } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 
 /* ─── constants ───────────────────────────────────────────────────────── */
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+/* ─── stagger variants ─────────────────────────────────────────────────── */
+const staggerContainer = (stagger = 0.07, delayChildren = 0) => ({
+  hidden: {},
+  visible: { transition: { staggerChildren: stagger, delayChildren } },
+});
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE_OUT } },
+};
+const fadeLeft = {
+  hidden: { opacity: 0, x: -32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: EASE_OUT } },
+};
+const fadeRight = {
+  hidden: { opacity: 0, x: 32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: EASE_OUT } },
+};
 
 /* ─── word-reveal ─────────────────────────────────────────────────────── */
 function Reveal({
@@ -48,28 +69,106 @@ function SplitReveal({ text, delay = 0, className }: { text: string; delay?: num
   );
 }
 
-/* ─── scroll reveal ───────────────────────────────────────────────────── */
+/* ─── scroll reveal (directional) ────────────────────────────────────── */
 function ScrollReveal({
   children,
   delay = 0,
   className,
+  direction = "up",
 }: {
   children: React.ReactNode;
   delay?: number;
   className?: string;
+  direction?: "up" | "left" | "right";
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const initial =
+    direction === "left"
+      ? { opacity: 0, x: -32 }
+      : direction === "right"
+      ? { opacity: 0, x: 32 }
+      : { opacity: 0, y: 24 };
+
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
+      initial={initial}
+      animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}
       transition={{ duration: 0.65, ease: EASE_OUT, delay }}
     >
       {children}
     </motion.div>
+  );
+}
+
+/* ─── stagger reveal container ────────────────────────────────────────── */
+function StaggerReveal({
+  children,
+  className,
+  stagger = 0.07,
+  delay = 0,
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  stagger?: number;
+  delay?: number;
+  as?: "div" | "ul";
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      variants={staggerContainer(stagger, delay)}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── count-up stat ───────────────────────────────────────────────────── */
+function CountStat({ value, suffix, delay = 0 }: { value: number; suffix: string; delay?: number }) {
+  const motionVal = useMotionValue(0);
+  const display = useTransform(motionVal, (v) => `${Math.round(v)}${suffix}`);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref as React.RefObject<Element>, { once: true });
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(motionVal, value, { duration: 1.4, ease: EASE_OUT, delay });
+    return () => controls.stop();
+  }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <span ref={ref} style={{ display: "inline-block" }}>
+      <motion.span>{display}</motion.span>
+    </span>
+  );
+}
+
+/* ─── market count-up ─────────────────────────────────────────────────── */
+function MarketCount() {
+  const motionVal = useMotionValue(0);
+  const display = useTransform(motionVal, (v) => `${Math.round(v)}B`);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref as React.RefObject<Element>, { once: true });
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(motionVal, 528, { duration: 2.2, ease: EASE_OUT });
+    return () => controls.stop();
+  }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div ref={ref} className="market-big-num">
+      <motion.span>{display}</motion.span>
+    </div>
   );
 }
 
@@ -158,8 +257,9 @@ function SignupForm() {
             <motion.button
               type="submit"
               className={`form-btn${state === "loading" ? " form-btn--loading" : ""}`}
+              whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.12 }}
+              transition={{ duration: 0.14, ease: EASE_OUT }}
             >
               {state === "loading" ? <span className="spinner" /> : "Request access"}
             </motion.button>
@@ -177,6 +277,105 @@ function SignupForm() {
         </motion.p>
       )}
     </div>
+  );
+}
+
+/* ─── hero section (isolated for mouse-spring glows) ─────────────────── */
+function HeroSection() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 40, damping: 25 });
+  const springY = useSpring(mouseY, { stiffness: 40, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left - rect.width / 2) * 0.05);
+    mouseY.set((e.clientY - rect.top - rect.height / 2) * 0.05);
+  };
+
+  return (
+    <section className="hero" onMouseMove={handleMouseMove}>
+      <motion.div className="glow-tl" aria-hidden style={{ x: springX, y: springY }} />
+      <motion.div
+        className="glow-br"
+        aria-hidden
+        style={{
+          x: useTransform(springX, (v) => -v * 0.6),
+          y: useTransform(springY, (v) => -v * 0.6),
+        }}
+      />
+
+      <ParallaxText speed={0.18}>
+        <div className="hero-inner">
+          <motion.div
+            className="hero-kicker"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <span className="hero-kicker-line" />
+            PropTech built for the speed of Dubai
+          </motion.div>
+
+          <h1 className="hero-h1">
+            <SplitReveal text="Your Next Deal" delay={0.35} />
+            <br />
+            <SplitReveal text="Called. Nobody" delay={0.65} />{" "}
+            <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+              <motion.span
+                className="hero-h1-em"
+                style={{ display: "inline-block", fontFamily: "'Cormorant Garant', serif", fontStyle: "italic", fontWeight: 300 }}
+                initial={{ y: "105%", opacity: 0 }}
+                animate={{ y: "0%", opacity: 1 }}
+                transition={{ duration: 0.72, ease: EASE_OUT, delay: 0.94 }}
+              >
+                Answered.
+              </motion.span>
+            </span>
+          </h1>
+
+          <motion.p
+            className="hero-body"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: EASE_OUT, delay: 1.2 }}
+          >
+            A lead clicks your ad and a clock starts. Within 5 minutes, the probability of qualifying them
+            drops by 80%. The average agent calls back in 47 hours. Simmer calls in 60 seconds, in the
+            lead&apos;s language, with their property matches and mortgage breakdown already prepared.
+          </motion.p>
+
+          {/* Staggered stats with count-up */}
+          <StaggerReveal className="hero-stat-row" stagger={0.08} delay={1.4}>
+            {[
+              { value: 60, suffix: "s", label: "Response time from ad click" },
+              { value: 78, suffix: "%", label: "Win rate when first to contact" },
+              { value: 80, suffix: "%", label: "Drop in qualification after 1 hour" },
+              { value: 47, suffix: "hrs", label: "Industry average response time" },
+            ].map((s) => (
+              <motion.div className="hero-stat" key={s.suffix + s.value} variants={fadeUp}>
+                <span className="hero-stat-num">
+                  <CountStat value={s.value} suffix={s.suffix} />
+                </span>
+                <span className="hero-stat-label">{s.label}</span>
+              </motion.div>
+            ))}
+          </StaggerReveal>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: EASE_OUT, delay: 1.9 }}
+          >
+            <SignupForm />
+          </motion.div>
+        </div>
+      </ParallaxText>
+
+      <div className="scroll-hint" aria-hidden>
+        <div className="scroll-hint-line" />
+      </div>
+    </section>
   );
 }
 
@@ -328,13 +527,6 @@ export default function LandingPage() {
           50%       { opacity: 1;   transform: scaleY(1)   translateY(4px); }
         }
 
-        /* ── divider ── */
-        .section-rule {
-          width: 1px; height: 60px;
-          background: linear-gradient(to bottom, transparent, var(--crimson-dim), transparent);
-          margin: 0 auto;
-        }
-
         /* ── section wrapper ── */
         .section { padding: clamp(64px, 9vw, 120px) clamp(20px, 6vw, 96px); position: relative; z-index: 2; }
         .section-inner { max-width: 1080px; margin: 0 auto; }
@@ -366,11 +558,11 @@ export default function LandingPage() {
           color: var(--ink); max-width: 600px; text-wrap: balance;
         }
         .timeline-heading em { font-style: italic; color: var(--crimson); }
-        .timeline { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+        .timeline { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); overflow: hidden; }
         .timeline-item {
           display: grid; grid-template-columns: 200px 1fr;
-          border-bottom: 1px solid var(--border); overflow: hidden;
-          transition: background 0.2s;
+          border-bottom: 1px solid var(--border);
+          transition: background 0.22s var(--ease);
         }
         .timeline-item:last-child { border-bottom: none; }
         @media (hover: hover) and (pointer: fine) {
@@ -416,7 +608,7 @@ export default function LandingPage() {
         }
         .engine-card {
           background: var(--bg); padding: clamp(28px, 3.5vw, 44px);
-          transition: background 0.2s;
+          transition: background 0.22s var(--ease);
         }
         @media (hover: hover) and (pointer: fine) {
           .engine-card:hover { background: oklch(0.10 0.009 20); }
@@ -458,7 +650,7 @@ export default function LandingPage() {
         .manifesto-text {
           font-family: 'Cormorant Garant', serif;
           font-size: clamp(1.7rem, 3.2vw, 3rem);
-          font-weight: 300; line-height: 1.25; letter-spacing: -0.025em;
+          font-weight: 300; line-height: 1.3; letter-spacing: -0.025em;
           color: var(--ink); max-width: 16em; text-wrap: balance;
         }
         .manifesto-text em { color: var(--crimson); font-style: italic; }
@@ -481,7 +673,7 @@ export default function LandingPage() {
           flex: 1; padding: clamp(20px, 3vw, 32px) 20px;
           border-right: 1px solid var(--border);
           display: flex; flex-direction: column; align-items: center; gap: 8px;
-          transition: background 0.2s;
+          transition: background 0.22s var(--ease);
         }
         .lang-item:last-child { border-right: none; }
         @media (hover: hover) and (pointer: fine) {
@@ -510,7 +702,7 @@ export default function LandingPage() {
           background: var(--surface); border: 1px solid var(--border-strong);
           color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 14px;
           padding: 15px 18px; outline: none;
-          transition: border-color 0.18s;
+          transition: border-color 0.18s, box-shadow 0.18s;
         }
         .form-input::placeholder { color: var(--muted); }
         .form-input:focus { border-color: var(--crimson-dim); box-shadow: 0 0 0 3px var(--crimson-glow); }
@@ -593,94 +785,18 @@ export default function LandingPage() {
         <NavBar />
 
         {/* HERO */}
-        <section className="hero">
-          <div className="glow-tl" aria-hidden />
-          <div className="glow-br" aria-hidden />
+        <HeroSection />
 
-          <ParallaxText speed={0.18}>
-            <div className="hero-inner">
-              <motion.div
-                className="hero-kicker"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <span className="hero-kicker-line" />
-                PropTech built for the speed of Dubai
-              </motion.div>
-
-              <h1 className="hero-h1">
-                <SplitReveal text="Your Next Deal" delay={0.35} />
-                <br />
-                <SplitReveal text="Called. Nobody" delay={0.65} />{" "}
-                <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
-                  <motion.span
-                    className="hero-h1-em"
-                    style={{ display: "inline-block", fontFamily: "'Cormorant Garant', serif", fontStyle: "italic", fontWeight: 300 }}
-                    initial={{ y: "105%", opacity: 0 }}
-                    animate={{ y: "0%", opacity: 1 }}
-                    transition={{ duration: 0.72, ease: EASE_OUT, delay: 0.94 }}
-                  >
-                    Answered.
-                  </motion.span>
-                </span>
-              </h1>
-
-              <motion.p
-                className="hero-body"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, ease: EASE_OUT, delay: 1.2 }}
-              >
-                A lead clicks your ad and a clock starts. Within 5 minutes, the probability of qualifying them
-                drops by 80%. The average agent calls back in 47 hours. Simmer calls in 60 seconds, in the
-                lead&apos;s language, with their property matches and mortgage breakdown already prepared.
-              </motion.p>
-
-              <motion.div
-                className="hero-stat-row"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 1.5 }}
-              >
-                {[
-                  { num: "60s", label: "Response time from ad click" },
-                  { num: "78%", label: "Win rate when first to contact" },
-                  { num: "80%", label: "Drop in qualification after 1 hour" },
-                  { num: "47hrs", label: "Industry average response time" },
-                ].map((s) => (
-                  <div className="hero-stat" key={s.num}>
-                    <span className="hero-stat-num">{s.num}</span>
-                    <span className="hero-stat-label">{s.label}</span>
-                  </div>
-                ))}
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, ease: EASE_OUT, delay: 1.7 }}
-              >
-                <SignupForm />
-              </motion.div>
-            </div>
-          </ParallaxText>
-
-          <div className="scroll-hint" aria-hidden>
-            <div className="scroll-hint-line" />
-          </div>
-        </section>
-
-        {/* NARRATIVE */}
+        {/* NARRATIVE — horizontal slide */}
         <section className="section narrative">
           <div className="section-inner">
             <div className="narrative-grid">
-              <ScrollReveal>
+              <ScrollReveal direction="left">
                 <p className="narrative-pull">
                   The gap between interest and contact is where <em>real estate deals die.</em>
                 </p>
               </ScrollReveal>
-              <ScrollReveal delay={0.1}>
+              <ScrollReveal direction="right" delay={0.08}>
                 <div className="narrative-body">
                   <p>
                     A buyer in Moscow clicks your Palm Jumeirah listing at 11pm local time. You are asleep.
@@ -703,7 +819,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* TIMELINE */}
+        {/* TIMELINE — stagger variants */}
         <section className="section timeline-section">
           <div className="section-inner">
             <ScrollReveal>
@@ -711,7 +827,7 @@ export default function LandingPage() {
                 What happens in the <em>60 seconds</em> after a lead clicks your ad.
               </h2>
             </ScrollReveal>
-            <div className="timeline">
+            <StaggerReveal className="timeline" stagger={0.06}>
               {[
                 {
                   time: "T + 0:00",
@@ -748,22 +864,20 @@ export default function LandingPage() {
                   title: "Your agent receives a complete dossier",
                   desc: "Full call transcript, qualification summary, property interests, mortgage data, and school preferences. The agent arrives knowing more about the buyer than most closers learn in three meetings.",
                 },
-              ].map((item, i) => (
-                <ScrollReveal key={item.time} delay={i * 0.04}>
-                  <div className="timeline-item">
-                    <div className="timeline-time">{item.time}</div>
-                    <div className="timeline-content">
-                      <div className="timeline-title">{item.title}</div>
-                      <div className="timeline-desc">{item.desc}</div>
-                    </div>
+              ].map((item) => (
+                <motion.div className="timeline-item" key={item.time} variants={fadeUp}>
+                  <div className="timeline-time">{item.time}</div>
+                  <div className="timeline-content">
+                    <div className="timeline-title">{item.title}</div>
+                    <div className="timeline-desc">{item.desc}</div>
                   </div>
-                </ScrollReveal>
+                </motion.div>
               ))}
-            </div>
+            </StaggerReveal>
           </div>
         </section>
 
-        {/* PARALLEL ENGINE */}
+        {/* PARALLEL ENGINE — stagger variants */}
         <section className="section engine-section">
           <div className="section-inner">
             <ScrollReveal>
@@ -778,59 +892,53 @@ export default function LandingPage() {
                 </p>
               </div>
             </ScrollReveal>
-            <div className="engine-grid">
+            <StaggerReveal className="engine-grid" stagger={0.09}>
               {[
                 {
                   label: "Agent 01",
                   title: "School Mapper",
                   body: "Pulls school ratings, catchment boundaries, tuition fees, and commute times from Google Maps. Families make school access a primary purchase criterion. Simmer delivers the answer before they ask.",
-                  delay: 0,
                 },
                 {
                   label: "Agent 02",
                   title: "Mortgage Calculator",
                   body: "Generates EMI breakdowns tailored to the lead's budget, preferred currency, and local lending rates. Delivered to WhatsApp mid-call so the monthly cost is concrete before the conversation ends.",
-                  delay: 0.08,
                 },
                 {
                   label: "Agent 03",
                   title: "Property Recommender",
                   body: "Filters the full inventory against stated preferences in real time. Surfaces the three best matches before the call ends. The lead receives a shortlist, not a catalogue.",
-                  delay: 0.16,
                 },
                 {
                   label: "Agent 04",
                   title: "Profile Builder",
                   body: "Captures intent signals, investment horizon, family composition, and conversation sentiment. Writes it directly into the CRM. When your agent meets the buyer, the dossier is already there.",
-                  delay: 0.24,
                 },
               ].map((card) => (
-                <ScrollReveal key={card.label} delay={card.delay}>
-                  <div className="engine-card">
-                    <div className="engine-card-label">{card.label}</div>
-                    <h3 className="engine-card-title">{card.title}</h3>
-                    <p className="engine-card-body">{card.body}</p>
-                  </div>
-                </ScrollReveal>
+                <motion.div className="engine-card" key={card.label} variants={fadeUp}>
+                  <div className="engine-card-label">{card.label}</div>
+                  <h3 className="engine-card-title">{card.title}</h3>
+                  <p className="engine-card-body">{card.body}</p>
+                </motion.div>
               ))}
-            </div>
+            </StaggerReveal>
           </div>
         </section>
 
-        {/* MARKET */}
+        {/* MARKET — count-up on 528B */}
         <section className="section market-section">
           <div className="section-inner">
             <div className="market-grid">
-              <ScrollReveal>
+              <ScrollReveal direction="left">
                 <div className="market-stat-block">
-                  <div className="market-big-num">528B</div>
+                  <MarketCount />
                   <p className="market-big-label">
                     AED in Dubai property transactions in 2023 alone, growing at 20% year on year.
                     The fastest-growing luxury market on earth.
                   </p>
                 </div>
               </ScrollReveal>
-              <ScrollReveal delay={0.1}>
+              <ScrollReveal direction="right" delay={0.1}>
                 <div className="market-body">
                   <p>
                     <strong>90% of Dubai buyers are international.</strong> They browse in Russian,
@@ -853,7 +961,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* LANGUAGES */}
+        {/* LANGUAGES — staggered items */}
         <section className="section lang-section">
           <div className="section-inner">
             <ScrollReveal>
@@ -863,34 +971,43 @@ export default function LandingPage() {
                 </h2>
               </div>
             </ScrollReveal>
-            <ScrollReveal delay={0.1}>
-              <div className="lang-row">
-                {[
-                  { flag: "🇦🇪", name: "Arabic" },
-                  { flag: "🇬🇧", name: "English" },
-                  { flag: "🇮🇳", name: "Hindi" },
-                  { flag: "🇷🇺", name: "Russian" },
-                  { flag: "🇨🇳", name: "Mandarin" },
-                ].map((l) => (
-                  <div className="lang-item" key={l.name}>
-                    <span className="lang-flag">{l.flag}</span>
-                    <span className="lang-name">{l.name}</span>
-                  </div>
-                ))}
-              </div>
-            </ScrollReveal>
+            <StaggerReveal className="lang-row" stagger={0.07} delay={0.1}>
+              {[
+                { flag: "🇦🇪", name: "Arabic" },
+                { flag: "🇬🇧", name: "English" },
+                { flag: "🇮🇳", name: "Hindi" },
+                { flag: "🇷🇺", name: "Russian" },
+                { flag: "🇨🇳", name: "Mandarin" },
+              ].map((l) => (
+                <motion.div className="lang-item" key={l.name} variants={fadeUp}>
+                  <span className="lang-flag">{l.flag}</span>
+                  <span className="lang-name">{l.name}</span>
+                </motion.div>
+              ))}
+            </StaggerReveal>
           </div>
         </section>
 
-        {/* MANIFESTO */}
+        {/* MANIFESTO — word-by-word SplitReveal */}
         <section className="section manifesto-section">
           <div className="manifesto-inner">
-            <ScrollReveal>
-              <p className="manifesto-text">
-                We are not building a better chatbot.
-                We are building the <em>response layer</em> for how real estate is sold
-                in every international market on earth.
-              </p>
+            <p className="manifesto-text">
+              <SplitReveal text="We are not building a better chatbot. We are building the" delay={0} />{" "}
+              <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+                <motion.em
+                  className="manifesto-em-word"
+                  style={{ display: "inline-block", fontStyle: "italic", color: "var(--crimson)" }}
+                  initial={{ y: "105%", opacity: 0 }}
+                  whileInView={{ y: "0%", opacity: 1 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.72, ease: EASE_OUT, delay: 1.1 }}
+                >
+                  response&nbsp;layer
+                </motion.em>
+              </span>{" "}
+              <SplitReveal text="for how real estate is sold in every international market on earth." delay={1.3} />
+            </p>
+            <ScrollReveal delay={0.5}>
               <p className="manifesto-caption">
                 The agents who deploy Simmer first will qualify more leads in a week than
                 their competition does in a month. First-mover advantage in a market this
@@ -903,7 +1020,7 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="section cta-section">
           <div className="cta-inner">
-            <ScrollReveal>
+            <ScrollReveal direction="left">
               <h2 className="cta-heading">
                 Get early access before we open <em>to the market.</em>
               </h2>
@@ -912,7 +1029,7 @@ export default function LandingPage() {
                 Early partners will shape the product and lock in founding-tier pricing.
               </p>
             </ScrollReveal>
-            <ScrollReveal delay={0.12}>
+            <ScrollReveal direction="right" delay={0.12}>
               <div className="cta-right">
                 <SignupForm />
               </div>
