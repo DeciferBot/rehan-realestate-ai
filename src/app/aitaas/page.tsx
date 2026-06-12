@@ -481,16 +481,16 @@ export default function AitaasHome() {
       <section className="hp-hero">
         <div className="hp-hero-left">
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
+            initial={{ y: 14 }} animate={{ y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15, ease: E }}
           >
             <span className="hp-tag">AI Workers for Business</span>
           </motion.div>
 
           <motion.h1
             className="hp-h1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.65, ease: E, delay: 0.3 }}
           >
             Your Next Hire<br />
@@ -500,8 +500,8 @@ export default function AitaasHome() {
 
           <motion.p
             className="hp-sub"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 14 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.6, ease: E, delay: 0.5 }}
           >
             Voice and digital agents that call your leads in 60 seconds, book appointments overnight,
@@ -510,8 +510,8 @@ export default function AitaasHome() {
 
           <motion.div
             className="hp-ctas"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 10 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.5, ease: E, delay: 0.7 }}
           >
             <Link href="/aitaas/contact" className="c-btn">Book a Live Demo</Link>
@@ -522,9 +522,9 @@ export default function AitaasHome() {
 
           <motion.div
             className="hp-divider"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1.0 }}
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, delay: 0.9, ease: E }}
           >
             {[
               { val: 9, suffix: "", label: "Agent products" },
