@@ -3,415 +3,487 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { IconArrowRight } from "@/components/AitaasIcons";
+import {
+  IconArrowRight, IconCheck, IconGlobe, IconClock,
+  IconBuilding, IconHospital, IconShoppingBag, IconGraduationCap,
+} from "@/components/AitaasIcons";
 
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-function FadeUp({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
     <motion.div ref={ref} className={className}
-      initial={{ opacity: 0, y: 20 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: E, delay }}
+      initial={{ opacity: 1, y: 18 }}
+      animate={inView ? { y: 0 } : { y: 18 }}
+      transition={{ duration: 0.55, ease: E, delay }}
     >{children}</motion.div>
   );
 }
 
-const FILTERS = ["All", "Voice Agents", "Digital Agents"];
-
-const SOLUTIONS = [
+const AGENTS = [
   {
-    num: "01",
+    id: "property-sales",
     name: "Property Sales Agent",
-    type: "Voice Agents",
-    industry: "Real Estate",
+    tag: "Voice",
     headline: "Calls every lead in 60 seconds. Brochures delivered before they hang up.",
-    description: "Your ads run 24/7 but your team doesn't. The Property Sales Agent calls every inbound lead within 60 seconds of their enquiry — in their language — qualifies their budget, timeline, and preferences, and delivers matched property brochures directly to their WhatsApp mid-call. By the time your human agent gets involved, the viewing is already booked.",
+    body: "Your ads run 24/7. Your team doesn't. This agent calls every inbound lead within 60 seconds of enquiry — in their language — qualifies budget and timeline, delivers matched brochures to WhatsApp mid-call, and books the viewing. By the time your human agent picks up the file, the appointment is already confirmed.",
     capabilities: [
-      "Lead qualification: budget, timeline, lifestyle preferences",
+      "Lead qualification: budget, timeline, preferences",
       "Property matching from live inventory",
-      "Brochure and floor plan delivery via WhatsApp mid-call",
-      "In-office viewing and callback booking",
-      "Mortgage and EMI breakdown in the lead's currency",
-      "School catchment reports for family buyers",
-      "Full call transcript and lead dossier to CRM",
+      "Brochure delivery via WhatsApp mid-call",
+      "Viewing and callback booking",
+      "Mortgage breakdown in the lead's currency",
+      "Full transcript and dossier to CRM",
     ],
     languages: ["Arabic", "English", "Russian", "Hindi", "Mandarin"],
-    model: "Revenue Share (2.5% of closed deal) or Subscription",
-    stat: "78% of deals go to the first responder",
+    pricing: "Revenue share (2.5% closed) or subscription",
+    stat: "78%",
+    statLabel: "of deals go to the first responder",
+    industry: "Real Estate",
   },
   {
-    num: "02",
+    id: "revenue-recovery",
     name: "Revenue Recovery Agent",
-    type: "Voice Agents",
-    industry: "Finance & Collections",
+    tag: "Voice",
     headline: "Recovers overdue payments without a collections team.",
-    description: "Late payments are expensive and awkward. The Revenue Recovery Agent parses your aging receivables, generates personalised statements of account, and runs a structured 15-day collection cadence across voice and WhatsApp. It handles objections, generates payment links in-call, offers payment plans, and escalates only the genuinely difficult cases to your team.",
+    body: "Automated payment calls that sound nothing like a robot. The Revenue Recovery Agent contacts overdue accounts at the right time, in the right language, with empathy and a clear path to resolution. It accepts card payments, sets up installment plans, and updates your billing system in real time.",
     capabilities: [
-      "Aging file parsing and prioritisation",
-      "Personalised statement of account generation",
-      "15-day voice + WhatsApp collection cadence",
-      "Payment link generation mid-call",
-      "Structured payment plan offers",
-      "Objection handling and negotiation flows",
-      "Full escalation to human with context payload",
+      "Overdue account detection via CRM or billing API",
+      "Outbound call in customer's preferred language",
+      "Flexible repayment plan negotiation",
+      "Secure payment link delivery via SMS/WhatsApp",
+      "Escalation routing for high-value accounts",
+      "Real-time billing system updates",
     ],
     languages: ["Arabic", "English", "Hindi", "Urdu"],
-    model: "Subscription from AED 2,500/month",
-    stat: "Up to 3× faster collection cycles",
+    pricing: "Performance share (8–12% of recovered amount) or flat subscription",
+    stat: "3×",
+    statLabel: "recovery rate vs. manual team",
+    industry: "Finance & Collections",
   },
   {
-    num: "03",
-    name: "Healthcare Booking Agent",
-    type: "Voice Agents",
-    industry: "Clinics & Healthcare",
-    headline: "Handles every patient call. Books every appointment. Works nights and weekends.",
-    description: "Your clinic cannot afford to miss a patient call, but staffing a phone line around the clock isn't practical. The Healthcare Booking Agent handles inbound calls for dental practices, medical clinics, and specialist centres — matching patients to the right doctor and room, sending appointment confirmations and preparation guides to WhatsApp, and managing rescheduling without human intervention.",
+    id: "appointment-booking",
+    name: "Appointment Booking Agent",
+    tag: "Voice + Digital",
+    headline: "Converts web enquiries into confirmed bookings without staff intervention.",
+    body: "Every missed call, late-night form, or weekend enquiry becomes a confirmed appointment. The Booking Agent reaches out immediately, qualifies the request, checks live calendar availability, and sends a confirmation — complete with preparation instructions and a branded reminder sequence.",
     capabilities: [
-      "Doctor and specialist matching by symptom and preference",
-      "Room and resource conflict checking",
-      "Appointment confirmation and prep guide delivery",
-      "Insurance pre-authorisation capture",
-      "Reminder and no-show reduction calls",
-      "Post-visit follow-up and review requests",
-      "Multilingual patient communication",
+      "24/7 inbound enquiry response",
+      "Live calendar integration (Google, Outlook, Calendly)",
+      "Multi-resource scheduling with conflict resolution",
+      "Branded SMS and WhatsApp confirmation",
+      "Automated 24h and 1h reminder sequence",
+      "No-show re-booking workflow",
     ],
-    languages: ["Arabic", "English", "Hindi", "Urdu"],
-    model: "Subscription from AED 2,500/month",
-    stat: "Zero missed calls after hours",
+    languages: ["Arabic", "English", "French", "Hindi"],
+    pricing: "Per booking or monthly subscription",
+    stat: "40%",
+    statLabel: "reduction in no-shows",
+    industry: "Healthcare, Beauty, Legal, Education",
   },
   {
-    num: "04",
+    id: "leasing",
+    name: "Leasing Agent",
+    tag: "Voice",
+    headline: "Handles unit enquiries, qualifying, and move-in scheduling end to end.",
+    body: "Rental inventory does not sell itself. The Leasing Agent responds to every portal enquiry, qualifies tenants on income and move-in date, schedules viewings for the right units, and sends the application link — all before a property manager sees the lead.",
+    capabilities: [
+      "Portal and website lead intake",
+      "Tenant qualification: income, move-in date, preferences",
+      "Unit matching from live availability",
+      "Viewing coordination and confirmation",
+      "Application link delivery and follow-up",
+      "Rejection handling with alternative suggestions",
+    ],
+    languages: ["Arabic", "English", "Hindi", "Tagalog"],
+    pricing: "Per signed lease or monthly subscription",
+    stat: "65%",
+    statLabel: "faster time to signed lease",
+    industry: "Real Estate, Property Management",
+  },
+  {
+    id: "cart-recovery",
     name: "Cart Recovery Agent",
-    type: "Voice Agents",
-    industry: "Retail & E-commerce",
-    headline: "Calls abandoned cart customers before your competitors do.",
-    description: "83% of online shopping carts are abandoned. Email re-targeting barely reaches 20% open rates. The Cart Recovery Agent calls your abandoned cart customers within minutes, addresses their objections in their language, generates BNPL payment links for hesitant buyers, and bridges the conversation to WhatsApp for follow-up. It operates across multiple brands simultaneously — one agent, unlimited SKUs.",
+    tag: "Digital",
+    headline: "Recovers abandoned carts with personalised outreach, not bulk SMS blasts.",
+    body: "One-size SMS blasts go unread. This agent reaches customers who abandoned high-value carts with a personalised WhatsApp sequence, offers a time-bound incentive, answers objections in real time, and guides them back to checkout — then closes via a direct payment link.",
     capabilities: [
-      "Abandoned cart and browse detection via webhook",
-      "Outbound voice call within minutes of abandonment",
-      "Objection handling for price, delivery, and trust",
-      "BNPL and instalment link generation",
-      "WhatsApp bridge for product imagery and reviews",
-      "Multi-brand product handling",
-      "Recovery attribution and reporting",
+      "Abandoned cart detection via Shopify/WooCommerce webhook",
+      "Personalised WhatsApp outreach within 15 minutes",
+      "Objection handling in natural language",
+      "Time-bound discount or offer delivery",
+      "Direct-to-checkout payment link",
+      "Post-purchase upsell and review request",
     ],
     languages: ["Arabic", "English", "Hindi"],
-    model: "Subscription + per-call usage",
-    stat: "Reaches buyers before competitors do",
+    pricing: "Revenue share (4–6%) or monthly subscription",
+    stat: "31%",
+    statLabel: "average cart recovery rate",
+    industry: "E-commerce, Retail",
   },
   {
-    num: "05",
+    id: "admissions",
     name: "Admissions Agent",
-    type: "Voice Agents",
-    industry: "Education",
-    headline: "Converts enquiries into enrolments. In every language your students speak.",
-    description: "Universities and schools in the UAE receive enquiries from dozens of nationalities speaking as many languages. The Admissions Agent matches each prospect to the right programme, scores their scholarship eligibility, answers FAQs with verified institutional knowledge, and books campus tours — all in the caller's native language. No wrong department transfers, no missed language.",
+    tag: "Voice + Digital",
+    headline: "Turns programme enquiries into enrolled students without admissions staff overhead.",
+    body: "Prospective students enquire at all hours. The Admissions Agent responds immediately, walks through programme fit, confirms intake dates, answers fee and scholarship questions, and hands the applicant a pre-filled application form — all in the language they asked in.",
     capabilities: [
-      "Programme matching by interest, qualification, and budget",
-      "Scholarship and financial aid eligibility scoring",
-      "Campus tour and open day booking",
-      "Parent and student dual-language handling",
-      "Verified FAQ handling from institutional knowledge base",
-      "Application document checklist delivery via WhatsApp",
-      "Follow-up sequence for unconverted enquiries",
+      "24/7 enquiry response across web, WhatsApp, SMS",
+      "Programme fit and eligibility assessment",
+      "Scholarship and payment plan information",
+      "Application form pre-fill and submission guidance",
+      "Follow-up sequence for incomplete applications",
+      "Open day and tour booking",
     ],
-    languages: ["Arabic", "English", "Hindi", "Urdu", "Mandarin"],
-    model: "Subscription from AED 2,500/month",
-    stat: "35%+ appointment conversion target",
-  },
-  {
-    num: "06",
-    name: "Inbound Qualifier & Proposal Engine",
-    type: "Digital Agents",
-    industry: "Enterprise & Professional Services",
-    headline: "Qualifies every inbound enquiry. Generates a branded proposal before you reply.",
-    description: "Every inbound lead deserves a fast, professional response — but building proposals takes hours. The Inbound Qualifier captures and scores your inbound leads, extracts pricing intelligence, renders a branded Excel or PDF proposal, queues it for executive approval, and auto-sends it on sign-off. Your prospects receive a polished commercial response in hours, not days.",
-    capabilities: [
-      "Inbound call or form qualification",
-      "Lead scoring and prioritisation",
-      "Pricing intelligence and benchmarking",
-      "Branded proposal generation (Excel + PDF)",
-      "Executive approval queue and notification",
-      "Auto-send on approval",
-      "CRM push and follow-up scheduling",
-    ],
-    languages: ["Arabic", "English"],
-    model: "Subscription from AED 5,000/month",
-    stat: "Proposals delivered in hours, not days",
-  },
-  {
-    num: "07",
-    name: "Multilingual Sales Fleet",
-    type: "Digital Agents",
-    industry: "Enterprise & B2B Sales",
-    headline: "An outbound sales team in 7 languages. Operating simultaneously.",
-    description: "Building a multilingual outbound sales team is expensive and slow. The Multilingual Sales Fleet handles LinkedIn prospecting, gatekeeper navigation, outbound calling, and meeting booking across 7 languages simultaneously. Each persona is culturally adapted — not just translated. The fleet handles its own objections, drops voicemails, and advances every qualified prospect toward a booked meeting.",
-    capabilities: [
-      "LinkedIn prospect extraction and enrichment",
-      "Gatekeeper identification and navigation",
-      "Outbound calling in 7 languages with cultural tone matching",
-      "Objection handling and persistence logic",
-      "Voicemail dropping and LinkedIn message sequencing",
-      "Meeting booking direct to calendar",
-      "DNC compliance and contact management",
-    ],
-    languages: ["Arabic", "English", "Hindi", "Urdu", "Russian", "Mandarin", "Egyptian Arabic"],
-    model: "Subscription from AED 7,500/month",
-    stat: "7 languages, 1 deployment",
-  },
-  {
-    num: "08",
-    name: "Social Media Executive",
-    type: "Digital Agents",
-    industry: "Marketing & Media",
-    headline: "Creates, publishes, and optimises your social presence. Autonomously.",
-    description: "Great social media requires daily content, creative consistency, and platform-specific optimisation. The Social Media Executive handles the full content cycle — writing copy, generating images and video, building carousels, scheduling posts, and analysing performance. It operates on your monthly calendar autonomously, surfacing only strategic decisions for human approval.",
-    capabilities: [
-      "Monthly, weekly, and daily content planning",
-      "AI copy generation with brand voice matching",
-      "Image, video, and carousel creation",
-      "Multi-platform publishing and scheduling",
-      "Performance analysis and optimisation",
-      "Brand guideline enforcement",
-      "Monthly content calendar and reporting",
-    ],
-    languages: ["Arabic", "English"],
-    model: "Subscription from AED 5,000/month",
-    stat: "24/7 autonomous content operations",
-  },
-  {
-    num: "09",
-    name: "Business Discovery Agent",
-    type: "Voice Agents",
-    industry: "Professional Services",
-    headline: "Handles every discovery call. Qualifies, pitches, and books the next step.",
-    description: "Your best clients come from your fastest responses. The Business Discovery Agent handles inbound discovery calls — qualifying the prospect's need, sharing relevant capability overviews, and booking follow-up calls with your sales director. It sends a proposal pack to WhatsApp before the call ends. Your team meets only the qualified pipeline.",
-    capabilities: [
-      "Inbound call handling and immediate response",
-      "Needs qualification and scoring",
-      "Capability overview delivery",
-      "Proposal pack generation and WhatsApp delivery",
-      "Sales director calendar booking",
-      "CRM push with full call summary",
-      "Follow-up sequence for cold prospects",
-    ],
-    languages: ["Arabic", "English"],
-    model: "Subscription from AED 2,500/month",
-    stat: "Your team meets only qualified pipeline",
+    languages: ["Arabic", "English", "Hindi", "French", "Mandarin"],
+    pricing: "Per enrolled student or monthly subscription",
+    stat: "2×",
+    statLabel: "increase in application completion",
+    industry: "Education, Training",
   },
 ];
 
+const INDUSTRIES = [
+  { label: "Real Estate", Icon: IconBuilding },
+  { label: "Healthcare", Icon: IconHospital },
+  { label: "E-commerce", Icon: IconShoppingBag },
+  { label: "Education", Icon: IconGraduationCap },
+];
+
 export default function SolutionsPage() {
-  const [filter, setFilter] = useState("All");
-  const filtered = filter === "All" ? SOLUTIONS : SOLUTIONS.filter((s) => s.type === filter);
+  const [active, setActive] = useState<string | null>(null);
 
   return (
     <>
       <style>{`
-        .sp-hero {
-          padding: 140px clamp(20px, 6vw, 88px) 80px;
-          border-bottom: 1px solid var(--a-border);
+        .sol-hero {
+          padding: clamp(120px, 18vw, 180px) 0 clamp(64px, 8vw, 96px);
+          border-bottom: 1px solid var(--c-border);
         }
-        .sp-hero-tag {
-          font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-          color: var(--a-amber); margin-bottom: 24px;
+        .sol-hero-eyebrow {
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--c-copper);
+          margin-bottom: 20px;
         }
-        .sp-hero-head {
-          font-family: 'DM Serif Display', serif;
-          font-size: clamp(2.5rem, 6vw, 5rem);
-          font-weight: 400; line-height: 1.0; letter-spacing: -0.03em;
-          color: var(--a-ink); max-width: 800px; text-wrap: balance;
-          margin-bottom: 28px;
+        .sol-hero-h {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700; text-transform: uppercase;
+          font-size: clamp(3rem, 8vw, 5.5rem);
+          letter-spacing: -0.02em; line-height: 0.95;
+          color: var(--c-ink); margin-bottom: 24px;
+          text-wrap: balance;
         }
-        .sp-hero-head em { font-style: italic; color: var(--a-amber); }
-        .sp-hero-body {
-          font-size: 16px; color: var(--a-ink-2); line-height: 1.75;
-          max-width: 56ch;
+        .sol-hero-sub {
+          font-size: clamp(15px, 2vw, 17px);
+          color: var(--c-ink-2); line-height: 1.65;
+          max-width: 580px;
         }
-        .sp-filters {
-          display: flex; gap: 0; border: 1px solid var(--a-border);
-          width: fit-content; margin-bottom: 64px;
+
+        .sol-grid {
+          padding: clamp(72px, 10vw, 120px) 0;
+          display: flex; flex-direction: column; gap: 2px;
+          border-bottom: 1px solid var(--c-border);
         }
-        .sp-filter {
-          padding: 10px 24px; font-size: 12px; letter-spacing: 0.08em;
-          text-transform: uppercase; cursor: pointer; border: none;
-          background: transparent; color: var(--a-muted);
-          font-family: 'DM Sans', sans-serif; font-weight: 500;
-          border-right: 1px solid var(--a-border); transition: all 0.18s;
+
+        .sol-card {
+          border: 1px solid var(--c-border);
+          background: var(--c-surface);
+          cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;
+          overflow: hidden;
         }
-        .sp-filter:last-child { border-right: none; }
-        .sp-filter.active, .sp-filter:hover { background: var(--a-amber); color: var(--a-bg); }
-        .sp-grid { display: flex; flex-direction: column; gap: 1px; }
-        .sp-card {
-          display: grid; grid-template-columns: 280px 1fr; gap: 0;
-          background: var(--a-surface); border: 1px solid var(--a-border);
-          border-bottom: none; overflow: hidden;
-          transition: background 0.22s;
+        .sol-card:hover { border-color: var(--c-copper); }
+        .sol-card.is-open { border-color: var(--c-copper); background: var(--c-surface2); }
+
+        .sol-card-header {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+          padding: 28px 32px;
+          gap: 20px;
         }
-        .sp-card:last-child { border-bottom: 1px solid var(--a-border); }
-        .sp-card-left {
-          padding: clamp(28px, 4vw, 48px); border-right: 1px solid var(--a-border);
-          display: flex; flex-direction: column; gap: 0;
+        @media (max-width: 600px) { .sol-card-header { padding: 20px; } }
+
+        .sol-card-left { display: flex; align-items: center; gap: 20px; }
+        .sol-card-stat {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700; font-size: clamp(2.2rem, 4vw, 3rem);
+          letter-spacing: -0.02em; color: var(--c-copper);
+          line-height: 1; white-space: nowrap;
+          min-width: 80px;
         }
-        .sp-card-num {
-          font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--a-amber); margin-bottom: 8px;
+        .sol-card-meta { display: flex; flex-direction: column; gap: 4px; }
+        .sol-card-tag {
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--c-muted);
         }
-        .sp-card-industry {
-          font-size: 10px; letter-spacing: 0.10em; text-transform: uppercase;
-          color: var(--a-muted); margin-bottom: 20px;
+        .sol-card-name {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700; font-size: clamp(1.3rem, 3vw, 1.75rem);
+          letter-spacing: -0.01em; color: var(--c-ink);
+          text-transform: uppercase; line-height: 1;
         }
-        .sp-card-name {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.6rem; font-weight: 400; color: var(--a-ink);
-          letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 24px;
+        .sol-card-hl {
+          font-size: 13px; color: var(--c-ink-2); line-height: 1.5;
+          max-width: 420px;
         }
-        .sp-card-langs {
-          display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+        .sol-card-toggle {
+          width: 36px; height: 36px;
+          border: 1px solid var(--c-border); background: transparent;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; flex-shrink: 0;
+          color: var(--c-muted); transition: color 0.15s, border-color 0.15s;
         }
-        .sp-card-lang {
-          font-size: 10px; color: var(--a-muted); letter-spacing: 0.08em;
-          text-transform: uppercase; border: 1px solid var(--a-border);
-          padding: 3px 8px;
+        .sol-card:hover .sol-card-toggle,
+        .sol-card.is-open .sol-card-toggle {
+          color: var(--c-copper); border-color: var(--c-copper);
         }
-        .sp-card-model {
-          font-size: 12px; color: var(--a-amber); margin-top: auto;
-          padding-top: 20px; border-top: 1px solid var(--a-border);
+        .sol-card-toggle svg { transition: transform 0.25s var(--c-ease); }
+        .sol-card.is-open .sol-card-toggle svg { transform: rotate(45deg); }
+
+        .sol-card-body {
+          overflow: hidden;
+          border-top: 1px solid var(--c-border);
         }
-        .sp-card-right {
-          padding: clamp(28px, 4vw, 48px); display: flex; flex-direction: column; gap: 24px;
+        .sol-card-inner {
+          padding: 32px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 40px;
         }
-        .sp-card-headline {
-          font-family: 'DM Serif Display', serif;
-          font-size: 1.25rem; font-weight: 400; color: var(--a-ink);
-          letter-spacing: -0.01em; line-height: 1.3;
+        @media (max-width: 700px) {
+          .sol-card-inner { grid-template-columns: 1fr; gap: 24px; padding: 20px; }
         }
-        .sp-card-desc { font-size: 14px; color: var(--a-ink-2); line-height: 1.8; max-width: 60ch; }
-        .sp-cap-label {
-          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--a-muted); margin-bottom: 14px;
+        .sol-card-desc {
+          font-size: 14px; color: var(--c-ink-2); line-height: 1.7;
+          margin-bottom: 20px;
         }
-        .sp-caps { display: flex; flex-direction: column; gap: 8px; }
-        .sp-cap {
+        .sol-cap-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .sol-cap-item {
           display: flex; align-items: flex-start; gap: 10px;
-          font-size: 13px; color: var(--a-ink-2); line-height: 1.5;
+          font-size: 13px; color: var(--c-ink-2); line-height: 1.5;
         }
-        .sp-cap-dot { color: var(--a-amber); flex-shrink: 0; margin-top: 2px; }
-        .sp-card-stat {
-          font-size: 12px; color: var(--a-amber); letter-spacing: 0.04em;
-          border-top: 1px solid var(--a-border); padding-top: 20px;
+        .sol-cap-icon { flex-shrink: 0; margin-top: 2px; color: var(--c-copper); }
+
+        .sol-meta-col { display: flex; flex-direction: column; gap: 24px; }
+        .sol-meta-block {}
+        .sol-meta-label {
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--c-muted); margin-bottom: 8px;
         }
-        .sp-cta {
-          background: var(--a-surface); border: 1px solid var(--a-border);
-          padding: clamp(40px, 5vw, 72px); margin-top: 72px;
-          display: flex; justify-content: space-between; align-items: center;
-          flex-wrap: wrap; gap: 32px;
+        .sol-meta-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .sol-meta-pill {
+          font-size: 11px; font-weight: 500;
+          padding: 4px 10px;
+          border: 1px solid var(--c-border);
+          color: var(--c-ink-2);
+          display: flex; align-items: center; gap: 5px;
         }
-        .sp-cta-head {
-          font-family: 'DM Serif Display', serif;
-          font-size: clamp(1.6rem, 2.5vw, 2.4rem);
-          font-weight: 400; color: var(--a-ink); letter-spacing: -0.025em;
-          text-wrap: balance; max-width: 480px;
+        .sol-meta-pill svg { color: var(--c-copper); }
+        .sol-meta-pricing {
+          font-size: 13px; color: var(--c-ink-2);
+          border-left: 2px solid var(--c-copper);
+          padding-left: 12px; line-height: 1.5;
         }
-        .sp-cta-head em { font-style: italic; color: var(--a-amber); }
-        @media (max-width: 860px) {
-          .sp-card { grid-template-columns: 1fr; }
-          .sp-card-left { border-right: none; border-bottom: 1px solid var(--a-border); }
+        .sol-card-cta {
+          margin-top: 28px;
+          display: inline-flex; align-items: center; gap: 8px;
+          background: var(--c-copper); color: var(--c-bg);
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+          text-transform: uppercase; padding: 11px 22px;
+          text-decoration: none; transition: opacity 0.15s;
+        }
+        .sol-card-cta:hover { opacity: 0.86; }
+
+        /* Industries strip */
+        .sol-ind {
+          padding: clamp(64px, 8vw, 96px) 0;
+          border-bottom: 1px solid var(--c-border);
+        }
+        .sol-ind-row {
+          display: flex; align-items: center;
+          gap: clamp(32px, 5vw, 64px);
+          flex-wrap: wrap;
+        }
+        .sol-ind-h {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700; text-transform: uppercase;
+          font-size: clamp(1.6rem, 4vw, 2.4rem);
+          letter-spacing: -0.01em; color: var(--c-ink);
+          flex-shrink: 0; min-width: 200px;
+        }
+        .sol-ind-tiles {
+          display: flex; gap: 12px; flex-wrap: wrap; flex: 1;
+        }
+        .sol-ind-tile {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 18px;
+          border: 1px solid var(--c-border);
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 13px; font-weight: 500;
+          color: var(--c-ink-2);
+          transition: border-color 0.2s, color 0.2s;
+        }
+        .sol-ind-tile:hover { border-color: var(--c-copper); color: var(--c-ink); }
+        .sol-ind-tile svg { color: var(--c-copper); }
+
+        /* CTA section */
+        .sol-cta {
+          padding: clamp(80px, 12vw, 140px) 0;
+          text-align: center;
+        }
+        .sol-cta-h {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700; text-transform: uppercase;
+          font-size: clamp(2.5rem, 6vw, 4.5rem);
+          letter-spacing: -0.02em; line-height: 0.95;
+          color: var(--c-ink); margin-bottom: 24px;
+          text-wrap: balance;
+        }
+        .sol-cta-sub {
+          font-size: 15px; color: var(--c-ink-2); margin-bottom: 36px;
+          max-width: 480px; margin-left: auto; margin-right: auto;
+          line-height: 1.65;
         }
       `}</style>
 
-      {/* HERO */}
-      <section className="sp-hero">
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <motion.div className="sp-hero-tag"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >AI Agent Products</motion.div>
-          <motion.h1 className="sp-hero-head"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: E, delay: 0.3 }}
-          >
-            Nine AI workers.<br /><em>One platform.</em>
-          </motion.h1>
-          <motion.p className="sp-hero-body"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: E, delay: 0.5 }}
-          >
-            Every agent is configured from the same battle-tested platform — voice, intelligence, and integrations included.
-            Pick the vertical, set up in ~2 weeks, and deploy a worker that never sleeps.
-          </motion.p>
+      {/* Hero */}
+      <section className="sol-hero c-sect">
+        <div className="c-wrap">
+          <Reveal>
+            <p className="sol-hero-eyebrow">AI Agents</p>
+            <h1 className="sol-hero-h">Six agents.<br />Every revenue gap covered.</h1>
+            <p className="sol-hero-sub">Voice and digital agents for every stage of the customer journey — from first enquiry to collected payment. Each one is built for a specific outcome, not a general capability.</p>
+          </Reveal>
         </div>
       </section>
 
-      {/* SOLUTIONS */}
-      <section className="a-section">
-        <div className="a-inner">
-          <FadeUp>
-            <div className="sp-filters">
-              {FILTERS.map((f) => (
-                <button
-                  key={f}
-                  className={`sp-filter${filter === f ? " active" : ""}`}
-                  onClick={() => setFilter(f)}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </FadeUp>
-
-          <div className="sp-grid">
-            {filtered.map((sol, i) => (
-              <FadeUp key={sol.num} delay={i * 0.04}>
-                <div className="sp-card">
-                  <div className="sp-card-left">
-                    <div className="sp-card-num">{sol.num}</div>
-                    <div className="sp-card-industry">{sol.industry}</div>
-                    <h2 className="sp-card-name">{sol.name}</h2>
-                    <div className="sp-card-langs">
-                      {sol.languages.map((l) => (
-                        <span key={l} className="sp-card-lang">{l}</span>
-                      ))}
+      {/* Agents accordion */}
+      <section className="c-wrap">
+        <div className="sol-grid">
+          {AGENTS.map((agent, i) => {
+            const open = active === agent.id;
+            return (
+              <div
+                key={agent.id}
+                className={`sol-card${open ? " is-open" : ""}`}
+                onClick={() => setActive(open ? null : agent.id)}
+              >
+                <div className="sol-card-header">
+                  <div className="sol-card-left">
+                    <div className="sol-card-stat">{agent.stat}</div>
+                    <div className="sol-card-meta">
+                      <span className="sol-card-tag">{agent.tag} · {agent.industry}</span>
+                      <span className="sol-card-name">{agent.name}</span>
+                      <span className="sol-card-hl">{agent.headline}</span>
                     </div>
-                    <div className="sp-card-model">{sol.model}</div>
                   </div>
-                  <div className="sp-card-right">
-                    <h3 className="sp-card-headline">{sol.headline}</h3>
-                    <p className="sp-card-desc">{sol.description}</p>
-                    <div>
-                      <div className="sp-cap-label">Capabilities</div>
-                      <div className="sp-caps">
-                        {sol.capabilities.map((c) => (
-                          <div key={c} className="sp-cap">
-                            <span className="sp-cap-dot">·</span>
-                            <span>{c}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="sp-card-stat">{sol.stat}</div>
-                  </div>
+                  <button className="sol-card-toggle" aria-label={open ? "Collapse" : "Expand"} onClick={(e) => { e.stopPropagation(); setActive(open ? null : agent.id); }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                  </button>
                 </div>
-              </FadeUp>
-            ))}
-          </div>
 
-          <FadeUp delay={0.1}>
-            <div className="sp-cta">
-              <h2 className="sp-cta-head">
-                Not sure which agent your business needs? <em>Talk to us.</em>
-              </h2>
-              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                <Link href="/aitaas/contact" className="a-btn">Book a Discovery Call</Link>
-                <Link href="/aitaas/pricing" className="a-btn a-btn--ghost" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>View Pricing <IconArrowRight size={14} color="currentColor" /></Link>
+                <motion.div
+                  className="sol-card-body"
+                  initial={false}
+                  animate={{ height: open ? "auto" : 0 }}
+                  transition={{ duration: 0.38, ease: E }}
+                >
+                  <div className="sol-card-inner">
+                    <div>
+                      <p className="sol-card-desc">{agent.body}</p>
+                      <ul className="sol-cap-list">
+                        {agent.capabilities.map((c) => (
+                          <li key={c} className="sol-cap-item">
+                            <span className="sol-cap-icon"><IconCheck size={13} /></span>
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="sol-meta-col">
+                      <div className="sol-meta-block">
+                        <p className="sol-meta-label">Languages</p>
+                        <div className="sol-meta-pills">
+                          {agent.languages.map((l) => (
+                            <span key={l} className="sol-meta-pill">
+                              <IconGlobe size={10} /> {l}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="sol-meta-block">
+                        <p className="sol-meta-label">Pricing model</p>
+                        <p className="sol-meta-pricing">{agent.pricing}</p>
+                      </div>
+                      <div className="sol-meta-block">
+                        <p className="sol-meta-label">Key result</p>
+                        <p className="sol-meta-pricing" style={{ borderColor: "var(--c-border)" }}>
+                          <strong style={{ color: "var(--c-copper)" }}>{agent.stat}</strong> {agent.statLabel}
+                        </p>
+                      </div>
+                      <Link
+                        href="/aitaas/contact"
+                        className="sol-card-cta"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Deploy this agent <IconArrowRight size={12} />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Industries */}
+      <section className="sol-ind">
+        <div className="c-wrap">
+          <Reveal>
+            <div className="sol-ind-row">
+              <h2 className="sol-ind-h">Industries served</h2>
+              <div className="sol-ind-tiles">
+                {INDUSTRIES.map(({ label, Icon }) => (
+                  <div key={label} className="sol-ind-tile">
+                    <Icon size={15} /> {label}
+                  </div>
+                ))}
+                <div className="sol-ind-tile">
+                  <IconClock size={15} /> Hospitality
+                </div>
+                <div className="sol-ind-tile">
+                  <IconGlobe size={15} /> Automotive
+                </div>
+                <div className="sol-ind-tile">
+                  <IconGlobe size={15} /> Financial Services
+                </div>
               </div>
             </div>
-          </FadeUp>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="sol-cta">
+        <div className="c-wrap">
+          <Reveal>
+            <h2 className="sol-cta-h">Not sure which<br />agent fits your problem?</h2>
+            <p className="sol-cta-sub">Book a 30-minute call. We will map your revenue gaps to the right agents and show you a working prototype before any commitment.</p>
+            <Link href="/aitaas/contact" className="c-btn">
+              Book a discovery call <IconArrowRight size={13} />
+            </Link>
+          </Reveal>
         </div>
       </section>
     </>
