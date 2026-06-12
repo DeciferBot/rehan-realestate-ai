@@ -9,11 +9,11 @@ function rgba(c: { r: number; g: number; b: number }, a: number) {
 }
 
 const RINGS = [
-  { rFrac: 0.44, spd: 0.00032, segs: 10, fill: 0.3,  lw: 0.5, a: 0.14 },
-  { rFrac: 0.35, spd: -0.00055, segs: 14, fill: 0.18, lw: 0.5, a: 0.09 },
-  { rFrac: 0.26, spd: 0.00092, segs: 7,  fill: 0.48, lw: 0.7, a: 0.18 },
-  { rFrac: 0.17, spd: -0.0015, segs: 5,  fill: 0.55, lw: 0.8, a: 0.26 },
-  { rFrac: 0.09, spd: 0.0026,  segs: 3,  fill: 0.7,  lw: 1.2, a: 0.42 },
+  { rFrac: 0.44, spd: 0.00032,  segs: 10, fill: 0.30, lw: 0.8, a: 0.30 },
+  { rFrac: 0.35, spd: -0.00055, segs: 14, fill: 0.18, lw: 0.8, a: 0.20 },
+  { rFrac: 0.26, spd: 0.00092,  segs: 7,  fill: 0.48, lw: 1.0, a: 0.35 },
+  { rFrac: 0.17, spd: -0.0015,  segs: 5,  fill: 0.55, lw: 1.3, a: 0.48 },
+  { rFrac: 0.09, spd: 0.0026,   segs: 3,  fill: 0.70, lw: 2.0, a: 0.70 },
 ];
 
 export default function AitaasHeroCanvas({
@@ -61,8 +61,8 @@ export default function AitaasHeroCanvas({
       for (let gx = gs; gx < W; gx += gs) {
         for (let gy = gs; gy < H; gy += gs) {
           const d = Math.hypot(gx - cx, gy - cy);
-          const a = Math.max(0, 0.05 - d / (base * 2.4));
-          if (a > 0.003) {
+          const a = Math.max(0, 0.09 - d / (base * 2.0));
+          if (a > 0.004) {
             ctx.beginPath();
             ctx.arc(gx, gy, 0.7, 0, Math.PI * 2);
             ctx.fillStyle = rgba(COPPER, a);
@@ -99,25 +99,28 @@ export default function AitaasHeroCanvas({
         ctx.fill();
       });
 
-      // Central orb
-      const or = 22 + pulse * 5;
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, or * 5);
-      g.addColorStop(0, rgba(COPPER, 0.1 + pulse * 0.06));
-      g.addColorStop(1, rgba(COPPER, 0));
+      // Central orb — large ambient glow
+      const or = 26 + pulse * 7;
+      const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, or * 8);
+      g1.addColorStop(0, rgba(COPPER, 0.18 + pulse * 0.1));
+      g1.addColorStop(0.4, rgba(COPPER, 0.06 + pulse * 0.04));
+      g1.addColorStop(1, rgba(COPPER, 0));
       ctx.beginPath();
-      ctx.arc(cx, cy, or * 5, 0, Math.PI * 2);
-      ctx.fillStyle = g;
+      ctx.arc(cx, cy, or * 8, 0, Math.PI * 2);
+      ctx.fillStyle = g1;
       ctx.fill();
 
+      // Orb ring
       ctx.beginPath();
       ctx.arc(cx, cy, or, 0, Math.PI * 2);
-      ctx.strokeStyle = rgba(COPPER, 0.5 + pulse * 0.28);
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = rgba(COPPER, 0.7 + pulse * 0.3);
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
+      // Orb fill
       ctx.beginPath();
-      ctx.arc(cx, cy, or * 0.45, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(COPPER, 0.18 + pulse * 0.1);
+      ctx.arc(cx, cy, or * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(COPPER, 0.25 + pulse * 0.15);
       ctx.fill();
 
       raf.current = requestAnimationFrame(tick);

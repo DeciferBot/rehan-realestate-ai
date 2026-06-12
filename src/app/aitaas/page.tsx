@@ -160,7 +160,7 @@ export default function AitaasHome() {
         .hp-hero-canvas-bg {
           position: absolute; inset: 0; z-index: 3;
           pointer-events: none;
-          opacity: 0.45;
+          opacity: 0.82;
         }
         .hp-hero-content {
           position: relative; z-index: 4;
@@ -317,11 +317,17 @@ export default function AitaasHome() {
         }
         @media (max-width: 860px) {
           .hp-hero-row { grid-template-columns: 1fr; }
-          .hp-stats { grid-template-columns: repeat(4, 1fr); }
-          .hp-h1 { font-size: clamp(3.6rem, 12vw, 6rem); }
-        }
-        @media (max-width: 500px) {
           .hp-stats { grid-template-columns: repeat(2, 1fr); }
+          .hp-h1 { font-size: clamp(3rem, 10vw, 5rem); }
+          .hp-hero-content {
+            padding-top: clamp(64px, 8vw, 100px);
+            padding-bottom: clamp(48px, 6vh, 72px);
+          }
+          .hp-hero {
+            justify-content: flex-end;
+          }
+          .hp-hud-status { display: none; }
+          .hp-hud-bottom { left: 20px; right: 20px; }
         }
 
         /* ─── TICKER ────────────────────────────────────────── */
