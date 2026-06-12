@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import { IconArrowRight, IconCheck } from "@/components/AitaasIcons";
 
 const AitaasCanvas = dynamic(() => import("@/components/AitaasCanvas"), { ssr: false });
-const AitaasHeroCanvas = dynamic(() => import("@/components/AitaasHeroCanvas"), { ssr: false });
+const AitaasCallDemo = dynamic(() => import("@/components/AitaasCallDemo"), { ssr: false });
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -62,69 +62,7 @@ const INTEGRATIONS = [
   "Property Finder", "Bayut", "Twilio", "Zapier", "Zoho CRM",
 ];
 
-const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/*-+#@";
-const HEADLINE = "YOUR NEXT HIRE\nIS AN AI AGENT.";
-
 export default function AitaasHome() {
-  const h1Ref = useRef<HTMLHeadingElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
-  const mouseNorm = useRef({ x: 0.5, y: 0.5 });
-  const trx = useRef(0), try_ = useRef(0), crx = useRef(0), cry = useRef(0);
-  const rafId = useRef<number>(0);
-  const [heroText, setHeroText] = useState("");
-  const [heroDone, setHeroDone] = useState(false);
-  const [showSub, setShowSub] = useState(false);
-
-  // Glitch typewriter
-  useEffect(() => {
-    let i = 0;
-    const iv = setInterval(() => {
-      const revealed = HEADLINE.slice(0, i);
-      const tail = Math.min(4, HEADLINE.length - i);
-      let glitch = "";
-      for (let g = 0; g < tail; g++) glitch += GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
-      setHeroText(revealed + glitch);
-      i++;
-      if (i > HEADLINE.length) {
-        clearInterval(iv);
-        setHeroText(HEADLINE);
-        setHeroDone(true);
-        setTimeout(() => setShowSub(true), 200);
-      }
-    }, 38);
-    return () => clearInterval(iv);
-  }, []);
-
-  // Mouse parallax on h1
-  useEffect(() => {
-    const hero = heroRef.current;
-    const h1 = h1Ref.current;
-    if (!hero || !h1) return;
-    const onMove = (e: MouseEvent) => {
-      const r = hero.getBoundingClientRect();
-      const nx = (e.clientX - r.left) / r.width;
-      const ny = (e.clientY - r.top) / r.height;
-      mouseNorm.current = { x: nx, y: ny };
-      trx.current = (ny - 0.5) * -3.5;
-      try_.current = (nx - 0.5) * 3.5;
-    };
-    const onLeave = () => { trx.current = 0; try_.current = 0; mouseNorm.current = { x: 0.5, y: 0.5 }; };
-    const tick = () => {
-      crx.current += (trx.current - crx.current) * 0.055;
-      cry.current += (try_.current - cry.current) * 0.055;
-      h1.style.transform = `perspective(700px) rotateX(${crx.current}deg) rotateY(${cry.current}deg)`;
-      rafId.current = requestAnimationFrame(tick);
-    };
-    hero.addEventListener("mousemove", onMove);
-    hero.addEventListener("mouseleave", onLeave);
-    rafId.current = requestAnimationFrame(tick);
-    return () => {
-      hero.removeEventListener("mousemove", onMove);
-      hero.removeEventListener("mouseleave", onLeave);
-      cancelAnimationFrame(rafId.current);
-    };
-  }, []);
-
   return (
     <>
       <style>{`
@@ -133,8 +71,7 @@ export default function AitaasHome() {
           position: relative;
           min-height: 100svh;
           display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
+          align-items: center;
           overflow: hidden;
         }
         .hp-hero-bg {
@@ -147,30 +84,30 @@ export default function AitaasHome() {
           width: 100%; height: 100%;
           object-fit: cover; object-position: center 30%;
           z-index: 1;
-          opacity: 0.28;
-          filter: saturate(0.3) brightness(0.7);
-          transition: opacity 0.8s;
+          opacity: 0.22;
+          filter: saturate(0.3) brightness(0.65);
         }
         .hp-hero-overlay {
           position: absolute; inset: 0; z-index: 2;
           background:
-            linear-gradient(to top, oklch(0.04 0.008 260) 0%, oklch(0.04 0.008 260 / 0.5) 50%, transparent 100%),
-            linear-gradient(to right, oklch(0.04 0.008 260 / 0.85) 0%, transparent 60%);
+            linear-gradient(to top, oklch(0.04 0.008 260) 0%, oklch(0.04 0.008 260 / 0.45) 45%, transparent 100%),
+            linear-gradient(to right, oklch(0.04 0.008 260 / 0.9) 0%, oklch(0.04 0.008 260 / 0.3) 55%, transparent 100%);
         }
-        .hp-hero-canvas-bg {
-          position: absolute; inset: 0; z-index: 3;
-          pointer-events: none;
-          opacity: 0.82;
-        }
-        .hp-hero-content {
+        .hp-hero-inner {
           position: relative; z-index: 4;
-          padding: clamp(100px, 12vw, 160px) clamp(20px, 5vw, 72px) clamp(64px, 8vh, 100px);
-          max-width: 1140px;
+          width: 100%; max-width: 1320px; margin: 0 auto;
+          padding: clamp(110px, 15vh, 170px) clamp(20px, 5vw, 72px) clamp(56px, 8vh, 96px);
+          display: grid;
+          grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+          gap: clamp(40px, 6vw, 96px);
+          align-items: center;
         }
+        .hp-hero-demo { justify-self: end; width: 100%; display: flex; justify-content: flex-end; }
+
         .hp-tag {
           display: inline-flex; align-items: center; gap: 10px;
           font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
-          text-transform: uppercase; color: var(--c-copper); margin-bottom: 32px;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 28px;
         }
         .hp-tag::before {
           content: ''; display: block; width: 24px; height: 1px;
@@ -179,155 +116,75 @@ export default function AitaasHome() {
         .hp-h1 {
           font-family: 'Barlow Condensed', sans-serif;
           font-weight: 700; text-transform: uppercase;
-          font-size: clamp(3.2rem, 5.5vw, 6rem);
-          line-height: 0.92; letter-spacing: -0.02em;
-          color: var(--c-ink); margin-bottom: 32px;
-          max-width: 16ch; white-space: pre-line;
-          transform-style: preserve-3d;
-          min-height: 1.86em;
+          font-size: clamp(3.4rem, 6vw, 6rem);
+          line-height: 0.94; letter-spacing: -0.02em;
+          color: var(--c-ink); margin-bottom: 28px;
         }
-        .hp-h1-cursor {
-          display: inline-block; width: 4px; height: 0.8em;
-          background: var(--c-copper); vertical-align: middle;
-          margin-left: 6px;
-          animation: hp-blink 0.65s step-end infinite;
-        }
-        @keyframes hp-blink { 50% { opacity: 0; } }
+        .hp-h1 em { font-style: normal; color: var(--c-copper); }
 
-        /* HUD corners */
-        .hp-hud-corner {
-          position: absolute; width: 32px; height: 32px; z-index: 5;
-          opacity: 0; animation: hp-fi 0.4s ease forwards;
+        /* Masked line reveal */
+        .hp-line { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+        .hp-line-inner {
+          display: inline-block;
+          transform: translateY(112%);
+          animation: hp-line-up 0.85s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
-        .hp-hud-corner svg { display: block; }
-        .hp-hud-tl { top: 20px; left: 20px; animation-delay: 0.2s; }
-        .hp-hud-tr { top: 20px; right: 20px; animation-delay: 0.3s; }
-        .hp-hud-bl { bottom: 20px; left: 20px; animation-delay: 0.4s; }
-        .hp-hud-br { bottom: 20px; right: 20px; animation-delay: 0.5s; }
+        @keyframes hp-line-up { to { transform: translateY(0); } }
 
-        /* Scan line */
-        .hp-scan {
-          position: absolute; left: 0; right: 0; height: 1px; z-index: 5;
-          background: linear-gradient(to right, transparent 0%, var(--c-copper) 30%, oklch(0.72 0.17 34 / 0.9) 50%, var(--c-copper) 70%, transparent 100%);
-          opacity: 0;
-          animation: hp-scan 5s ease-in-out 1s infinite;
+        /* Rise-in for secondary content */
+        .hp-rise {
+          opacity: 0; transform: translateY(16px);
+          animation: hp-rise-in 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
-        @keyframes hp-scan {
-          0%   { top: -1px; opacity: 0; }
-          3%   { opacity: 1; }
-          97%  { opacity: 0.7; }
-          100% { top: 100%; opacity: 0; }
+        @keyframes hp-rise-in { to { opacity: 1; transform: translateY(0); } }
+
+        .hp-demo-in {
+          opacity: 0; transform: translateY(28px);
+          animation: hp-rise-in 0.9s cubic-bezier(0.23, 1, 0.32, 1) 0.55s forwards;
         }
 
-        /* HUD status */
-        .hp-hud-status {
-          position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
-          display: flex; align-items: center; gap: 8px; z-index: 6;
-          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: oklch(0.72 0.17 34 / 0.5); white-space: nowrap;
-          opacity: 0; animation: hp-fi 0.5s ease 0.7s forwards;
-        }
-        .hp-hud-dot {
-          width: 5px; height: 5px; border-radius: 50%;
-          background: var(--c-copper); flex-shrink: 0;
-          animation: hp-pulse 2.2s ease-in-out 1s infinite;
-        }
-        @keyframes hp-pulse {
-          0%,100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.72 0.17 34 / 0.6); }
-          50%     { opacity: 0.6; box-shadow: 0 0 0 7px oklch(0.72 0.17 34 / 0); }
-        }
-
-        /* HUD side panels */
-        .hp-hud-panel {
-          position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
-          display: flex; flex-direction: column; gap: 24px;
-          opacity: 0; animation: hp-fi 0.6s ease 2.4s forwards;
-        }
-        .hp-hud-panel-l { left: 24px; align-items: flex-start; }
-        .hp-hud-panel-r { right: 24px; align-items: flex-end; }
-        .hp-hud-dv {
-          font-family: 'Barlow Condensed', sans-serif;
-          font-size: 1.5rem; font-weight: 700;
-          color: var(--c-copper); line-height: 1;
-          font-variant-numeric: tabular-nums;
-        }
-        .hp-hud-dl {
-          font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
-          color: oklch(0.72 0.17 34 / 0.3); margin-top: 2px;
-        }
-
-        /* HUD bottom bar */
-        .hp-hud-bottom {
-          position: absolute; bottom: 20px; left: 64px; right: 64px; z-index: 6;
-          display: flex; align-items: center; gap: 12px;
-          opacity: 0; animation: hp-fi 0.5s ease 2.8s forwards;
-        }
-        .hp-hud-blbl {
-          font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
-          color: oklch(0.72 0.17 34 / 0.28); white-space: nowrap;
-        }
-        .hp-hud-track {
-          flex: 1; height: 1px; background: oklch(0.72 0.17 34 / 0.1);
-          position: relative; overflow: hidden;
-        }
-        .hp-hud-fill {
-          position: absolute; top: 0; left: 0; height: 100%;
-          background: oklch(0.72 0.17 34 / 0.45);
-          width: 0; animation: hp-prog 3.5s cubic-bezier(0.23,1,0.32,1) 1.4s forwards;
-        }
-        @keyframes hp-prog { to { width: 68%; } }
-        @keyframes hp-fi { to { opacity: 1; } }
-
-        @media (max-width: 860px) { .hp-hud-panel { display: none; } }
-        @media (prefers-reduced-motion: reduce) {
-          .hp-h1-cursor, .hp-scan, .hp-hud-dot { animation: none !important; opacity: 1 !important; }
-          .hp-hud-corner, .hp-hud-status, .hp-hud-panel, .hp-hud-bottom { animation: none !important; opacity: 1 !important; }
-          .hp-hud-fill { width: 68% !important; animation: none !important; }
-        }
-        .hp-hero-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: clamp(32px, 5vw, 80px);
-          align-items: end;
-          padding-top: 0;
-        }
         .hp-sub {
-          font-size: clamp(15px, 1.6vw, 18px); line-height: 1.7;
-          color: var(--c-ink-2); max-width: 44ch; margin-bottom: 40px;
+          font-size: clamp(15px, 1.6vw, 17px); line-height: 1.7;
+          color: var(--c-ink-2); max-width: 42ch; margin-bottom: 36px;
         }
-        .hp-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-        .hp-stats {
-          display: grid; grid-template-columns: repeat(2, 1fr);
-          gap: 1px; background: oklch(0.72 0.17 34 / 0.25);
-          border: 1px solid oklch(0.72 0.17 34 / 0.25);
+        .hp-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 44px; }
+
+        /* Inline proof row */
+        .hp-proof {
+          display: flex; align-items: center; gap: clamp(24px, 3vw, 40px);
+          flex-wrap: wrap;
         }
-        .hp-stat {
-          padding: 24px 28px; background: oklch(0.07 0.012 260 / 0.9);
-          backdrop-filter: blur(12px);
-        }
-        .hp-stat-num {
+        .hp-proof-item { display: flex; flex-direction: column; gap: 3px; }
+        .hp-proof-num {
           font-family: 'Barlow Condensed', sans-serif;
-          font-weight: 700; font-size: clamp(2.2rem, 3.5vw, 3.2rem);
-          letter-spacing: -0.02em; color: var(--c-copper); line-height: 1;
-          margin-bottom: 4px;
+          font-weight: 700; font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+          letter-spacing: -0.01em; color: var(--c-ink); line-height: 1;
         }
-        .hp-stat-label {
-          font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+        .hp-proof-num em { font-style: normal; color: var(--c-copper); }
+        .hp-proof-label {
+          font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em;
           text-transform: uppercase; color: var(--c-muted);
         }
+        .hp-proof-sep {
+          width: 1px; height: 32px; background: var(--c-border);
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 1020px) {
+          .hp-hero-inner { grid-template-columns: 1fr; gap: 56px; }
+          .hp-hero-demo { justify-self: stretch; justify-content: center; }
+        }
         @media (max-width: 860px) {
-          .hp-hero-row { grid-template-columns: 1fr; }
-          .hp-stats { grid-template-columns: repeat(2, 1fr); }
           .hp-h1 { font-size: clamp(3rem, 10vw, 5rem); }
-          .hp-hero-content {
-            padding-top: clamp(64px, 8vw, 100px);
-            padding-bottom: clamp(48px, 6vh, 72px);
+          .hp-hero-inner {
+            padding-top: clamp(96px, 14vh, 130px);
+            padding-bottom: clamp(40px, 6vh, 64px);
           }
-          .hp-hero {
-            justify-content: flex-end;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hp-line-inner, .hp-rise, .hp-demo-in {
+            animation: none; opacity: 1; transform: none;
           }
-          .hp-hud-status { display: none; }
-          .hp-hud-bottom { left: 20px; right: 20px; }
         }
 
         /* ─── TICKER ────────────────────────────────────────── */
@@ -882,7 +739,7 @@ export default function AitaasHome() {
       `}</style>
 
       {/* ══ HERO ══════════════════════════════════════════════ */}
-      <section className="hp-hero" ref={heroRef}>
+      <section className="hp-hero">
         <div className="hp-hero-bg" />
         <ImgWithFallback
           src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1800&q=75"
@@ -890,86 +747,50 @@ export default function AitaasHome() {
           className="hp-hero-photo"
         />
         <div className="hp-hero-overlay" />
-        <div className="hp-hero-canvas-bg">
-          <AitaasHeroCanvas mouseRef={mouseNorm} />
-        </div>
 
-        {/* HUD corners */}
-        {(["tl","tr","bl","br"] as const).map((pos) => (
-          <div key={pos} className={`hp-hud-corner hp-hud-${pos}`}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
-              {pos === "tl" && <path d="M1 16 L1 1 L16 1" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
-              {pos === "tr" && <path d="M31 16 L31 1 L16 1" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
-              {pos === "bl" && <path d="M1 16 L1 31 L16 31" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
-              {pos === "br" && <path d="M31 16 L31 31 L16 31" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
-            </svg>
-          </div>
-        ))}
-
-        {/* Scan line */}
-        <div className="hp-scan" aria-hidden />
-
-        {/* Status bar */}
-        <div className="hp-hud-status">
-          <span className="hp-hud-dot" />
-          7 agents active — all systems nominal
-        </div>
-
-        {/* Bottom progress bar */}
-        <div className="hp-hud-bottom">
-          <span className="hp-hud-blbl">Agent capacity</span>
-          <div className="hp-hud-track"><div className="hp-hud-fill" /></div>
-          <span className="hp-hud-blbl" style={{ color: "oklch(0.72 0.17 34 / 0.5)" }}>68%</span>
-        </div>
-
-        <div className="hp-hero-content">
-          <motion.span
-            className="hp-tag"
-            initial={{ y: 14 }} animate={{ y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: E }}
-          >
-            AI Workers for Business
-          </motion.span>
-          <h1 className="hp-h1" ref={h1Ref}>
-            {heroText}
-            {!heroDone && <span className="hp-h1-cursor" aria-hidden />}
-          </h1>
-          <div className="hp-hero-row">
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: showSub ? 1 : 0, y: showSub ? 0 : 14 }}
-              transition={{ duration: 0.6, ease: E }}
-            >
-              <p className="hp-sub">
-                Voice and digital agents that call your leads in 60 seconds, book appointments overnight,
-                recover overdue payments, and run follow-ups — in 7 languages, around the clock.
-              </p>
-              <div className="hp-ctas">
-                <Link href="/aitaas/contact" className="c-btn">Book a live demo</Link>
-                <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
-                  View all agents <IconArrowRight size={13} color="currentColor" />
-                </Link>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: showSub ? 1 : 0, y: showSub ? 0 : 10 }}
-              transition={{ duration: 0.55, ease: E, delay: 0.15 }}
-            >
-              <div className="hp-stats">
-                {[
-                  { val: 9, suffix: "", label: "Agent products" },
-                  { val: 7, suffix: "", label: "Languages" },
-                  { val: 60, suffix: "s", label: "First response" },
-                  { val: 14, suffix: "d", label: "To go live" },
-                ].map((s) => (
-                  <div key={s.label} className="hp-stat">
-                    <div className="hp-stat-num"><Count to={s.val} suffix={s.suffix} /></div>
-                    <div className="hp-stat-label">{s.label}</div>
+        <div className="hp-hero-inner">
+          <div>
+            <span className="hp-tag hp-rise" style={{ animationDelay: "0.05s" }}>
+              AI Workers for Business
+            </span>
+            <h1 className="hp-h1">
+              <span className="hp-line">
+                <span className="hp-line-inner" style={{ animationDelay: "0.12s" }}>Your next hire</span>
+              </span>
+              <span className="hp-line">
+                <span className="hp-line-inner" style={{ animationDelay: "0.26s" }}>is an <em>AI agent.</em></span>
+              </span>
+            </h1>
+            <p className="hp-sub hp-rise" style={{ animationDelay: "0.44s" }}>
+              Voice and digital agents that call your leads in 60 seconds, book appointments
+              overnight, recover overdue payments, and follow up in 7 languages, around the clock.
+            </p>
+            <div className="hp-ctas hp-rise" style={{ animationDelay: "0.56s" }}>
+              <Link href="/aitaas/contact" className="c-btn">Book a live demo</Link>
+              <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
+                View all agents <IconArrowRight size={13} color="currentColor" />
+              </Link>
+            </div>
+            <div className="hp-proof hp-rise" style={{ animationDelay: "0.7s" }}>
+              {[
+                { num: <>60<em>s</em></>, label: "First response" },
+                { num: <>7</>, label: "Languages" },
+                { num: <>24<em>/7</em></>, label: "Always on" },
+                { num: <>14<em>d</em></>, label: "To go live" },
+              ].map((p, i) => (
+                <div key={p.label} style={{ display: "flex", alignItems: "center", gap: "clamp(24px, 3vw, 40px)" }}>
+                  {i > 0 && <span className="hp-proof-sep" aria-hidden />}
+                  <div className="hp-proof-item">
+                    <span className="hp-proof-num">{p.num}</span>
+                    <span className="hp-proof-label">{p.label}</span>
                   </div>
-                ))}
-              </div>
-            </motion.div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hp-hero-demo hp-demo-in">
+            <AitaasCallDemo />
           </div>
         </div>
       </section>
