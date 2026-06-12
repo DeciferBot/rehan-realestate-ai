@@ -1,27 +1,23 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform, animate, useInView } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { motion, useInView, animate, useMotionValue, useTransform } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { IconArrowRight, IconCheck } from "@/components/AitaasIcons";
 
 const AitaasCanvas = dynamic(() => import("@/components/AitaasCanvas"), { ssr: false });
-
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
-    <motion.div
-      ref={ref} className={className}
-      initial={{ opacity: 1, y: 18 }}
-      animate={inView ? { y: 0 } : { y: 18 }}
-      transition={{ duration: 0.55, ease: E, delay }}
-    >
-      {children}
-    </motion.div>
+    <motion.div ref={ref} className={className}
+      initial={{ opacity: 1, y: 24 }}
+      animate={inView ? { y: 0 } : { y: 24 }}
+      transition={{ duration: 0.6, ease: E, delay }}
+    >{children}</motion.div>
   );
 }
 
@@ -32,829 +28,866 @@ function Count({ to, suffix = "" }: { to: number; suffix?: string }) {
   const inView = useInView(ref as React.RefObject<Element>, { once: true });
   useEffect(() => {
     if (!inView) return;
-    const c = animate(mv, to, { duration: 1.4, ease: [0.16, 1, 0.3, 1] });
+    const c = animate(mv, to, { duration: 1.6, ease: [0.16, 1, 0.3, 1] });
     return () => c.stop();
   }, [inView]); // eslint-disable-line
   return <motion.span ref={ref}>{display}</motion.span>;
 }
 
+function ImgWithFallback({ src, alt, className, style }: { src: string; alt: string; className?: string; style?: React.CSSProperties }) {
+  const [loaded, setLoaded] = useState(true);
+  if (!loaded) return null;
+  return (
+    <img
+      src={src} alt={alt} className={className} style={style}
+      onError={() => setLoaded(false)}
+    />
+  );
+}
+
 const AGENTS = [
-  {
-    name: "Property Sales Agent",
-    vertical: "Real Estate",
-    body: "Calls every inbound lead within 60 seconds. Qualifies budget and preferences, delivers property brochures to WhatsApp mid-call, and books viewings on your calendar.",
-    proof: "78% of deals go to the first responder",
-    featured: true,
-  },
-  {
-    name: "Revenue Recovery Agent",
-    vertical: "Finance",
-    body: "Parses aging receivables, runs a 15-day collection cadence over voice and WhatsApp, and generates payment links in-call.",
-    proof: "3× faster collection cycles",
-    featured: false,
-  },
-  {
-    name: "Healthcare Booking Agent",
-    vertical: "Clinics",
-    body: "Handles inbound appointment calls 24/7. Matches patient to doctor, sends brochures, confirms bookings.",
-    proof: "Zero missed calls after hours",
-    featured: false,
-  },
-  {
-    name: "Cart Recovery Agent",
-    vertical: "E-commerce",
-    body: "Calls abandoned cart customers within minutes, addresses objections in their language, generates BNPL payment links.",
-    proof: "Reaches buyers before they're gone",
-    featured: false,
-  },
-  {
-    name: "Admissions Agent",
-    vertical: "Education",
-    body: "Qualifies prospects, scores scholarship eligibility, answers FAQs in 7 languages, books campus tours.",
-    proof: "35%+ appointment conversion",
-    featured: false,
-  },
-  {
-    name: "Social Media Executive",
-    vertical: "Marketing",
-    body: "Creates, schedules, and publishes content autonomously. Writes copy, generates imagery, optimises performance.",
-    proof: "24/7 autonomous operations",
-    featured: false,
-  },
+  { name: "Property Sales Agent", vertical: "Real Estate", proof: "78% of deals go to the first responder" },
+  { name: "Revenue Recovery Agent", vertical: "Finance", proof: "3× faster collection cycles" },
+  { name: "Healthcare Booking Agent", vertical: "Clinics", proof: "Zero missed calls after hours" },
+  { name: "Cart Recovery Agent", vertical: "E-commerce", proof: "31% average recovery rate" },
+  { name: "Admissions Agent", vertical: "Education", proof: "35%+ appointment conversion" },
+  { name: "Social Media Executive", vertical: "Marketing", proof: "24/7 autonomous operations" },
 ];
 
-const INDUSTRIES = [
-  "Real Estate", "Healthcare", "Retail", "Education", "Finance", "Automotive", "Enterprise"
+const INDUSTRIES = ["Real Estate", "Healthcare", "Retail", "Education", "Finance", "Automotive", "Enterprise"];
+
+const INTEGRATIONS = [
+  "WhatsApp", "Salesforce", "Google Calendar", "HubSpot",
+  "Property Finder", "Bayut", "Twilio", "Zapier", "Zoho CRM",
 ];
 
 export default function AitaasHome() {
   return (
     <>
       <style>{`
-        /* ────────────────────────────────────────────────
-           HERO
-        ──────────────────────────────────────────────── */
+        /* ─── HERO ─────────────────────────────────────────── */
         .hp-hero {
-          min-height: 100svh; position: relative;
-          display: grid; grid-template-columns: 1fr 1fr;
+          position: relative;
+          min-height: 100svh;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
           overflow: hidden;
         }
-        /* dot grid overlay */
-        .hp-hero::before {
-          content: '';
-          position: absolute; inset: 0; z-index: 0; pointer-events: none;
-          background-image: radial-gradient(circle, oklch(0.36 0.007 260) 1px, transparent 1px);
-          background-size: 32px 32px;
-          mask-image: linear-gradient(to right, transparent 0%, black 30%, black 60%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to right, transparent 0%, black 30%, black 60%, transparent 100%);
-          opacity: 0.35;
-        }
-        /* copper ambient glow right side */
-        .hp-hero::after {
-          content: '';
-          position: absolute; inset: 0; z-index: 0; pointer-events: none;
-          background: radial-gradient(ellipse 60% 70% at 75% 50%, oklch(0.72 0.17 34 / 0.07) 0%, transparent 70%);
-        }
-        .hp-hero-left {
-          display: flex; flex-direction: column; justify-content: flex-end;
-          padding: 120px clamp(20px, 5vw, 72px) clamp(56px, 8vh, 88px);
-          position: relative; z-index: 2;
-        }
-        .hp-hero-right {
-          position: relative; z-index: 1;
-        }
-        .hp-hero-canvas {
+        .hp-hero-bg {
           position: absolute; inset: 0;
+          background: oklch(0.04 0.008 260);
+          z-index: 0;
+        }
+        .hp-hero-photo {
+          position: absolute; inset: 0;
+          width: 100%; height: 100%;
+          object-fit: cover; object-position: center 30%;
+          z-index: 1;
+          opacity: 0.28;
+          filter: saturate(0.3) brightness(0.7);
+          transition: opacity 0.8s;
+        }
+        .hp-hero-overlay {
+          position: absolute; inset: 0; z-index: 2;
+          background:
+            linear-gradient(to top, oklch(0.04 0.008 260) 0%, oklch(0.04 0.008 260 / 0.5) 50%, transparent 100%),
+            linear-gradient(to right, oklch(0.04 0.008 260 / 0.85) 0%, transparent 60%);
+        }
+        .hp-hero-canvas-bg {
+          position: absolute; inset: 0; z-index: 3;
+          pointer-events: none;
+          opacity: 0.45;
+        }
+        .hp-hero-content {
+          position: relative; z-index: 4;
+          padding: clamp(100px, 12vw, 160px) clamp(20px, 5vw, 72px) clamp(64px, 8vh, 100px);
+          max-width: 1140px;
         }
         .hp-tag {
-          display: inline-flex; align-items: center; gap: 8px;
-          font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
-          text-transform: uppercase; color: var(--c-copper);
-          margin-bottom: 28px;
+          display: inline-flex; align-items: center; gap: 10px;
+          font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 32px;
         }
         .hp-tag::before {
-          content: ''; display: block; width: 20px; height: 1px;
+          content: ''; display: block; width: 24px; height: 1px;
           background: var(--c-copper);
         }
         .hp-h1 {
           font-family: 'Barlow Condensed', sans-serif;
           font-weight: 700; text-transform: uppercase;
-          font-size: clamp(3.4rem, 5.5vw, 6rem);
-          line-height: 0.95; letter-spacing: -0.01em;
-          color: var(--c-ink); margin-bottom: 28px;
-          text-wrap: balance;
+          font-size: clamp(4.5rem, 9vw, 9rem);
+          line-height: 0.92; letter-spacing: -0.02em;
+          color: var(--c-ink); margin-bottom: 32px;
+          max-width: 18ch;
         }
         .hp-h1 em { font-style: normal; color: var(--c-copper); }
+        .hp-hero-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(32px, 5vw, 80px);
+          align-items: end;
+          padding-top: 0;
+        }
         .hp-sub {
-          font-size: clamp(15px, 1.5vw, 17px); line-height: 1.7;
-          color: var(--c-ink-2); max-width: 52ch; margin-bottom: 40px;
+          font-size: clamp(15px, 1.6vw, 18px); line-height: 1.7;
+          color: var(--c-ink-2); max-width: 44ch; margin-bottom: 40px;
         }
         .hp-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-        .hp-divider {
-          margin-top: clamp(48px, 7vh, 80px);
-          border-top: 1px solid var(--c-border);
-          padding-top: 24px;
-          display: flex; gap: 40px; flex-wrap: wrap;
+        .hp-stats {
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 1px; background: oklch(0.72 0.17 34 / 0.25);
+          border: 1px solid oklch(0.72 0.17 34 / 0.25);
         }
-        .hp-spec {
-          font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
-          text-transform: uppercase; color: var(--c-muted);
+        .hp-stat {
+          padding: 24px 28px; background: oklch(0.07 0.012 260 / 0.9);
+          backdrop-filter: blur(12px);
         }
-        .hp-spec strong {
-          display: block; font-size: 22px; font-family: 'Barlow Condensed', sans-serif;
-          font-weight: 700; color: var(--c-copper); letter-spacing: 0; line-height: 1.1;
-          margin-bottom: 2px;
-        }
-
-        @media (max-width: 860px) {
-          .hp-hero { grid-template-columns: 1fr; min-height: auto; }
-          .hp-hero-left { padding-bottom: 0; }
-          .hp-hero-right { height: 380px; }
-          .hp-hero-canvas { position: absolute; }
-        }
-        @media (max-width: 480px) {
-          .hp-hero-right { height: 280px; }
-          .hp-h1 { font-size: 3rem; }
-          .hp-ctas { flex-direction: column; }
-        }
-
-        /* ────────────────────────────────────────────────
-           INTEGRATIONS STRIP
-        ──────────────────────────────────────────────── */
-        .hp-integrations {
-          border-bottom: 1px solid var(--c-border);
-          padding: clamp(32px,5vw,56px) 0;
-          background: var(--c-surface);
-        }
-        .hp-int-label {
-          font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-          text-transform: uppercase; color: var(--c-muted);
-          margin-bottom: 28px;
-        }
-        .hp-int-logos {
-          display: flex; align-items: center; gap: 0;
-          flex-wrap: wrap;
-          border: 1px solid var(--c-border);
-        }
-        .hp-int-logo {
-          display: flex; align-items: center; gap: 10px;
-          padding: 18px 28px;
-          border-right: 1px solid var(--c-border);
-          font-family: 'Hanken Grotesk', sans-serif;
-          font-size: 13px; font-weight: 600;
-          color: var(--c-muted);
-          transition: color 0.15s;
-          white-space: nowrap;
-        }
-        .hp-int-logo:last-child { border-right: none; }
-        .hp-int-logo:hover { color: var(--c-ink-2); }
-        .hp-int-logo svg { flex-shrink: 0; }
-
-        /* ────────────────────────────────────────────────
-           LIVE CALL VISUAL
-        ──────────────────────────────────────────────── */
-        .hp-visual {
-          background: var(--c-surface);
-          border-top: 1px solid var(--c-border);
-        }
-        .hp-visual-inner {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: clamp(48px, 8vw, 96px); align-items: center;
-        }
-        @media (max-width: 860px) { .hp-visual-inner { grid-template-columns: 1fr; } }
-        .hp-visual-h {
-          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
-          letter-spacing: -0.01em; color: var(--c-ink); line-height: 1;
-          margin-bottom: 20px;
-        }
-        .hp-visual-h em { color: var(--c-copper); font-style: normal; }
-        .hp-visual-body {
-          font-size: 15px; line-height: 1.75; color: var(--c-ink-2);
-          margin-bottom: 32px; max-width: 46ch;
-        }
-        /* Phone call mockup */
-        .hp-call-card {
-          background: var(--c-bg);
-          border: 1px solid var(--c-border);
-          padding: 0;
-          overflow: hidden;
-          position: relative;
-        }
-        .hp-call-header {
-          background: oklch(0.72 0.17 34 / 0.12);
-          border-bottom: 1px solid oklch(0.72 0.17 34 / 0.3);
-          padding: 14px 20px;
-          display: flex; align-items: center; gap: 10px;
-        }
-        .hp-call-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: oklch(0.72 0.17 34);
-          animation: pulse-dot 1.8s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.7); }
-        }
-        .hp-call-status {
-          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-          text-transform: uppercase; color: oklch(0.72 0.17 34);
-        }
-        .hp-call-timer {
-          margin-left: auto; font-size: 11px;
+        .hp-stat-num {
           font-family: 'Barlow Condensed', sans-serif;
-          color: var(--c-muted); letter-spacing: 0.1em;
+          font-weight: 700; font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+          letter-spacing: -0.02em; color: var(--c-copper); line-height: 1;
+          margin-bottom: 4px;
         }
-        .hp-call-lines {
-          padding: 20px;
-          display: flex; flex-direction: column; gap: 12px;
-        }
-        .hp-call-line {
-          display: flex; gap: 12px; align-items: flex-start;
-        }
-        .hp-call-speaker {
-          font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+        .hp-stat-label {
+          font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
           text-transform: uppercase; color: var(--c-muted);
-          min-width: 32px; padding-top: 2px; flex-shrink: 0;
         }
-        .hp-call-speaker.ai { color: var(--c-copper); }
-        .hp-call-bubble {
-          font-size: 12px; line-height: 1.5; color: var(--c-ink-2);
-          background: var(--c-surface2);
-          padding: 8px 12px;
-          border-radius: 0;
-          flex: 1;
+        @media (max-width: 860px) {
+          .hp-hero-row { grid-template-columns: 1fr; }
+          .hp-stats { grid-template-columns: repeat(4, 1fr); }
+          .hp-h1 { font-size: clamp(3.6rem, 12vw, 6rem); }
         }
-        .hp-call-bubble.ai {
-          background: oklch(0.72 0.17 34 / 0.1);
-          color: var(--c-ink);
-          border-left: 2px solid oklch(0.72 0.17 34 / 0.5);
-        }
-        .hp-call-footer {
-          border-top: 1px solid var(--c-border);
-          padding: 14px 20px;
-          display: flex; gap: 16px; align-items: center;
-        }
-        .hp-call-badge {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 10px; font-weight: 500; color: var(--c-muted);
-          letter-spacing: 0.04em;
-        }
-        .hp-call-badge-dot {
-          width: 5px; height: 5px; border-radius: 50%;
-          background: var(--c-copper-dim);
+        @media (max-width: 500px) {
+          .hp-stats { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* ────────────────────────────────────────────────
-           TICKER
-        ──────────────────────────────────────────────── */
+        /* ─── TICKER ────────────────────────────────────────── */
         .hp-ticker {
           background: var(--c-surface);
-          border-top: 1px solid var(--c-border);
           border-bottom: 1px solid var(--c-border);
-          padding: 12px 0; overflow: hidden;
+          padding: 13px 0; overflow: hidden;
         }
         .hp-ticker-track {
           display: flex; white-space: nowrap;
-          animation: ticker 32s linear infinite;
+          animation: ticker 36s linear infinite;
         }
         @keyframes ticker { to { transform: translateX(-50%); } }
         .hp-ticker-item {
           display: inline-flex; align-items: center; gap: 20px;
-          padding: 0 32px; font-size: 11px; letter-spacing: 0.1em;
+          padding: 0 36px; font-size: 11px; letter-spacing: 0.1em;
           text-transform: uppercase; color: var(--c-muted); flex-shrink: 0;
         }
-        .hp-ticker-dot {
-          width: 3px; height: 3px; border-radius: 50%;
-          background: var(--c-copper-dim);
-        }
+        .hp-ticker-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--c-copper-dim); }
 
-        /* ────────────────────────────────────────────────
-           PROBLEM
-        ──────────────────────────────────────────────── */
-        .hp-problem-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
-          align-items: start;
+        /* ─── PROBLEM ───────────────────────────────────────── */
+        .hp-problem {
+          background: var(--c-bg);
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(80px, 12vw, 140px) 0;
+          position: relative; overflow: hidden;
         }
-        .hp-problem-stat {
+        .hp-problem-bg-num {
+          position: absolute; right: -0.02em; top: 50%; transform: translateY(-50%);
           font-family: 'Barlow Condensed', sans-serif;
-          font-weight: 700; text-transform: uppercase;
-          font-size: clamp(4rem, 8vw, 8rem);
-          line-height: 0.9; letter-spacing: -0.01em;
-          color: var(--c-copper); margin-bottom: 16px;
+          font-weight: 700; font-size: clamp(14rem, 28vw, 28rem);
+          line-height: 1; letter-spacing: -0.04em;
+          color: oklch(0.10 0.008 260); pointer-events: none; user-select: none;
+          text-transform: uppercase;
         }
-        .hp-problem-sub {
-          font-size: 14px; color: var(--c-muted); letter-spacing: 0.04em;
-          text-transform: uppercase; font-weight: 500; margin-bottom: 32px;
+        .hp-problem-grid {
+          display: grid; grid-template-columns: 1fr 1fr; gap: clamp(48px, 8vw, 120px);
+          align-items: center; position: relative; z-index: 1;
+        }
+        .hp-problem-left {}
+        .hp-problem-kicker {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 24px;
         }
         .hp-problem-h {
-          font-family: 'Barlow Condensed', sans-serif;
-          font-weight: 600; text-transform: uppercase;
-          font-size: clamp(1.6rem, 2.5vw, 2.4rem);
-          letter-spacing: -0.005em; color: var(--c-ink); margin-bottom: 16px;
-        }
-        .hp-problem-body {
-          font-size: 15px; line-height: 1.75; color: var(--c-ink-2); max-width: 50ch;
-        }
-        .hp-fact-list { margin-top: 32px; display: flex; flex-direction: column; gap: 0; }
-        .hp-fact {
-          display: flex; align-items: flex-start; gap: 16px; padding: 18px 0;
-          border-top: 1px solid var(--c-border);
-        }
-        .hp-fact:last-child { border-bottom: 1px solid var(--c-border); }
-        .hp-fact-num {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          font-size: 1.6rem; color: var(--c-copper); line-height: 1;
-          min-width: 64px; flex-shrink: 0;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4.2rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 24px; text-wrap: balance;
         }
-        .hp-fact-text { font-size: 14px; color: var(--c-ink-2); line-height: 1.6; }
-
+        .hp-problem-h em { color: var(--c-copper); font-style: normal; }
+        .hp-problem-body {
+          font-size: 16px; line-height: 1.75; color: var(--c-ink-2);
+          max-width: 46ch;
+        }
+        .hp-problem-photo {
+          position: relative; border: 1px solid var(--c-border);
+          overflow: hidden; aspect-ratio: 4/3;
+        }
+        .hp-problem-photo img {
+          width: 100%; height: 100%; object-fit: cover;
+          filter: saturate(0.4) brightness(0.75);
+        }
+        .hp-problem-photo-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, oklch(0.72 0.17 34 / 0.15) 0%, transparent 60%);
+        }
+        .hp-problem-photo-stat {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 24px 28px;
+          background: linear-gradient(to top, oklch(0.04 0.008 260 / 0.95) 0%, transparent 100%);
+        }
+        .hp-problem-stat-num {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          font-size: 4rem; letter-spacing: -0.02em; color: var(--c-copper);
+          line-height: 1;
+        }
+        .hp-problem-stat-label {
+          font-size: 13px; color: var(--c-ink-2); margin-top: 4px;
+        }
         @media (max-width: 860px) {
-          .hp-problem-grid { grid-template-columns: 1fr; gap: 40px; }
+          .hp-problem-grid { grid-template-columns: 1fr; }
+          .hp-problem-bg-num { display: none; }
         }
 
-        /* ────────────────────────────────────────────────
-           AGENTS SHOWCASE
-        ──────────────────────────────────────────────── */
-        .hp-agents-header {
-          display: flex; justify-content: space-between; align-items: flex-end;
-          margin-bottom: 56px; flex-wrap: wrap; gap: 16px;
+        /* ─── CALL DEMO ─────────────────────────────────────── */
+        .hp-demo {
+          background: var(--c-surface);
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(80px, 12vw, 140px) 0;
+        }
+        .hp-demo-inner {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: clamp(48px, 8vw, 96px); align-items: center;
+        }
+        .hp-demo-kicker {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 24px;
+        }
+        .hp-demo-h {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 20px; text-wrap: balance;
+        }
+        .hp-demo-h em { color: var(--c-copper); font-style: normal; }
+        .hp-demo-body {
+          font-size: 16px; line-height: 1.75; color: var(--c-ink-2);
+          max-width: 44ch; margin-bottom: 36px;
+        }
+        .hp-demo-facts { display: flex; flex-direction: column; gap: 0; }
+        .hp-demo-fact {
+          display: flex; align-items: flex-start; gap: 14px;
+          padding: 16px 0; border-top: 1px solid var(--c-border);
+        }
+        .hp-demo-fact:last-child { border-bottom: 1px solid var(--c-border); }
+        .hp-demo-fact-icon { color: var(--c-copper); margin-top: 2px; flex-shrink: 0; }
+        .hp-demo-fact-text { font-size: 14px; color: var(--c-ink-2); line-height: 1.5; }
+        /* Phone UI */
+        .hp-phone {
+          background: oklch(0.06 0.01 260);
+          border: 1px solid var(--c-border);
+          border-radius: 0;
+          overflow: hidden;
+          box-shadow: 0 32px 80px -20px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(0.72 0.17 34 / 0.12);
+        }
+        .hp-phone-topbar {
+          padding: 14px 20px;
+          background: oklch(0.10 0.012 260);
+          border-bottom: 1px solid var(--c-border);
+          display: flex; align-items: center; gap: 12px;
+        }
+        .hp-phone-dots { display: flex; gap: 5px; }
+        .hp-phone-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .hp-phone-live {
+          margin-left: auto;
+          display: flex; align-items: center; gap: 6px;
+          font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+          text-transform: uppercase; color: oklch(0.72 0.17 34);
+        }
+        .hp-phone-live-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: oklch(0.72 0.17 34);
+          animation: blink 1.6s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .hp-phone-meta {
+          padding: 16px 20px;
+          background: oklch(0.08 0.01 260);
+          border-bottom: 1px solid var(--c-border);
+          display: flex; align-items: center; gap: 12px;
+        }
+        .hp-phone-avatar {
+          width: 36px; height: 36px; border-radius: 50%;
+          background: oklch(0.72 0.17 34 / 0.2);
+          border: 1px solid oklch(0.72 0.17 34 / 0.4);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 700; color: oklch(0.72 0.17 34);
+          font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em;
+          flex-shrink: 0;
+        }
+        .hp-phone-caller { flex: 1; }
+        .hp-phone-caller-name { font-size: 13px; font-weight: 600; color: var(--c-ink); }
+        .hp-phone-caller-sub { font-size: 11px; color: var(--c-muted); margin-top: 1px; }
+        .hp-phone-timer {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 18px; font-weight: 700; letter-spacing: 0.06em;
+          color: var(--c-copper);
+        }
+        .hp-phone-chat {
+          padding: 20px;
+          display: flex; flex-direction: column; gap: 14px;
+          min-height: 260px;
+        }
+        .hp-phone-msg { display: flex; gap: 10px; align-items: flex-start; }
+        .hp-phone-msg.agent { flex-direction: row-reverse; }
+        .hp-phone-msg-av {
+          width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+          background: oklch(0.14 0.007 260);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 8px; font-weight: 700; color: var(--c-muted);
+          font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.04em;
+          margin-top: 2px;
+        }
+        .hp-phone-msg.agent .hp-phone-msg-av {
+          background: oklch(0.72 0.17 34 / 0.18);
+          color: oklch(0.72 0.17 34);
+        }
+        .hp-phone-bubble {
+          font-size: 12.5px; line-height: 1.55; color: var(--c-ink-2);
+          background: oklch(0.10 0.01 260);
+          padding: 10px 14px;
+          max-width: 78%;
+        }
+        .hp-phone-msg.agent .hp-phone-bubble {
+          background: oklch(0.72 0.17 34 / 0.12);
+          color: var(--c-ink);
+          border-left: 2px solid oklch(0.72 0.17 34 / 0.6);
+        }
+        .hp-phone-actions {
+          border-top: 1px solid var(--c-border);
+          padding: 14px 20px;
+          display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .hp-phone-action-chip {
+          font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+          text-transform: uppercase; color: oklch(0.72 0.17 34);
+          background: oklch(0.72 0.17 34 / 0.1);
+          padding: 5px 12px;
+          display: flex; align-items: center; gap: 5px;
+          border: 1px solid oklch(0.72 0.17 34 / 0.25);
+        }
+        .hp-phone-action-chip::before {
+          content: ''; width: 5px; height: 5px; border-radius: 50%;
+          background: oklch(0.72 0.17 34);
+        }
+        @media (max-width: 860px) {
+          .hp-demo-inner { grid-template-columns: 1fr; }
+        }
+
+        /* ─── AGENTS ────────────────────────────────────────── */
+        .hp-agents {
+          padding: clamp(80px, 12vw, 140px) 0;
+          border-bottom: 1px solid var(--c-border);
+        }
+        .hp-agents-hd {
+          display: flex; align-items: flex-end;
+          justify-content: space-between; flex-wrap: wrap; gap: 20px;
+          margin-bottom: 56px;
         }
         .hp-agents-h {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
-          letter-spacing: -0.01em; color: var(--c-ink); max-width: 480px;
-          line-height: 1.0;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
         }
         .hp-agents-h em { color: var(--c-copper); font-style: normal; }
-
-        /* Featured + sidebar layout */
-        .hp-agents-layout {
-          display: grid;
-          grid-template-columns: 1fr 340px;
+        .hp-agents-grid {
+          display: grid; grid-template-columns: 1fr 1fr;
           gap: 1px; background: var(--c-border);
           border: 1px solid var(--c-border);
         }
-        .hp-agent-featured {
-          background: var(--c-surface); padding: clamp(36px, 5vw, 64px);
-          display: flex; flex-direction: column; gap: 24px;
+        .hp-agent-card {
+          background: var(--c-bg); padding: clamp(28px, 4vw, 44px);
+          display: flex; flex-direction: column; gap: 12px;
+          transition: background 0.18s;
+          text-decoration: none;
         }
-        .hp-agent-featured-vertical {
-          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--c-copper); font-weight: 600;
+        .hp-agent-card:hover { background: var(--c-surface); }
+        .hp-agent-card.featured {
+          grid-column: span 2;
+          background: var(--c-surface);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(32px, 5vw, 64px);
+          align-items: start;
         }
-        .hp-agent-featured-name {
+        .hp-agent-card.featured .hp-agent-info { display: flex; flex-direction: column; gap: 14px; }
+        .hp-agent-card.featured .hp-agent-visual { position: relative; aspect-ratio: 4/3; overflow: hidden; border: 1px solid var(--c-border); }
+        .hp-agent-card.featured .hp-agent-visual img {
+          width: 100%; height: 100%; object-fit: cover;
+          filter: saturate(0.35) brightness(0.65);
+        }
+        .hp-agent-card.featured .hp-agent-visual-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to top, oklch(0.08 0.008 260 / 0.9) 0%, transparent 50%);
+        }
+        .hp-agent-card.featured .hp-agent-visual-label {
+          position: absolute; bottom: 16px; left: 20px;
+          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--c-copper);
+        }
+        .hp-agent-vertical {
+          font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper);
+        }
+        .hp-agent-name {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2rem, 3vw, 3rem);
-          letter-spacing: -0.01em; color: var(--c-ink); line-height: 1.0;
+          text-transform: uppercase; letter-spacing: -0.005em; color: var(--c-ink);
+          font-size: clamp(1.4rem, 2.5vw, 2rem); line-height: 1;
         }
-        .hp-agent-featured-body {
-          font-size: 16px; line-height: 1.75; color: var(--c-ink-2); max-width: 52ch;
+        .hp-agent-card.featured .hp-agent-name {
+          font-size: clamp(2rem, 3.5vw, 3rem);
         }
-        .hp-agent-featured-proof {
-          font-size: 13px; color: var(--c-copper); letter-spacing: 0.04em;
-          padding-top: 24px; border-top: 1px solid var(--c-border);
+        .hp-agent-body {
+          font-size: 14px; line-height: 1.7; color: var(--c-ink-2);
         }
-        .hp-agent-list {
-          background: var(--c-bg); display: flex; flex-direction: column;
+        .hp-agent-proof {
+          font-size: 12px; color: var(--c-copper); letter-spacing: 0.04em;
+          padding-top: 14px; border-top: 1px solid var(--c-border);
+          margin-top: auto;
         }
-        .hp-agent-row {
-          padding: 20px 28px; border-bottom: 1px solid var(--c-border);
-          cursor: default; transition: background 0.15s; flex: 1;
-          display: flex; flex-direction: column; justify-content: space-between;
-          gap: 6px; min-height: 80px;
-        }
-        .hp-agent-row:last-child { border-bottom: none; }
-        @media (hover: hover) {
-          .hp-agent-row:hover { background: var(--c-surface); }
-        }
-        .hp-agent-row-name {
-          font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
-          font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.02em;
-          color: var(--c-ink); line-height: 1.1;
-        }
-        .hp-agent-row-vertical {
-          font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-          color: var(--c-muted);
-        }
-
+        .hp-agent-card.featured .hp-agent-proof { padding-top: 0; border-top: none; }
         @media (max-width: 900px) {
-          .hp-agents-layout { grid-template-columns: 1fr; }
-          .hp-agent-list { flex-direction: row; flex-wrap: wrap; }
-          .hp-agent-row { min-height: auto; flex: 1 1 calc(50% - 1px); }
-        }
-        @media (max-width: 500px) {
-          .hp-agent-row { flex: 1 1 100%; }
+          .hp-agents-grid { grid-template-columns: 1fr; }
+          .hp-agent-card.featured { grid-column: span 1; grid-template-columns: 1fr; }
         }
 
-        /* ────────────────────────────────────────────────
-           HOW IT WORKS
-        ──────────────────────────────────────────────── */
-        .hp-how { background: var(--c-surface); border-top: 1px solid var(--c-border); }
+        /* ─── NETWORK VISUAL ────────────────────────────────── */
+        .hp-network {
+          background: var(--c-surface);
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(64px, 8vw, 100px) 0;
+        }
+        .hp-network-inner {
+          display: grid; grid-template-columns: 1fr 520px;
+          gap: clamp(48px, 6vw, 80px); align-items: center;
+        }
+        .hp-network-kicker {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 20px;
+        }
+        .hp-network-h {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 20px; text-wrap: balance;
+        }
+        .hp-network-h em { color: var(--c-copper); font-style: normal; }
+        .hp-network-body {
+          font-size: 15px; line-height: 1.75; color: var(--c-ink-2); max-width: 44ch;
+        }
+        .hp-network-canvas-wrap {
+          height: 400px;
+          border: 1px solid var(--c-border);
+          background: var(--c-bg);
+          overflow: hidden;
+          position: relative;
+        }
+        @media (max-width: 900px) {
+          .hp-network-inner { grid-template-columns: 1fr; }
+          .hp-network-canvas-wrap { height: 300px; }
+        }
+
+        /* ─── HOW ───────────────────────────────────────────── */
+        .hp-how {
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(80px, 12vw, 140px) 0;
+        }
         .hp-how-h {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
-          letter-spacing: -0.01em; color: var(--c-ink); margin-bottom: 64px;
-          max-width: 560px; line-height: 1.0;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 64px; max-width: 520px;
         }
         .hp-how-h em { color: var(--c-copper); font-style: normal; }
-        .hp-steps-row {
+        .hp-steps {
           display: grid; grid-template-columns: repeat(3, 1fr);
           gap: 0; border: 1px solid var(--c-border);
           background: var(--c-border);
         }
         .hp-step {
           background: var(--c-bg); padding: clamp(28px, 4vw, 48px);
+          position: relative;
         }
-        .hp-step-label {
-          font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-          color: var(--c-copper); margin-bottom: 28px; font-weight: 600;
+        .hp-step-num {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          font-size: 5rem; letter-spacing: -0.03em; line-height: 1;
+          color: oklch(0.14 0.008 260);
+          position: absolute; top: 20px; right: 20px;
+          user-select: none;
+        }
+        .hp-step-kicker {
+          font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 20px;
         }
         .hp-step-name {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: 1.6rem; letter-spacing: -0.005em;
-          color: var(--c-ink); margin-bottom: 12px; line-height: 1.0;
+          text-transform: uppercase; font-size: 1.75rem; letter-spacing: -0.005em;
+          color: var(--c-ink); margin-bottom: 14px; line-height: 1.0;
         }
         .hp-step-body { font-size: 14px; line-height: 1.75; color: var(--c-muted); }
-        @media (max-width: 760px) { .hp-steps-row { grid-template-columns: 1fr; } }
+        @media (max-width: 760px) { .hp-steps { grid-template-columns: 1fr; } }
 
-        /* ────────────────────────────────────────────────
-           INDUSTRIES
-        ──────────────────────────────────────────────── */
+        /* ─── INDUSTRIES ────────────────────────────────────── */
+        .hp-industries {
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(80px, 12vw, 140px) 0;
+          background: var(--c-surface);
+        }
+        .hp-ind-header {
+          display: flex; align-items: flex-end; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px; margin-bottom: 48px;
+        }
         .hp-ind-h {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(1.4rem, 2vw, 2rem);
-          letter-spacing: 0.02em; color: var(--c-muted); margin-bottom: 32px;
+          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
+          letter-spacing: -0.01em; color: var(--c-ink);
         }
-        .hp-ind-list {
-          display: flex; flex-direction: column;
-          border-top: 1px solid var(--c-border);
-        }
+        .hp-ind-list { display: flex; flex-direction: column; }
         .hp-ind-row {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 20px 0; border-bottom: 1px solid var(--c-border);
-          text-decoration: none; transition: padding-left 0.22s var(--c-ease);
-          cursor: pointer;
+          padding: clamp(18px,2.5vw,24px) 0;
+          border-top: 1px solid var(--c-border);
+          text-decoration: none; cursor: pointer;
+          transition: padding-left 0.2s var(--c-ease);
         }
+        .hp-ind-row:last-child { border-bottom: 1px solid var(--c-border); }
         @media (hover: hover) {
           .hp-ind-row:hover { padding-left: 16px; }
           .hp-ind-row:hover .hp-ind-name { color: var(--c-copper); }
-          .hp-ind-row:hover .hp-ind-arrow { color: var(--c-copper); }
         }
         .hp-ind-name {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(1.8rem, 4vw, 3.6rem);
+          text-transform: uppercase; font-size: clamp(2rem, 4.5vw, 4.5rem);
           letter-spacing: -0.01em; color: var(--c-ink); line-height: 1;
           transition: color 0.18s;
         }
-        .hp-ind-arrow { color: var(--c-border); transition: color 0.18s; flex-shrink: 0; }
+        .hp-ind-arrow { color: var(--c-border); flex-shrink: 0; }
+        @media (hover: hover) { .hp-ind-row:hover .hp-ind-arrow { color: var(--c-copper); } }
 
-        /* ────────────────────────────────────────────────
-           RESULTS STRIP
-        ──────────────────────────────────────────────── */
+        /* ─── RESULTS ───────────────────────────────────────── */
         .hp-results {
-          background: var(--c-surface2); border-top: 1px solid var(--c-border);
           border-bottom: 1px solid var(--c-border);
+          background: oklch(0.04 0.008 260);
         }
         .hp-results-grid {
           display: grid; grid-template-columns: repeat(4, 1fr);
-          gap: 0; border-left: 1px solid var(--c-border);
+          border-left: 1px solid var(--c-border);
         }
         .hp-result-cell {
-          padding: clamp(28px, 4vw, 48px) clamp(20px, 3vw, 40px);
+          padding: clamp(36px, 5vw, 64px) clamp(24px, 3vw, 44px);
           border-right: 1px solid var(--c-border);
-          border-bottom: none;
         }
         .hp-result-num {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          font-size: clamp(2.4rem, 4vw, 3.8rem); letter-spacing: -0.01em;
-          color: var(--c-copper); line-height: 1; margin-bottom: 8px;
+          font-size: clamp(3rem, 5vw, 5rem); letter-spacing: -0.02em;
+          color: var(--c-copper); line-height: 1; margin-bottom: 10px;
         }
-        .hp-result-label { font-size: 13px; color: var(--c-ink-2); line-height: 1.4; }
-        .hp-result-sub { font-size: 11px; color: var(--c-muted); margin-top: 4px; }
-        @media (max-width: 860px) {
-          .hp-results-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 500px) {
-          .hp-results-grid { grid-template-columns: 1fr; }
-        }
+        .hp-result-label { font-size: 15px; font-weight: 500; color: var(--c-ink); margin-bottom: 4px; }
+        .hp-result-sub { font-size: 12px; color: var(--c-muted); }
+        @media (max-width: 860px) { .hp-results-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .hp-results-grid { grid-template-columns: 1fr; } }
 
-        /* ────────────────────────────────────────────────
-           PRICING OVERVIEW
-        ──────────────────────────────────────────────── */
-        .hp-price-intro {
+        /* ─── INTEGRATIONS ──────────────────────────────────── */
+        .hp-int-strip {
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(40px, 6vw, 72px) 0;
+        }
+        .hp-int-label {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-muted); margin-bottom: 28px;
+        }
+        .hp-int-logos {
+          display: flex; flex-wrap: wrap;
+          border: 1px solid var(--c-border);
+          background: var(--c-border); gap: 1px;
+        }
+        .hp-int-logo {
+          flex: 1 1 120px;
+          padding: 20px 24px;
+          background: var(--c-surface);
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 13px; font-weight: 600;
+          color: var(--c-muted);
+          transition: color 0.15s, background 0.15s;
+          white-space: nowrap; text-align: center;
+        }
+        .hp-int-logo:hover { color: var(--c-ink); background: var(--c-surface2); }
+
+        /* ─── PRICING ───────────────────────────────────────── */
+        .hp-pricing {
+          padding: clamp(80px, 12vw, 140px) 0;
+          border-bottom: 1px solid var(--c-border);
+        }
+        .hp-pricing-top {
           display: grid; grid-template-columns: 1fr 1fr;
-          gap: 80px; margin-bottom: 64px; align-items: start;
+          gap: clamp(40px, 6vw, 80px); margin-bottom: 56px; align-items: end;
         }
-        .hp-price-h {
+        .hp-pricing-h {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
-          letter-spacing: -0.01em; color: var(--c-ink); line-height: 1.0;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
         }
-        .hp-price-h em { color: var(--c-copper); font-style: normal; }
-        .hp-price-desc {
+        .hp-pricing-h em { color: var(--c-copper); font-style: normal; }
+        .hp-pricing-sub {
           font-size: 15px; line-height: 1.75; color: var(--c-ink-2);
-          padding-top: 8px;
         }
-        .hp-price-cols {
+        .hp-pricing-cols {
           display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 0; background: var(--c-border); border: 1px solid var(--c-border);
+          gap: 1px; background: var(--c-border); border: 1px solid var(--c-border);
         }
         .hp-price-col {
-          background: var(--c-bg); padding: clamp(28px, 4vw, 44px);
+          background: var(--c-surface); padding: clamp(28px, 4vw, 44px);
+          display: flex; flex-direction: column;
         }
-        .hp-price-col.hp-price-featured { background: var(--c-surface); }
-        .hp-price-tier {
-          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--c-muted); margin-bottom: 20px; font-weight: 600;
+        .hp-price-col.featured { background: var(--c-surface2); position: relative; }
+        .hp-price-badge {
+          position: absolute; top: 0; left: 28px;
+          background: var(--c-copper); color: var(--c-bg);
+          font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; padding: 4px 12px;
         }
-        .hp-price-featured .hp-price-tier { color: var(--c-copper); }
+        .hp-price-name {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.04em;
+          color: var(--c-muted); margin-bottom: 20px;
+          padding-top: 6px;
+        }
+        .hp-price-col.featured .hp-price-name { padding-top: 26px; }
         .hp-price-amount {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          font-size: 2.2rem; letter-spacing: -0.01em; color: var(--c-ink);
-          line-height: 1; margin-bottom: 4px;
+          font-size: clamp(2rem, 3.5vw, 2.8rem); letter-spacing: -0.02em;
+          color: var(--c-ink); line-height: 1; margin-bottom: 4px;
         }
-        .hp-price-cadence { font-size: 11px; color: var(--c-muted); margin-bottom: 28px; }
-        .hp-price-features { display: flex; flex-direction: column; gap: 10px; }
+        .hp-price-cadence { font-size: 11px; color: var(--c-muted); margin-bottom: 24px; }
+        .hp-price-feats {
+          display: flex; flex-direction: column; gap: 10px;
+          margin-bottom: 32px; flex: 1;
+        }
         .hp-price-feat {
           display: flex; align-items: flex-start; gap: 10px;
           font-size: 13px; color: var(--c-ink-2); line-height: 1.5;
         }
-        .hp-price-check { color: var(--c-copper); flex-shrink: 0; margin-top: 1px; }
+        .hp-price-feat-icon { color: var(--c-copper); flex-shrink: 0; margin-top: 1px; }
         @media (max-width: 860px) {
-          .hp-price-intro { grid-template-columns: 1fr; gap: 24px; }
-          .hp-price-cols { grid-template-columns: 1fr; }
+          .hp-pricing-top { grid-template-columns: 1fr; gap: 24px; }
+          .hp-pricing-cols { grid-template-columns: 1fr; }
         }
 
-        /* ────────────────────────────────────────────────
-           FINAL CTA
-        ──────────────────────────────────────────────── */
-        .hp-cta-sect {
-          background: var(--c-surface); border-top: 1px solid var(--c-border);
+        /* ─── CTA ───────────────────────────────────────────── */
+        .hp-cta {
+          position: relative; overflow: hidden;
+          padding: clamp(80px, 14vw, 160px) 0;
+          background: oklch(0.04 0.008 260);
+        }
+        .hp-cta-bg-photo {
+          position: absolute; inset: 0;
+          width: 100%; height: 100%;
+          object-fit: cover; object-position: center;
+          opacity: 0.12; filter: saturate(0.2);
+        }
+        .hp-cta-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to right, oklch(0.04 0.008 260) 30%, oklch(0.04 0.008 260 / 0.7) 100%);
         }
         .hp-cta-inner {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 80px; align-items: center;
+          position: relative; z-index: 1;
+          max-width: 680px;
         }
         .hp-cta-h {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
-          letter-spacing: -0.01em; color: var(--c-ink); line-height: 0.95;
+          text-transform: uppercase; font-size: clamp(3rem, 6vw, 6rem);
+          letter-spacing: -0.02em; line-height: 0.92; color: var(--c-ink);
+          margin-bottom: 24px;
         }
         .hp-cta-h em { color: var(--c-copper); font-style: normal; }
-        .hp-cta-body {
-          font-size: 15px; line-height: 1.75; color: var(--c-ink-2);
-          margin-top: 20px; margin-bottom: 36px; max-width: 46ch;
+        .hp-cta-sub {
+          font-size: clamp(15px, 1.6vw, 18px); line-height: 1.7;
+          color: var(--c-ink-2); max-width: 44ch; margin-bottom: 40px;
         }
-        .hp-cta-facts { display: flex; flex-direction: column; gap: 0; }
-        .hp-cta-fact {
-          padding: 20px 0; border-top: 1px solid var(--c-border);
-          display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
-        }
-        .hp-cta-fact:last-child { border-bottom: 1px solid var(--c-border); }
-        .hp-cta-fact-icon { color: var(--c-copper); margin-top: 1px; flex-shrink: 0; }
-        .hp-cta-fact-title { font-size: 14px; font-weight: 500; color: var(--c-ink); margin-bottom: 2px; }
-        .hp-cta-fact-body { font-size: 13px; color: var(--c-muted); line-height: 1.6; }
-        @media (max-width: 860px) {
-          .hp-cta-inner { grid-template-columns: 1fr; gap: 48px; }
-        }
+        .hp-cta-btns { display: flex; gap: 12px; flex-wrap: wrap; }
       `}</style>
 
-      {/* ── HERO ────────────────────────────────────────── */}
+      {/* ══ HERO ══════════════════════════════════════════════ */}
       <section className="hp-hero">
-        <div className="hp-hero-left">
-          <motion.div
+        <div className="hp-hero-bg" />
+        <ImgWithFallback
+          src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1800&q=75"
+          alt="Dubai skyline"
+          className="hp-hero-photo"
+        />
+        <div className="hp-hero-overlay" />
+        <div className="hp-hero-canvas-bg">
+          <AitaasCanvas />
+        </div>
+        <div className="hp-hero-content">
+          <motion.span
+            className="hp-tag"
             initial={{ y: 14 }} animate={{ y: 0 }}
             transition={{ duration: 0.5, delay: 0.15, ease: E }}
           >
-            <span className="hp-tag">AI Workers for Business</span>
-          </motion.div>
-
+            AI Workers for Business
+          </motion.span>
           <motion.h1
             className="hp-h1"
-            initial={{ y: 20 }}
-            animate={{ y: 0 }}
+            initial={{ y: 20 }} animate={{ y: 0 }}
             transition={{ duration: 0.65, ease: E, delay: 0.3 }}
           >
-            Your Next Hire<br />
-            is an <em>AI Agent.</em><br />
-            Working at 3am.
+            Your Next<br />Hire is an<br /><em>AI Agent.</em>
           </motion.h1>
-
-          <motion.p
-            className="hp-sub"
-            initial={{ y: 14 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.6, ease: E, delay: 0.5 }}
-          >
-            Voice and digital agents that call your leads in 60 seconds, book appointments overnight,
-            recover overdue payments, and run customer follow-ups — in 7 languages, every hour of the day.
-          </motion.p>
-
-          <motion.div
-            className="hp-ctas"
-            initial={{ y: 10 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5, ease: E, delay: 0.7 }}
-          >
-            <Link href="/aitaas/contact" className="c-btn">Book a Live Demo</Link>
-            <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
-              View all agents <IconArrowRight size={13} color="currentColor" />
-            </Link>
-          </motion.div>
-
-          <motion.div
-            className="hp-divider"
-            initial={{ y: 8 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5, delay: 0.9, ease: E }}
-          >
-            {[
-              { val: 9, suffix: "", label: "Agent products" },
-              { val: 7, suffix: "", label: "Languages" },
-              { val: 60, suffix: "s", label: "Response time" },
-              { val: 14, suffix: " days", label: "To go live" },
-            ].map((s) => (
-              <div className="hp-spec" key={s.label}>
-                <strong><Count to={s.val} suffix={s.suffix} /></strong>
-                {s.label}
+          <div className="hp-hero-row">
+            <motion.div initial={{ y: 14 }} animate={{ y: 0 }} transition={{ duration: 0.6, ease: E, delay: 0.5 }}>
+              <p className="hp-sub">
+                Voice and digital agents that call your leads in 60 seconds, book appointments overnight,
+                recover overdue payments, and run follow-ups — in 7 languages, around the clock.
+              </p>
+              <div className="hp-ctas">
+                <Link href="/aitaas/contact" className="c-btn">Book a live demo</Link>
+                <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
+                  View all agents <IconArrowRight size={13} color="currentColor" />
+                </Link>
               </div>
-            ))}
-          </motion.div>
-        </div>
-
-        <div className="hp-hero-right">
-          <div className="hp-hero-canvas">
-            <AitaasCanvas />
+            </motion.div>
+            <motion.div initial={{ y: 10 }} animate={{ y: 0 }} transition={{ duration: 0.55, ease: E, delay: 0.7 }}>
+              <div className="hp-stats">
+                {[
+                  { val: 9, suffix: "", label: "Agent products" },
+                  { val: 7, suffix: "", label: "Languages" },
+                  { val: 60, suffix: "s", label: "First response" },
+                  { val: 14, suffix: "d", label: "To go live" },
+                ].map((s) => (
+                  <div key={s.label} className="hp-stat">
+                    <div className="hp-stat-num"><Count to={s.val} suffix={s.suffix} /></div>
+                    <div className="hp-stat-label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── INTEGRATIONS ────────────────────────────────── */}
-      <section className="hp-integrations">
-        <div className="c-wrap">
-          <p className="hp-int-label">Connects to your existing stack</p>
-          <div className="hp-int-logos">
-            {[
-              { name: "WhatsApp", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(0.72 0.17 34)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.12 1.522 5.852L.057 23.998l6.302-1.453A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.894a9.869 9.869 0 01-5.031-1.378l-.36-.214-3.742.863.936-3.636-.235-.374A9.855 9.855 0 012.106 12C2.106 6.54 6.54 2.106 12 2.106S21.894 6.54 21.894 12 17.46 21.894 12 21.894z"/></svg> },
-              { name: "Salesforce", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="2" fill="oklch(0.72 0.17 34 / 0.2)"/><text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="700" fill="oklch(0.72 0.17 34)" fontFamily="sans-serif">SF</text></svg> },
-              { name: "Google Calendar", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="1" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><path d="M8 2v4M16 2v4M2 10h20" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
-              { name: "HubSpot", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="17" cy="7" r="3" fill="oklch(0.72 0.17 34 / 0.7)"/><path d="M14.5 9.5L9 13M9 11a4 4 0 100 6 4 4 0 000-6z" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5" fill="none"/></svg> },
-              { name: "Property Finder", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V21H15v-5h-6v5H3V9.5z" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
-              { name: "Bayut", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><path d="M8 12h8M12 8v8" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
-              { name: "Twilio", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><circle cx="9" cy="9" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="15" cy="9" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="9" cy="15" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="15" cy="15" r="1.5" fill="oklch(0.72 0.17 34)"/></svg> },
-              { name: "Zapier", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v6M12 16v6M2 12h6M16 12h6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5" strokeLinecap="round"/></svg> },
-            ].map(({ name, icon }) => (
-              <div key={name} className="hp-int-logo">
-                {icon} {name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TICKER ──────────────────────────────────────── */}
+      {/* ══ TICKER ════════════════════════════════════════════ */}
       <div className="hp-ticker" aria-hidden>
         <div className="hp-ticker-track">
           {[...Array(2)].map((_, s) =>
-            ["Real Estate", "Healthcare", "E-commerce", "Education", "Finance", "Automotive", "Enterprise Sales", "Collections", "Property Investment"].map((item) => (
+            ["Real Estate", "Healthcare", "E-commerce", "Education", "Finance", "Automotive", "Collections", "Property Investment", "Insurance"].map((item) => (
               <span key={`${s}-${item}`} className="hp-ticker-item">
-                {item}<span className="hp-ticker-dot" />
+                {item}<span className="hp-ticker-sep" />
               </span>
             ))
           )}
         </div>
       </div>
 
-      {/* ── PROBLEM ─────────────────────────────────────── */}
-      <section className="c-sect">
+      {/* ══ PROBLEM ═══════════════════════════════════════════ */}
+      <section className="hp-problem">
+        <div className="hp-problem-bg-num" aria-hidden>78%</div>
         <div className="c-wrap">
           <div className="hp-problem-grid">
             <Reveal>
-              <div className="hp-problem-stat"><Count to={78} suffix="%" /></div>
-              <div className="hp-problem-sub">of deals go to the first responder</div>
-              <h2 className="hp-problem-h">Most businesses respond in hours.<br />Your competitors respond in minutes.</h2>
+              <p className="hp-problem-kicker">The gap your competitors are closing</p>
+              <h2 className="hp-problem-h">
+                Most businesses<br />respond in <em>hours.</em><br />
+                Deals close in minutes.
+              </h2>
               <p className="hp-problem-body">
-                Every delayed callback, every missed call after hours, every language barrier
-                is a deal your competitor closes instead. The businesses winning in the UAE
-                today removed that constraint entirely.
+                Every delayed callback, every missed call after hours, every
+                language barrier is a deal your competitor closes instead.
+                The businesses winning in the UAE today removed that constraint entirely.
+                They didn&apos;t hire more staff. They deployed agents.
               </p>
             </Reveal>
+            <Reveal delay={0.12}>
+              <div className="hp-problem-photo">
+                <ImgWithFallback
+                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80"
+                  alt="Modern property interior"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.4) brightness(0.65)" }}
+                />
+                <div className="hp-problem-photo-overlay" />
+                <div className="hp-problem-photo-stat">
+                  <div className="hp-problem-stat-num">78%</div>
+                  <div className="hp-problem-stat-label">of deals go to the first responder</div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
-            <Reveal delay={0.1}>
-              <div className="hp-fact-list">
+      {/* ══ CALL DEMO ═════════════════════════════════════════ */}
+      <section className="hp-demo">
+        <div className="c-wrap">
+          <div className="hp-demo-inner">
+            <Reveal>
+              <p className="hp-demo-kicker">The agent, live</p>
+              <h2 className="hp-demo-h">
+                Qualifies, books,<br />and <em>delivers</em><br />before the call ends.
+              </h2>
+              <p className="hp-demo-body">
+                While the agent speaks to the lead, it simultaneously queries your live inventory,
+                sends the brochure to WhatsApp, and blocks the viewing slot on your calendar.
+                The CRM is updated before the call drops.
+              </p>
+              <div className="hp-demo-facts">
                 {[
-                  { stat: "60s", text: "The window to reach a lead before intent drops. Our agents call within 60 seconds of enquiry." },
-                  { stat: "7", text: "Languages spoken by our agents on day one: Arabic, English, Hindi, Urdu, Russian, Mandarin, French." },
-                  { stat: "24/7", text: "Operating hours. Evenings, weekends, public holidays — your pipeline never stops." },
-                  { stat: "AED 2,500", text: "Starting monthly investment. Less than two days of a human salary, with full reporting." },
+                  "Calls every lead within 60 seconds of enquiry",
+                  "Delivers brochures and payment plans mid-call",
+                  "Books viewings on your live calendar",
+                  "Pushes full transcript and lead score to your CRM",
                 ].map((f) => (
-                  <div className="hp-fact" key={f.stat}>
-                    <div className="hp-fact-num">{f.stat}</div>
-                    <div className="hp-fact-text">{f.text}</div>
+                  <div key={f} className="hp-demo-fact">
+                    <span className="hp-demo-fact-icon"><IconCheck size={14} /></span>
+                    <span className="hp-demo-fact-text">{f}</span>
                   </div>
                 ))}
               </div>
             </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ── AGENTS ──────────────────────────────────────── */}
-      <section className="c-sect" style={{ background: "var(--c-surface)", borderTop: "1px solid var(--c-border)" }}>
-        <div className="c-wrap">
-          <div className="hp-agents-header">
-            <Reveal>
-              <h2 className="hp-agents-h">
-                Nine AI agents.<br />
-                <em>Ready to deploy.</em>
-              </h2>
-            </Reveal>
-            <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
-              Full details <IconArrowRight size={13} color="currentColor" />
-            </Link>
-          </div>
-
-          <div className="hp-agents-layout">
-            {/* Featured agent */}
-            {(() => {
-              const f = AGENTS[0];
-              return (
-                <div className="hp-agent-featured">
-                  <div className="hp-agent-featured-vertical">{f.vertical}</div>
-                  <h3 className="hp-agent-featured-name">{f.name}</h3>
-                  <p className="hp-agent-featured-body">{f.body}</p>
-                  <div className="hp-agent-featured-proof">{f.proof}</div>
-                  <div>
-                    <Link href="/aitaas/solutions" className="c-btn" style={{ marginTop: 8 }}>
-                      See how it works <IconArrowRight size={13} color="currentColor" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* List of remaining agents */}
-            <div className="hp-agent-list">
-              {AGENTS.slice(1).map((a) => (
-                <Link href="/aitaas/solutions" key={a.name} className="hp-agent-row" style={{ textDecoration: "none" }}>
-                  <div className="hp-agent-row-vertical">{a.vertical}</div>
-                  <div className="hp-agent-row-name">{a.name}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── LIVE CALL VISUAL ────────────────────────────── */}
-      <section className="c-sect hp-visual">
-        <div className="c-wrap">
-          <div className="hp-visual-inner">
-            <Reveal>
-              <h2 className="hp-visual-h">
-                A call that qualifies,<br />
-                books, and <em>delivers</em><br />
-                — before it ends.
-              </h2>
-              <p className="hp-visual-body">
-                Every inbound enquiry triggers a full workflow in parallel: the agent is speaking
-                to the lead while simultaneously querying live inventory, dispatching a brochure
-                to WhatsApp, and blocking a viewing slot on your calendar.
-              </p>
-              <Link href="/aitaas/contact" className="c-btn">
-                See a live demo <IconArrowRight size={13} color="currentColor" />
-              </Link>
-            </Reveal>
             <Reveal delay={0.12}>
-              <div className="hp-call-card">
-                <div className="hp-call-header">
-                  <div className="hp-call-dot" />
-                  <span className="hp-call-status">Live call · Property Sales Agent</span>
-                  <span className="hp-call-timer">02:14</span>
-                </div>
-                <div className="hp-call-lines">
-                  <div className="hp-call-line">
-                    <span className="hp-call-speaker">Lead</span>
-                    <div className="hp-call-bubble">Hi, I saw your ad for the Dubai Hills villa. What's the price?</div>
+              <div className="hp-phone">
+                <div className="hp-phone-topbar">
+                  <div className="hp-phone-dots">
+                    <div className="hp-phone-dot" style={{ background: "oklch(0.65 0.2 25)" }} />
+                    <div className="hp-phone-dot" style={{ background: "oklch(0.75 0.18 88)" }} />
+                    <div className="hp-phone-dot" style={{ background: "oklch(0.65 0.2 145)" }} />
                   </div>
-                  <div className="hp-call-line">
-                    <span className="hp-call-speaker ai">Agent</span>
-                    <div className="hp-call-bubble ai">Good afternoon! The Villa starts at AED 4.2M. We have two units available right now. Are you looking for a 4 or 5-bedroom?</div>
-                  </div>
-                  <div className="hp-call-line">
-                    <span className="hp-call-speaker">Lead</span>
-                    <div className="hp-call-bubble">Five bedroom. What's the payment plan?</div>
-                  </div>
-                  <div className="hp-call-line">
-                    <span className="hp-call-speaker ai">Agent</span>
-                    <div className="hp-call-bubble ai">I'm sending the full brochure and payment schedule to your WhatsApp now. Can we schedule a viewing for Saturday?</div>
+                  <span style={{ fontSize: 11, color: "var(--c-muted)", marginLeft: 8, letterSpacing: "0.04em" }}>Property Sales Agent · Dubai Hills</span>
+                  <div className="hp-phone-live">
+                    <div className="hp-phone-live-dot" />
+                    Live
                   </div>
                 </div>
-                <div className="hp-call-footer">
-                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />Brochure sent via WhatsApp</div>
-                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />Viewing slot held</div>
-                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />CRM updated</div>
+                <div className="hp-phone-meta">
+                  <div className="hp-phone-avatar">AM</div>
+                  <div className="hp-phone-caller">
+                    <div className="hp-phone-caller-name">Ahmed Al Mansouri</div>
+                    <div className="hp-phone-caller-sub">+971 50 ··· ···· · Inbound from Property Finder</div>
+                  </div>
+                  <div className="hp-phone-timer">02:47</div>
+                </div>
+                <div className="hp-phone-chat">
+                  {[
+                    { from: "lead", av: "AM", text: "Hi, I saw your listing for the villa in Dubai Hills. What's the starting price?" },
+                    { from: "agent", av: "AI", text: "Good afternoon, Ahmed! The Dubai Hills villas start at AED 4.2M. We have two 5-bedroom units available right now. Are you looking for immediate transfer or off-plan?" },
+                    { from: "lead", av: "AM", text: "Immediate. What does the payment plan look like?" },
+                    { from: "agent", av: "AI", text: "I'm sending the full brochure and payment schedule to your WhatsApp right now. I also have a Saturday viewing at 10am — shall I hold that slot for you?" },
+                  ].map((msg, i) => (
+                    <div key={i} className={`hp-phone-msg${msg.from === "agent" ? " agent" : ""}`}>
+                      <div className="hp-phone-msg-av">{msg.av}</div>
+                      <div className="hp-phone-bubble">{msg.text}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="hp-phone-actions">
+                  <div className="hp-phone-action-chip">Brochure sent · WhatsApp</div>
+                  <div className="hp-phone-action-chip">Viewing held · Saturday 10am</div>
+                  <div className="hp-phone-action-chip">CRM updated</div>
                 </div>
               </div>
             </Reveal>
@@ -862,35 +895,110 @@ export default function AitaasHome() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ────────────────────────────────── */}
-      <section className="c-sect hp-how">
+      {/* ══ AGENTS ════════════════════════════════════════════ */}
+      <section className="hp-agents">
+        <div className="c-wrap">
+          <div className="hp-agents-hd">
+            <Reveal>
+              <h2 className="hp-agents-h">
+                Nine agents.<br /><em>Every gap covered.</em>
+              </h2>
+            </Reveal>
+            <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
+              Full catalogue <IconArrowRight size={13} color="currentColor" />
+            </Link>
+          </div>
+          <div className="hp-agents-grid">
+            <Link href="/aitaas/solutions" className="hp-agent-card featured">
+              <div className="hp-agent-info">
+                <div className="hp-agent-vertical">{AGENTS[0].vertical}</div>
+                <h3 className="hp-agent-name">{AGENTS[0].name}</h3>
+                <p className="hp-agent-body">
+                  Calls every inbound lead within 60 seconds of enquiry — in their language.
+                  Qualifies budget and timeline, delivers matched property brochures to WhatsApp mid-call,
+                  and books the viewing before the conversation ends.
+                </p>
+                <p className="hp-agent-proof">{AGENTS[0].proof}</p>
+                <div style={{ marginTop: 8 }}>
+                  <span className="c-btn" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    See how it works <IconArrowRight size={13} color="currentColor" />
+                  </span>
+                </div>
+              </div>
+              <div className="hp-agent-visual">
+                <ImgWithFallback
+                  src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=75"
+                  alt="Dubai business district"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.35) brightness(0.65)" }}
+                />
+                <div className="hp-agent-visual-overlay" />
+                <div className="hp-agent-visual-label">Real Estate · UAE</div>
+              </div>
+            </Link>
+            {AGENTS.slice(1).map((a) => (
+              <Link key={a.name} href="/aitaas/solutions" className="hp-agent-card">
+                <div className="hp-agent-vertical">{a.vertical}</div>
+                <div className="hp-agent-name">{a.name}</div>
+                <div className="hp-agent-proof">{a.proof}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ NETWORK VISUAL ════════════════════════════════════ */}
+      <section className="hp-network">
+        <div className="c-wrap">
+          <div className="hp-network-inner">
+            <Reveal>
+              <p className="hp-network-kicker">Orchestration layer</p>
+              <h2 className="hp-network-h">
+                One call.<br /><em>Parallel intelligence.</em>
+              </h2>
+              <p className="hp-network-body">
+                Every conversation triggers a network of specialised sub-agents running in parallel.
+                Calendar, documents, CRM, payments — all completed before the customer hangs up.
+                No handoffs. No delays.
+              </p>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <div className="hp-network-canvas-wrap">
+                <AitaasCanvas />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ HOW IT WORKS ══════════════════════════════════════ */}
+      <section className="hp-how">
         <div className="c-wrap">
           <Reveal>
             <h2 className="hp-how-h">
-              One call triggers<br />
-              <em>parallel intelligence.</em>
+              How it works<br /><em>in 60 seconds.</em>
             </h2>
           </Reveal>
-          <div className="hp-steps-row">
+          <div className="hp-steps">
             {[
               {
-                label: "Front Agent",
-                name: "Lead Connects",
-                body: "A voice or chat agent handles the interaction in the lead's language. Human-quality voice, on-brand, from the first word.",
+                num: "01", label: "Lead connects",
+                name: "Instant response",
+                body: "A voice or chat agent picks up within 60 seconds of enquiry — 24/7, in the lead's language. Human-quality voice, on-brand from the first word.",
               },
               {
-                label: "Master Orchestrator",
-                name: "Intelligence Routes",
-                body: "Our orchestration layer decomposes the conversation into parallel tasks — calendar, documents, CRM, payments — and dispatches them simultaneously.",
+                num: "02", label: "Orchestrator routes",
+                name: "Parallel tasks fire",
+                body: "Our orchestration layer decomposes the conversation into parallel tasks — calendar, documents, CRM, payment links — and dispatches them simultaneously.",
               },
               {
-                label: "Sub-Agents",
-                name: "Actions Complete",
-                body: "Calendar bookings, WhatsApp messages, property brochures, payment links, and lead scores are all delivered before the call ends.",
+                num: "03", label: "Actions complete",
+                name: "Everything delivered",
+                body: "Booking confirmed, brochure sent, lead scored, CRM updated — all before the call ends. Your team wakes up to qualified leads with full context.",
               },
             ].map((s, i) => (
               <Reveal key={s.name} delay={i * 0.08} className="hp-step">
-                <div className="hp-step-label">{s.label}</div>
+                <div className="hp-step-num" aria-hidden>{s.num}</div>
+                <div className="hp-step-kicker">{s.label}</div>
                 <div className="hp-step-name">{s.name}</div>
                 <p className="hp-step-body">{s.body}</p>
               </Reveal>
@@ -899,18 +1007,20 @@ export default function AitaasHome() {
         </div>
       </section>
 
-      {/* ── INDUSTRIES ──────────────────────────────────── */}
-      <section className="c-sect">
+      {/* ══ INDUSTRIES ════════════════════════════════════════ */}
+      <section className="hp-industries">
         <div className="c-wrap">
-          <Reveal>
-            <div className="hp-ind-h">Industries Served</div>
-          </Reveal>
+          <div className="hp-ind-header">
+            <Reveal>
+              <h2 className="hp-ind-h">Industries we serve</h2>
+            </Reveal>
+          </div>
           <div className="hp-ind-list">
             {INDUSTRIES.map((ind, i) => (
               <Reveal key={ind} delay={i * 0.04}>
                 <Link href="/aitaas/solutions" className="hp-ind-row">
                   <span className="hp-ind-name">{ind}</span>
-                  <span className="hp-ind-arrow"><IconArrowRight size={20} color="currentColor" /></span>
+                  <span className="hp-ind-arrow"><IconArrowRight size={22} color="currentColor" /></span>
                 </Link>
               </Reveal>
             ))}
@@ -918,14 +1028,14 @@ export default function AitaasHome() {
         </div>
       </section>
 
-      {/* ── RESULTS STRIP ───────────────────────────────── */}
+      {/* ══ RESULTS ═══════════════════════════════════════════ */}
       <section className="hp-results">
         <div className="hp-results-grid">
           {[
-            { val: 92, suffix: "%+", label: "Intent accuracy", sub: "First-attempt recognition" },
-            { val: 1, suffix: ".5s", label: "Response latency", sub: "p95 target" },
+            { val: 92, suffix: "%", label: "Intent accuracy", sub: "First-attempt recognition" },
             { val: 35, suffix: "%+", label: "Appointment rate", sub: "From qualified conversations" },
-            { val: 7,  suffix: "",  label: "Projects live", sub: "Across UAE verticals" },
+            { val: 60, suffix: "s", label: "First response", sub: "Guaranteed, 24/7" },
+            { val: 14, suffix: "d", label: "To go live", sub: "From contract to first call" },
           ].map((r) => (
             <Reveal key={r.label} className="hp-result-cell">
               <div className="hp-result-num"><Count to={r.val} suffix={r.suffix} /></div>
@@ -936,107 +1046,99 @@ export default function AitaasHome() {
         </div>
       </section>
 
-      {/* ── PRICING ─────────────────────────────────────── */}
-      <section className="c-sect">
+      {/* ══ INTEGRATIONS ══════════════════════════════════════ */}
+      <section className="hp-int-strip">
         <div className="c-wrap">
-          <div className="hp-price-intro">
+          <Reveal>
+            <p className="hp-int-label">Connects to your existing stack — day one</p>
+            <div className="hp-int-logos">
+              {INTEGRATIONS.map((name) => (
+                <div key={name} className="hp-int-logo">{name}</div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ══ PRICING ═══════════════════════════════════════════ */}
+      <section className="hp-pricing">
+        <div className="c-wrap">
+          <div className="hp-pricing-top">
             <Reveal>
-              <h2 className="hp-price-h">
-                Replace a hire.<br />
-                <em>Starting at AED 2,500.</em>
+              <h2 className="hp-pricing-h">
+                Replace a hire.<br /><em>Starting at<br />AED 2,500.</em>
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
-              <p className="hp-price-desc">
-                Three monthly tiers. A revenue-share model for real estate and automotive
-                where you pay only on closed deals. A performance model for digital media.
-                No setup fees on the platform.
+              <p className="hp-pricing-sub">
+                Three monthly tiers, or a revenue-share model where you pay only on results.
+                No setup fees. A 14-day free pilot for every new customer.
               </p>
             </Reveal>
           </div>
-
-          <div className="hp-price-cols">
+          <div className="hp-pricing-cols">
             {[
               {
-                tier: "Essential", amount: "AED 2,500", cadence: "per month", featured: false,
-                features: ["1 AI agent", "Up to 3 sub-agents", "English + 1 language", "WhatsApp + Calendar", "Monthly report"],
+                name: "Essential", amount: "AED 2,500", cadence: "per month", featured: false,
+                features: ["1 AI agent product", "Up to 3 sub-agents", "English + 1 language", "WhatsApp + Calendar", "Monthly report"],
               },
               {
-                tier: "Professional", amount: "AED 5,000", cadence: "per month", featured: true,
-                features: ["Up to 3 AI agents", "Full sub-agent library", "3 languages", "Full integration suite", "Weekly dashboard", "Dedicated onboarding"],
+                name: "Professional", amount: "AED 5,000", cadence: "per month", featured: true,
+                features: ["Up to 3 AI agents", "Full sub-agent library", "3 languages supported", "Full integration suite", "Weekly analytics", "Dedicated onboarding"],
               },
               {
-                tier: "Enterprise", amount: "AED 7,500", cadence: "per month", featured: false,
-                features: ["Unlimited agents", "All 9 products", "All 7 languages", "Custom integrations", "Account manager", "SLA guarantee"],
+                name: "Enterprise", amount: "Custom", cadence: "", featured: false,
+                features: ["Unlimited agents", "All 7 languages", "Custom agent design", "Dedicated infrastructure", "SLA guarantee", "On-site onboarding"],
               },
-            ].map((p) => (
-              <Reveal key={p.tier} className={`hp-price-col${p.featured ? " hp-price-featured" : ""}`}>
-                <div className="hp-price-tier">{p.tier}</div>
-                <div className="hp-price-amount">{p.amount}</div>
-                <div className="hp-price-cadence">{p.cadence}</div>
-                <div className="hp-price-features">
-                  {p.features.map((f) => (
-                    <div className="hp-price-feat" key={f}>
-                      <span className="hp-price-check"><IconCheck size={13} color="currentColor" /></span>
-                      <span>{f}</span>
+            ].map((tier) => (
+              <Reveal key={tier.name} className={`hp-price-col${tier.featured ? " featured" : ""}`}>
+                {tier.featured && <span className="hp-price-badge">Most popular</span>}
+                <p className="hp-price-name">{tier.name}</p>
+                <p className="hp-price-amount">{tier.amount}</p>
+                {tier.cadence && <p className="hp-price-cadence">{tier.cadence}</p>}
+                <div className="hp-price-feats">
+                  {tier.features.map((f) => (
+                    <div key={f} className="hp-price-feat">
+                      <span className="hp-price-feat-icon"><IconCheck size={13} /></span>
+                      {f}
                     </div>
                   ))}
                 </div>
+                <Link href="/aitaas/contact" className={`c-btn${tier.featured ? "" : " c-btn--ghost"}`}>
+                  Get started <IconArrowRight size={12} color="currentColor" />
+                </Link>
               </Reveal>
             ))}
-          </div>
-
-          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <Link href="/aitaas/pricing" className="c-btn c-btn--ghost">
-              Full pricing breakdown <IconArrowRight size={13} color="currentColor" />
-            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── FINAL CTA ───────────────────────────────────── */}
-      <section className="c-sect hp-cta-sect">
+      {/* ══ CTA ═══════════════════════════════════════════════ */}
+      <section className="hp-cta">
+        <ImgWithFallback
+          src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=70"
+          alt="Luxury property"
+          className="hp-cta-bg-photo"
+        />
+        <div className="hp-cta-overlay" />
         <div className="c-wrap">
-          <div className="hp-cta-inner">
-            <Reveal>
+          <Reveal>
+            <div className="hp-cta-inner">
               <h2 className="hp-cta-h">
-                The first cohort<br />
-                is limited.<br />
-                <em>Apply now.</em>
+                14 days.<br /><em>Live agents.</em><br />Zero risk.
               </h2>
-              <p className="hp-cta-body">
-                We onboard a small number of clients per vertical to ensure quality.
-                Early clients shape the product and lock in founding-tier pricing permanently.
+              <p className="hp-cta-sub">
+                We deploy a live agent on your real enquiries for 14 days at no charge.
+                You keep every lead, booking, and call recording — regardless of what you decide.
               </p>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Link href="/aitaas/contact" className="c-btn">Book a Discovery Call</Link>
-                <Link href="/aitaas/pricing" className="c-btn c-btn--ghost">View Pricing</Link>
+              <div className="hp-cta-btns">
+                <Link href="/aitaas/contact" className="c-btn">Apply for the pilot</Link>
+                <Link href="/aitaas/pricing" className="c-btn c-btn--ghost">
+                  View pricing <IconArrowRight size={13} color="currentColor" />
+                </Link>
               </div>
-            </Reveal>
-
-            <Reveal delay={0.1}>
-              <div className="hp-cta-facts">
-                {[
-                  { title: "Deployed in ~2 weeks", body: "From signed agreement to live agent. Not months, weeks." },
-                  { title: "7 languages on day one", body: "Arabic, English, Hindi, Urdu, Russian, Mandarin, French. No retrofitting." },
-                  { title: "Configuration, not code", body: "Your vertical is configured from a battle-tested platform, not rebuilt from scratch." },
-                ].map((f) => (
-                  <div className="hp-cta-fact" key={f.title}>
-                    <span className="hp-cta-fact-icon">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
-                        <path d="M5 8l2.5 2.5L11 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                    <div>
-                      <div className="hp-cta-fact-title">{f.title}</div>
-                      <div className="hp-cta-fact-body">{f.body}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
+            </div>
+          </Reveal>
         </div>
       </section>
     </>
