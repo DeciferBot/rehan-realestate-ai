@@ -22,12 +22,21 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
   );
 }
 
-function ImgWithFallback({ src, alt, className, style }: { src: string; alt: string; className?: string; style?: React.CSSProperties }) {
+function ImgWithFallback({
+  src, alt, className, style, srcSet, sizes, eager = false,
+}: {
+  src: string; alt: string; className?: string; style?: React.CSSProperties;
+  srcSet?: string; sizes?: string; eager?: boolean;
+}) {
   const [loaded, setLoaded] = useState(true);
   if (!loaded) return null;
   return (
     <img
       src={src} alt={alt} className={className} style={style}
+      srcSet={srcSet} sizes={sizes}
+      loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : "auto"}
+      decoding="async"
       onError={() => setLoaded(false)}
     />
   );
@@ -857,9 +866,14 @@ export default function AitaasHome() {
       <section className="hp-hero">
         <div className="hp-hero-bg" />
         <ImgWithFallback
-          src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1800&q=75"
+          src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=50"
+          srcSet={[800, 1200, 1600, 2000]
+            .map((w) => `https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=${w}&q=50 ${w}w`)
+            .join(", ")}
+          sizes="100vw"
           alt="Dubai skyline"
           className="hp-hero-photo"
+          eager
         />
         <div className="hp-hero-overlay" />
 
@@ -1272,7 +1286,11 @@ export default function AitaasHome() {
       {/* ══ CTA ═══════════════════════════════════════════════ */}
       <section className="hp-cta">
         <ImgWithFallback
-          src="https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1600&q=70"
+          src="https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1400&q=50"
+          srcSet={[800, 1400, 2000]
+            .map((w) => `https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=${w}&q=50 ${w}w`)
+            .join(", ")}
+          sizes="100vw"
           alt="Dubai at dusk"
           className="hp-cta-bg-photo"
         />
