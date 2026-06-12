@@ -1,672 +1,797 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useInView,
+  AnimatePresence,
+  useTransform,
+} from "framer-motion";
+import { useRef, useState, useEffect, useCallback } from "react";
 
-const LANGS = [
-  { code: "AR", name: "Arabic", flag: "🇦🇪" },
-  { code: "EN", name: "English", flag: "🇬🇧" },
-  { code: "HI", name: "Hindi", flag: "🇮🇳" },
-  { code: "RU", name: "Russian", flag: "🇷🇺" },
-  { code: "ZH", name: "Mandarin", flag: "🇨🇳" },
-];
+/* ─── easing ─────────────────────────────────────────────────────────── */
+const EASE = [0.23, 1, 0.32, 1] as const;
+const SPRING = { type: "spring", stiffness: 280, damping: 28 } as const;
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Lead Captured",
-    body: "A prospect clicks your Meta or Instagram ad. Simmer catches the webhook in under 200ms and queues your AI agent instantly.",
-  },
-  {
-    n: "02",
-    title: "AI Calls in 60 Seconds",
-    body: "Before your competitor even sees the notification, Simmer's voice AI has already introduced itself in the lead's preferred language.",
-  },
-  {
-    n: "03",
-    title: "Live Qualification",
-    body: "The AI asks about budget, lifestyle, and investment goals — while four parallel sub-agents silently research schools, mortgages, and matching properties.",
-  },
-  {
-    n: "04",
-    title: "Brochures Sent Mid-Call",
-    body: "WhatsApp delivers property brochures, school reports, and EMI breakdowns during the conversation. The lead feels heard before the call even ends.",
-  },
-  {
-    n: "05",
-    title: "Appointment Booked",
-    body: "The AI proposes calendar slots, confirms the booking, and emails both the lead and your agent — all without human intervention.",
-  },
-  {
-    n: "06",
-    title: "14-Day Nurture Sequence",
-    body: "Multi-channel follow-ups across WhatsApp, email, and AI callbacks run automatically for two weeks, keeping warm leads warm.",
-  },
-  {
-    n: "07",
-    title: "Your Agent Closes",
-    body: "When a human finally steps in, they receive a full dossier: transcript, mortgage data, and property interest — ready to close.",
-  },
-];
-
-const AGENTS = [
-  {
-    icon: "🏫",
-    name: "School Mapper",
-    desc: "Commute times, tuition fees, and school ratings — pulled from Google Maps in real time for families on the call.",
-  },
-  {
-    icon: "📊",
-    name: "Mortgage Calculator",
-    desc: "Instant EMI breakdowns tailored to the lead's budget, currency, and local lending rates.",
-  },
-  {
-    icon: "🏠",
-    name: "Property Recommender",
-    desc: "Filters your entire inventory against the lead's stated preferences and surfaces the top matches while they're still on the line.",
-  },
-  {
-    icon: "👤",
-    name: "Profile Builder",
-    desc: "Captures demographics, intent signals, and conversation sentiment — so your CRM is already enriched before you say hello.",
-  },
-];
-
-function useCounter(target: number, duration = 1800, start = false) {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let raf: number;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min((now - t0) / duration, 1);
-      setVal(Math.round(p * p * target));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [start, target, duration]);
-  return val;
+/* ─── word-reveal helpers ─────────────────────────────────────────────── */
+function SplitReveal({
+  text,
+  className,
+  delay = 0,
+}: {
+  text: string;
+  className?: string;
+  delay?: number;
+}) {
+  const words = text.split(" ");
+  return (
+    <span className={className} aria-label={text}>
+      {words.map((w, i) => (
+        <span
+          key={i}
+          style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}
+        >
+          <motion.span
+            initial={{ y: "110%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            transition={{
+              duration: 0.7,
+              ease: EASE,
+              delay: delay + i * 0.065,
+            }}
+            style={{ display: "inline-block" }}
+          >
+            {w}
+            {i < words.length - 1 ? " " : ""}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
 }
 
-function StatCard({ value, suffix, label, delay }: { value: number; suffix: string; label: string; delay: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [started, setStarted] = useState(false);
-  const count = useCounter(value, 1600, started);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStarted(true); }, { threshold: 0.5 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+/* ─── magnetic button ─────────────────────────────────────────────────── */
+function MagneticBtn({
+  children,
+  className,
+  onClick,
+  type = "button",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  type?: "button" | "submit";
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 200, damping: 20 });
+  const sy = useSpring(y, { stiffness: 200, damping: 20 });
+
+  const handleMouse = useCallback(
+    (e: React.MouseEvent) => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      x.set((e.clientX - cx) * 0.35);
+      y.set((e.clientY - cy) * 0.35);
+    },
+    [x, y]
+  );
+
+  const reset = useCallback(() => {
+    x.set(0);
+    y.set(0);
+  }, [x, y]);
+
   return (
-    <div ref={ref} style={{ animationDelay: `${delay}ms` }} className="stat-card">
-      <span className="stat-number">{count}{suffix}</span>
-      <span className="stat-label">{label}</span>
+    <motion.button
+      ref={ref}
+      type={type}
+      className={className}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ x: sx, y: sy }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+/* ─── feature card ────────────────────────────────────────────────────── */
+function FeatureCard({
+  icon,
+  label,
+  value,
+  desc,
+  delay,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  desc: string;
+  delay: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  return (
+    <motion.div
+      ref={ref}
+      className="feature-card"
+      initial={{ opacity: 0, y: 30, scale: 0.97 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.6, ease: EASE, delay }}
+    >
+      <span className="feature-icon">{icon}</span>
+      <div className="feature-value">{value}</div>
+      <div className="feature-label">{label}</div>
+      <div className="feature-desc">{desc}</div>
+    </motion.div>
+  );
+}
+
+/* ─── custom cursor ───────────────────────────────────────────────────── */
+function Cursor() {
+  const mx = useMotionValue(-100);
+  const my = useMotionValue(-100);
+  const cx = useSpring(mx, { stiffness: 500, damping: 32 });
+  const cy = useSpring(my, { stiffness: 500, damping: 32 });
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => { mx.set(e.clientX); my.set(e.clientY); };
+    const over = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("a,button,input")) setHovered(true);
+    };
+    const out = () => setHovered(false);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseover", over);
+    window.addEventListener("mouseout", out);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseover", over);
+      window.removeEventListener("mouseout", out);
+    };
+  }, [mx, my]);
+
+  return (
+    <motion.div
+      className="cursor-dot"
+      style={{ x: cx, y: cy }}
+      animate={{ scale: hovered ? 2.8 : 1, opacity: hovered ? 0.5 : 1 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+    />
+  );
+}
+
+/* ─── aurora background ───────────────────────────────────────────────── */
+function Aurora() {
+  return (
+    <div className="aurora-wrap" aria-hidden>
+      <motion.div
+        className="aurora-blob a1"
+        animate={{ x: [0, 60, -30, 0], y: [0, -50, 30, 0], scale: [1, 1.15, 0.9, 1] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="aurora-blob a2"
+        animate={{ x: [0, -80, 40, 0], y: [0, 60, -40, 0], scale: [1, 0.88, 1.12, 1] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+      <motion.div
+        className="aurora-blob a3"
+        animate={{ x: [0, 40, -60, 0], y: [0, -30, 50, 0], scale: [1, 1.08, 0.94, 1] }}
+        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut", delay: 6 }}
+      />
     </div>
   );
 }
 
+/* ─── signup form ─────────────────────────────────────────────────────── */
+type FormState = "idle" | "loading" | "success" | "error";
+
+function SignupForm() {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<FormState>("idle");
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/waitlist/count")
+      .then((r) => r.json())
+      .then((d) => setCount(d.count ?? null))
+      .catch(() => {});
+  }, []);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || state === "loading") return;
+    setState("loading");
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setState("success");
+        setCount((c) => (c ?? 0) + 1);
+      } else {
+        const d = await res.json();
+        if (d.error === "already_registered") setState("success");
+        else setState("error");
+      }
+    } catch {
+      setState("error");
+    }
+  };
+
+  return (
+    <div className="form-wrap">
+      <AnimatePresence mode="wait">
+        {state === "success" ? (
+          <motion.div
+            key="success"
+            className="success-msg"
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.45, ease: EASE }}
+          >
+            <motion.span
+              className="check"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ ...SPRING, delay: 0.15 }}
+            >
+              ✦
+            </motion.span>
+            <span>You&apos;re on the list. We&apos;ll be in touch.</span>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="form"
+            className="signup-form"
+            onSubmit={submit}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: EASE }}
+          >
+            <div className="input-wrap">
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="email-input"
+                disabled={state === "loading"}
+              />
+              <MagneticBtn
+                type="submit"
+                className={`submit-btn${state === "loading" ? " loading" : ""}`}
+              >
+                {state === "loading" ? (
+                  <span className="spinner" />
+                ) : (
+                  <>
+                    <span className="btn-text">Join Waitlist</span>
+                    <span className="btn-fill" />
+                  </>
+                )}
+              </MagneticBtn>
+            </div>
+            {state === "error" && (
+              <motion.p
+                className="error-msg"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                Something went wrong. Please try again.
+              </motion.p>
+            )}
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {count !== null && (
+        <motion.p
+          className="count-line"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.8, duration: 0.6 }}
+        >
+          <span className="count-num">{count.toLocaleString()}</span> agents already on the list
+        </motion.p>
+      )}
+    </div>
+  );
+}
+
+/* ─── main page ───────────────────────────────────────────────────────── */
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", handler);
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible"); }),
-      { threshold: 0.12 }
-    );
-    document.querySelectorAll(".reveal").forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --bg: #07080A;
-          --bg2: #0E0F12;
-          --bg3: #131418;
-          --gold: #C89B3C;
-          --gold-dim: #8C6B24;
-          --gold-light: #E0B86A;
-          --text: #EDE8DF;
-          --muted: #6A655E;
-          --border: #1E1E24;
-          --border-gold: rgba(200,155,60,0.22);
+          --bg:        #06070D;
+          --bg2:       #0D0E18;
+          --gold:      #C8922A;
+          --gold-dim:  #7A5618;
+          --gold-glow: rgba(200,146,42,0.18);
+          --text:      #EDE8DF;
+          --muted:     #5C5850;
+          --border:    rgba(255,255,255,0.07);
+          --ease:      cubic-bezier(0.23,1,0.32,1);
         }
 
         html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text); font-family:'Outfit',sans-serif; -webkit-font-smoothing:antialiased; }
+        .landing-root { min-height: 100vh; overflow-x: hidden; cursor: none; }
 
-        body, .landing-root {
-          background: var(--bg);
-          color: var(--text);
-          font-family: 'Outfit', sans-serif;
-          font-weight: 300;
-          -webkit-font-smoothing: antialiased;
+        @media (hover: none) {
+          .landing-root { cursor: auto; }
+          .cursor-dot { display: none; }
         }
 
-        .landing-root { min-height: 100vh; overflow-x: hidden; }
+        /* ── cursor ── */
+        .cursor-dot {
+          position: fixed; top: -6px; left: -6px;
+          width: 12px; height: 12px; border-radius: 50%;
+          background: var(--gold); pointer-events: none;
+          z-index: 9999; mix-blend-mode: normal;
+          transform-origin: center;
+        }
 
-        /* NAV */
+        /* ── grain overlay ── */
+        .grain {
+          position: fixed; inset: 0; z-index: 5; pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          opacity: 0.032;
+        }
+
+        /* ── aurora ── */
+        .aurora-wrap { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+        .aurora-blob {
+          position: absolute; border-radius: 50%;
+          filter: blur(100px); opacity: 0.28;
+        }
+        .a1 { width: 600px; height: 600px; left: -120px; top: -120px; background: radial-gradient(circle, #C8922A 0%, transparent 70%); }
+        .a2 { width: 700px; height: 700px; right: -180px; top: 60px; background: radial-gradient(circle, #2A3D8A 0%, transparent 70%); }
+        .a3 { width: 500px; height: 500px; left: 30%; bottom: -80px; background: radial-gradient(circle, #8A2A6A 0%, transparent 70%); }
+
+        /* ── nav ── */
         .nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           display: flex; align-items: center; justify-content: space-between;
-          padding: 0 5vw; height: 68px;
-          transition: background 0.3s, border-color 0.3s;
-          border-bottom: 1px solid transparent;
-        }
-        .nav.scrolled {
-          background: rgba(7,8,10,0.88);
-          backdrop-filter: blur(14px);
-          border-bottom-color: var(--border);
+          padding: 0 clamp(24px, 5vw, 80px); height: 64px;
         }
         .nav-logo {
-          font-family: 'Cormorant Garant', serif;
-          font-weight: 500; font-size: 22px; letter-spacing: 0.02em;
-          color: var(--text); text-decoration: none;
+          font-family: 'Cormorant Garant', serif; font-weight: 500;
+          font-size: 20px; letter-spacing: 0.08em; color: var(--text);
+          text-decoration: none;
         }
-        .nav-logo span { color: var(--gold); }
-        .nav-cta {
-          background: var(--gold); color: #07080A;
-          border: none; padding: 10px 24px; font-family: 'Outfit', sans-serif;
-          font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
-          text-transform: uppercase; cursor: pointer; text-decoration: none;
-          transition: background 0.2s, transform 0.15s;
-          display: inline-block;
+        .nav-logo em { font-style: normal; color: var(--gold); }
+        .nav-badge {
+          font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--gold); border: 1px solid var(--gold-dim);
+          padding: 5px 14px; font-family: 'Outfit', sans-serif;
         }
-        .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
 
-        /* HERO */
+        /* ── hero ── */
         .hero {
-          min-height: 100vh; display: flex; flex-direction: column;
-          justify-content: flex-end; padding: 0 5vw 80px;
-          position: relative; overflow: hidden;
+          position: relative; min-height: 100svh;
+          display: flex; flex-direction: column;
+          justify-content: center; align-items: center;
+          text-align: center; padding: 100px clamp(24px, 6vw, 100px) 80px;
+          overflow: hidden;
         }
-        .hero-grid-bg {
-          position: absolute; inset: 0; z-index: 0;
-          background-image:
-            linear-gradient(rgba(200,155,60,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(200,155,60,0.04) 1px, transparent 1px);
-          background-size: 60px 60px;
-          mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 100%);
-        }
-        .hero-glow {
-          position: absolute; width: 700px; height: 700px;
-          background: radial-gradient(circle, rgba(200,155,60,0.07) 0%, transparent 70%);
-          top: -100px; left: -100px; z-index: 0; pointer-events: none;
-        }
-        .hero-content { position: relative; z-index: 1; max-width: 900px; }
-        .hero-eyebrow {
-          display: inline-flex; align-items: center; gap: 8px;
-          color: var(--gold); font-size: 12px; font-weight: 500;
-          letter-spacing: 0.15em; text-transform: uppercase;
-          margin-bottom: 28px;
-        }
-        .hero-eyebrow::before {
-          content: ''; display: block; width: 32px; height: 1px; background: var(--gold);
-        }
-        .hero-h1 {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(56px, 9vw, 120px);
-          font-weight: 300; line-height: 0.95; letter-spacing: -0.02em;
-          color: var(--text); margin-bottom: 32px;
-        }
-        .hero-h1 em { font-style: italic; color: var(--gold); }
-        .hero-sub {
-          max-width: 560px; font-size: 16px; line-height: 1.75;
-          color: var(--muted); margin-bottom: 48px; font-weight: 300;
-        }
-        .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
-        .btn-primary {
-          background: var(--gold); color: #07080A; border: none;
-          padding: 15px 36px; font-family: 'Outfit', sans-serif;
-          font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
-          text-transform: uppercase; cursor: pointer; text-decoration: none;
-          transition: background 0.2s, transform 0.15s; display: inline-block;
-        }
-        .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
-        .btn-ghost {
-          background: transparent; color: var(--text);
-          border: 1px solid var(--border); padding: 15px 36px;
-          font-family: 'Outfit', sans-serif; font-size: 14px;
-          font-weight: 400; letter-spacing: 0.04em; cursor: pointer;
-          text-decoration: none; display: inline-block;
-          transition: border-color 0.2s, color 0.2s, transform 0.15s;
-        }
-        .btn-ghost:hover { border-color: var(--gold-dim); color: var(--gold); transform: translateY(-2px); }
+        .hero-inner { position: relative; z-index: 2; max-width: 900px; width: 100%; }
 
-        /* STATS STRIP */
-        .stats-strip {
-          background: var(--bg2); border-top: 1px solid var(--border);
-          border-bottom: 1px solid var(--border);
-          display: grid; grid-template-columns: repeat(4, 1fr);
-        }
-        .stat-card {
-          display: flex; flex-direction: column; align-items: center;
-          padding: 40px 20px; gap: 8px;
-          border-right: 1px solid var(--border);
-          animation: fadeUp 0.6s ease both;
-        }
-        .stat-card:last-child { border-right: none; }
-        .stat-number {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(36px, 4vw, 56px); font-weight: 300; color: var(--gold);
-        }
-        .stat-label {
-          font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
-          color: var(--muted); text-align: center;
-        }
-
-        /* SECTIONS */
-        section { padding: 100px 5vw; }
-        .section-label {
+        .eyebrow {
+          display: inline-flex; align-items: center; gap: 12px;
           font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-          color: var(--gold); margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+          color: var(--gold); margin-bottom: 36px;
         }
-        .section-label::after { content: ''; flex: 1; max-width: 60px; height: 1px; background: var(--gold-dim); }
-        .section-h2 {
+        .eyebrow-line { width: 28px; height: 1px; background: var(--gold); flex-shrink: 0; }
+
+        .hero-title {
           font-family: 'Cormorant Garant', serif;
-          font-size: clamp(36px, 5vw, 64px); font-weight: 300;
-          line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 24px;
+          font-size: clamp(52px, 10vw, 130px);
+          font-weight: 300; line-height: 0.95;
+          letter-spacing: -0.02em; color: var(--text);
+          margin-bottom: 8px;
         }
-        .section-h2 em { font-style: italic; color: var(--gold); }
-        .section-body { font-size: 16px; line-height: 1.8; color: var(--muted); max-width: 520px; }
-
-        /* PROBLEM SECTION */
-        .problem-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-          margin-top: 60px; border: 1px solid var(--border);
-        }
-        .problem-col {
-          padding: 48px 40px;
-          background: var(--bg2);
-        }
-        .problem-col.right { background: var(--bg3); border-left: 1px solid var(--border-gold); }
-        .problem-col-label {
-          font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-          margin-bottom: 32px; display: flex; align-items: center; gap: 10px;
-        }
-        .problem-col-label .dot {
-          width: 6px; height: 6px; border-radius: 50%;
-        }
-        .dot-red { background: #6B3030; }
-        .dot-gold { background: var(--gold); }
-        .problem-item {
-          display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;
-        }
-        .problem-item-icon { font-size: 18px; margin-top: 2px; flex-shrink: 0; }
-        .problem-item-text { font-size: 14px; line-height: 1.7; color: var(--muted); }
-        .problem-item-text strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
-
-        /* HOW IT WORKS */
-        .steps { margin-top: 60px; }
-        .step {
-          display: grid; grid-template-columns: 80px 1fr; gap: 32px;
-          padding: 36px 0; border-bottom: 1px solid var(--border);
-          transition: all 0.3s;
-        }
-        .step:last-child { border-bottom: none; }
-        .step:hover { background: rgba(200,155,60,0.02); }
-        .step-num {
-          font-family: 'Cormorant Garant', serif; font-size: 14px;
-          font-weight: 400; color: var(--gold-dim); letter-spacing: 0.05em;
-          padding-top: 4px;
-        }
-        .step-content {}
-        .step-title {
+        .hero-title-gold {
           font-family: 'Cormorant Garant', serif;
-          font-size: 26px; font-weight: 400; margin-bottom: 10px; color: var(--text);
+          font-size: clamp(52px, 10vw, 130px);
+          font-weight: 300; line-height: 0.95;
+          letter-spacing: -0.02em;
+          color: var(--gold);
+          margin-bottom: 44px;
+          font-style: italic;
         }
-        .step-body { font-size: 14px; line-height: 1.75; color: var(--muted); max-width: 640px; }
+        .hero-sub {
+          font-size: clamp(15px, 2vw, 18px); line-height: 1.7;
+          color: var(--muted); max-width: 520px; margin: 0 auto 52px;
+          font-weight: 300;
+        }
 
-        /* AGENTS */
-        .agents-grid {
-          display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
-          margin-top: 60px; border: 1px solid var(--border); overflow: hidden;
+        /* ── form ── */
+        .form-wrap { width: 100%; max-width: 480px; margin: 0 auto; }
+        .signup-form { width: 100%; }
+        .input-wrap {
+          display: flex; width: 100%;
+          border: 1px solid var(--border);
+          transition: border-color 0.2s ease;
         }
-        .agent-card {
-          background: var(--bg2); padding: 40px 36px;
-          border-right: 1px solid var(--border);
-          border-bottom: 1px solid var(--border);
-          transition: background 0.25s;
+        .input-wrap:focus-within {
+          border-color: rgba(200,146,42,0.5);
+          box-shadow: 0 0 0 3px var(--gold-glow);
         }
-        .agent-card:hover { background: var(--bg3); }
-        .agent-card:nth-child(2n) { border-right: none; }
-        .agent-card:nth-child(3), .agent-card:nth-child(4) { border-bottom: none; }
-        .agent-icon { font-size: 28px; margin-bottom: 20px; display: block; }
-        .agent-name {
+        .email-input {
+          flex: 1; background: rgba(255,255,255,0.03);
+          border: none; outline: none; padding: 15px 20px;
+          font-family: 'Outfit', sans-serif; font-size: 14px;
+          color: var(--text); min-width: 0;
+        }
+        .email-input::placeholder { color: var(--muted); }
+        .submit-btn {
+          position: relative; background: var(--gold); border: none;
+          padding: 15px 28px; cursor: none;
+          font-family: 'Outfit', sans-serif; font-size: 13px;
+          font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+          color: #06070D; overflow: hidden; flex-shrink: 0;
+          transition: transform 160ms var(--ease);
+        }
+        .btn-fill {
+          position: absolute; inset: 0; background: rgba(255,255,255,0.18);
+          clip-path: inset(0 100% 0 0);
+          transition: clip-path 0.35s var(--ease);
+          pointer-events: none;
+        }
+        .submit-btn:hover .btn-fill { clip-path: inset(0 0% 0 0); }
+
+        .spinner {
+          display: inline-block; width: 14px; height: 14px;
+          border: 2px solid rgba(6,7,13,0.3); border-top-color: #06070D;
+          border-radius: 50%; animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .success-msg {
+          display: flex; align-items: center; justify-content: center;
+          gap: 12px; padding: 18px 24px;
+          background: rgba(200,146,42,0.08); border: 1px solid var(--gold-dim);
+          font-size: 14px; color: var(--text);
+        }
+        .check { color: var(--gold); font-size: 18px; }
+        .error-msg { font-size: 13px; color: #E05050; margin-top: 8px; }
+
+        .count-line {
+          font-size: 12px; color: var(--muted); margin-top: 20px;
+          letter-spacing: 0.04em; text-align: center;
+        }
+        .count-num { color: var(--gold); font-weight: 500; }
+
+        /* ── language strip ── */
+        .lang-strip {
+          display: flex; align-items: center; justify-content: center;
+          gap: 24px; margin-top: 56px; flex-wrap: wrap;
+        }
+        .lang-chip {
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 14px; border: 1px solid var(--border);
+          font-size: 12px; color: var(--muted); letter-spacing: 0.06em;
+          transition: border-color 0.2s, color 0.2s;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .lang-chip:hover { border-color: var(--gold-dim); color: var(--gold); }
+        }
+
+        /* ── scroll indicator ── */
+        .scroll-hint {
+          position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+          z-index: 2; display: flex; flex-direction: column; align-items: center;
+          gap: 8px; color: var(--muted); font-size: 11px; letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .scroll-line {
+          width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold-dim), transparent);
+          animation: scrollPulse 2s ease-in-out infinite;
+        }
+        @keyframes scrollPulse {
+          0%, 100% { opacity: 0.3; transform: scaleY(1); }
+          50%       { opacity: 1;   transform: scaleY(1.1); }
+        }
+
+        /* ── divider ── */
+        .divider {
+          width: 1px; height: 80px; background: linear-gradient(to bottom, transparent, var(--gold-dim), transparent);
+          margin: 0 auto;
+        }
+
+        /* ── features ── */
+        .features {
+          padding: clamp(60px, 8vw, 120px) clamp(24px, 6vw, 80px);
+          position: relative; z-index: 2;
+        }
+        .features-inner { max-width: 1100px; margin: 0 auto; }
+        .features-label {
+          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+          color: var(--gold); text-align: center; margin-bottom: 16px;
+          display: flex; align-items: center; justify-content: center; gap: 16px;
+        }
+        .features-label::before, .features-label::after {
+          content:''; flex: 1; max-width: 60px; height: 1px; background: var(--gold-dim);
+        }
+        .features-heading {
           font-family: 'Cormorant Garant', serif;
-          font-size: 22px; font-weight: 400; margin-bottom: 12px; color: var(--text);
+          font-size: clamp(32px, 4.5vw, 56px); font-weight: 300;
+          text-align: center; margin-bottom: 64px; line-height: 1.1;
         }
-        .agent-desc { font-size: 14px; line-height: 1.75; color: var(--muted); }
-
-        /* LANGUAGES */
-        .lang-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .lang-inner { max-width: 1200px; }
-        .lang-grid {
-          display: flex; gap: 0; margin-top: 48px;
+        .features-heading em { font-style: italic; color: var(--gold); }
+        .features-grid {
+          display: grid; grid-template-columns: repeat(3, 1fr);
+          gap: 1px; background: var(--border);
           border: 1px solid var(--border); overflow: hidden;
         }
-        .lang-item {
-          flex: 1; padding: 36px 28px; text-align: center;
-          border-right: 1px solid var(--border);
-          transition: background 0.2s;
+        .feature-card {
+          background: var(--bg2); padding: clamp(28px, 4vw, 48px) clamp(24px, 3vw, 40px);
+          transition: background 0.25s;
         }
-        .lang-item:last-child { border-right: none; }
-        .lang-item:hover { background: rgba(200,155,60,0.04); }
-        .lang-flag { font-size: 32px; margin-bottom: 12px; display: block; }
-        .lang-code { font-family: 'Cormorant Garant', serif; font-size: 28px; font-weight: 300; color: var(--gold); }
-        .lang-name { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; margin-top: 6px; }
+        @media (hover: hover) and (pointer: fine) {
+          .feature-card:hover { background: rgba(200,146,42,0.04); }
+        }
+        .feature-icon { font-size: 28px; margin-bottom: 20px; display: block; }
+        .feature-value {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(40px, 5vw, 64px); font-weight: 300;
+          color: var(--gold); line-height: 1; margin-bottom: 8px;
+        }
+        .feature-label {
+          font-size: 13px; font-weight: 500; color: var(--text);
+          letter-spacing: 0.04em; margin-bottom: 14px; text-transform: uppercase;
+        }
+        .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
 
-        /* PIPELINE VISUAL */
-        .pipeline {
-          display: flex; align-items: center; gap: 0;
-          overflow-x: auto; padding-bottom: 8px; margin-top: 60px;
-        }
-        .pipeline-node {
-          flex-shrink: 0; background: var(--bg2);
-          border: 1px solid var(--border); padding: 24px 20px;
-          min-width: 140px; text-align: center;
-          transition: border-color 0.2s, background 0.2s;
-        }
-        .pipeline-node:hover { border-color: var(--gold-dim); background: var(--bg3); }
-        .pipeline-node-icon { font-size: 22px; margin-bottom: 10px; display: block; }
-        .pipeline-node-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); line-height: 1.5; }
-        .pipeline-arrow {
-          flex-shrink: 0; color: var(--gold-dim); font-size: 16px; padding: 0 4px;
-        }
-
-        /* CTA */
-        .cta-section {
-          text-align: center; padding: 120px 5vw;
-          position: relative; overflow: hidden;
+        /* ── pipeline section ── */
+        .pipeline-section {
+          padding: clamp(60px, 8vw, 100px) clamp(24px, 6vw, 80px);
+          position: relative; z-index: 2; overflow: hidden;
           border-top: 1px solid var(--border);
         }
-        .cta-section::before {
+        .pipeline-section::before {
           content: ''; position: absolute; inset: 0;
-          background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,155,60,0.06) 0%, transparent 70%);
+          background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,146,42,0.04) 0%, transparent 70%);
+          pointer-events: none;
         }
-        .cta-section > * { position: relative; z-index: 1; }
-        .cta-h2 {
+        .pipeline-inner { max-width: 1100px; margin: 0 auto; }
+        .pipeline-heading {
           font-family: 'Cormorant Garant', serif;
-          font-size: clamp(40px, 6vw, 80px); font-weight: 300;
-          line-height: 1.05; margin-bottom: 24px;
+          font-size: clamp(32px, 4.5vw, 56px); font-weight: 300;
+          text-align: center; margin-bottom: 56px; line-height: 1.1;
         }
-        .cta-h2 em { font-style: italic; color: var(--gold); }
-        .cta-sub { font-size: 15px; color: var(--muted); max-width: 460px; margin: 0 auto 48px; line-height: 1.7; }
-        .cta-form { display: flex; gap: 0; max-width: 460px; margin: 0 auto; }
-        .cta-input {
-          flex: 1; background: var(--bg2); border: 1px solid var(--border);
-          color: var(--text); font-family: 'Outfit', sans-serif;
-          font-size: 14px; padding: 15px 20px; outline: none;
-          transition: border-color 0.2s;
+        .pipeline-heading em { font-style: italic; color: var(--gold); }
+        .pipeline-steps {
+          display: grid; grid-template-columns: repeat(7, 1fr);
+          gap: 1px; background: var(--border);
+          border: 1px solid var(--border); overflow: hidden;
         }
-        .cta-input::placeholder { color: var(--muted); }
-        .cta-input:focus { border-color: var(--gold-dim); }
-        .cta-submit {
-          background: var(--gold); color: #07080A; border: none;
-          padding: 15px 28px; font-family: 'Outfit', sans-serif;
-          font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
-          text-transform: uppercase; cursor: pointer;
-          white-space: nowrap; transition: background 0.2s;
+        .p-step {
+          background: var(--bg2); padding: 28px 16px;
+          text-align: center; position: relative;
+          transition: background 0.2s;
         }
-        .cta-submit:hover { background: var(--gold-light); }
+        @media (hover: hover) and (pointer: fine) {
+          .p-step:hover { background: rgba(200,146,42,0.04); }
+        }
+        .p-step-num {
+          font-family: 'Cormorant Garant', serif; font-size: 11px;
+          color: var(--gold-dim); margin-bottom: 10px; display: block;
+          letter-spacing: 0.1em;
+        }
+        .p-step-icon { font-size: 22px; margin-bottom: 10px; display: block; }
+        .p-step-label {
+          font-size: 11px; color: var(--muted); line-height: 1.5;
+          letter-spacing: 0.04em;
+        }
 
-        /* FOOTER */
+        /* ── footer ── */
         footer {
-          padding: 40px 5vw; border-top: 1px solid var(--border);
-          display: flex; justify-content: space-between; align-items: center;
-          flex-wrap: wrap; gap: 16px;
+          padding: 36px clamp(24px, 5vw, 80px);
+          border-top: 1px solid var(--border);
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px; position: relative; z-index: 2;
         }
         .footer-logo {
-          font-family: 'Cormorant Garant', serif; font-size: 18px; font-weight: 400;
-          color: var(--muted); text-decoration: none;
+          font-family: 'Cormorant Garant', serif; font-size: 18px;
+          font-weight: 400; color: var(--muted); text-decoration: none;
         }
-        .footer-logo span { color: var(--gold-dim); }
+        .footer-logo em { font-style: normal; color: var(--gold-dim); }
         .footer-copy { font-size: 12px; color: var(--muted); }
 
-        /* REVEAL ANIMATIONS */
-        .reveal {
-          opacity: 0; transform: translateY(28px);
-          transition: opacity 0.7s ease, transform 0.7s ease;
+        /* ── responsive ── */
+        @media (max-width: 900px) {
+          .features-grid { grid-template-columns: 1fr; }
+          .pipeline-steps { grid-template-columns: repeat(4, 1fr); }
+          .p-step:nth-child(n+5) { display: none; }
         }
-        .reveal.visible { opacity: 1; transform: none; }
-        .reveal-d1 { transition-delay: 0.1s; }
-        .reveal-d2 { transition-delay: 0.2s; }
-        .reveal-d3 { transition-delay: 0.3s; }
-
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: none; }
+        @media (max-width: 600px) {
+          .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
+          .p-step:nth-child(n+3) { display: none; }
+          .lang-strip { gap: 12px; }
+          .input-wrap { flex-direction: column; }
+          .submit-btn { width: 100%; text-align: center; }
         }
-        .hero-eyebrow { animation: fadeUp 0.6s ease 0.1s both; }
-        .hero-h1 { animation: fadeUp 0.7s ease 0.2s both; }
-        .hero-sub { animation: fadeUp 0.7s ease 0.35s both; }
-        .hero-actions { animation: fadeUp 0.7s ease 0.48s both; }
 
-        @media (max-width: 768px) {
-          .stats-strip { grid-template-columns: repeat(2, 1fr); }
-          .stat-card:nth-child(2) { border-right: none; }
-          .stat-card:nth-child(3), .stat-card:nth-child(4) { border-top: 1px solid var(--border); }
-          .problem-grid { grid-template-columns: 1fr; }
-          .problem-col.right { border-left: none; border-top: 1px solid var(--border-gold); }
-          .step { grid-template-columns: 56px 1fr; gap: 20px; }
-          .agents-grid { grid-template-columns: 1fr; }
-          .agent-card:nth-child(2n) { border-right: 1px solid var(--border); }
-          .agent-card:nth-child(3) { border-bottom: 1px solid var(--border); }
-          .lang-grid { flex-wrap: wrap; }
-          .lang-item { flex: 1 1 calc(33.33% - 1px); }
-          .cta-form { flex-direction: column; }
-          footer { flex-direction: column; align-items: flex-start; }
+        /* ── reduced motion ── */
+        @media (prefers-reduced-motion: reduce) {
+          .aurora-blob, .scroll-line, .spinner { animation: none !important; }
+          * { transition-duration: 0.01ms !important; }
         }
       `}</style>
 
+      {/* Grain + Cursor */}
+      <div className="grain" aria-hidden />
+      <Cursor />
+
       <div className="landing-root">
         {/* NAV */}
-        <nav className={`nav${scrolled ? " scrolled" : ""}`}>
-          <a href="#" className="nav-logo">Simmer<span>.</span></a>
-          <a href="#waitlist" className="nav-cta">Request Demo</a>
-        </nav>
+        <motion.nav
+          className="nav"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
+        >
+          <a href="#" className="nav-logo">Simmer <em>.</em></a>
+          <span className="nav-badge">Early Access</span>
+        </motion.nav>
 
         {/* HERO */}
         <section className="hero">
-          <div className="hero-grid-bg" />
-          <div className="hero-glow" />
-          <div className="hero-content">
-            <div className="hero-eyebrow">PropTech for Real Estate Agents</div>
-            <h1 className="hero-h1">
-              Close More Deals.<br />
-              <em>Without Hiring</em><br />
-              More People.
+          <Aurora />
+
+          <div className="hero-inner">
+            <motion.div
+              className="eyebrow"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.3 }}
+            >
+              <span className="eyebrow-line" />
+              PropTech for Real Estate Agents
+              <span className="eyebrow-line" />
+            </motion.div>
+
+            <h1>
+              <SplitReveal text="The AI That Sells" className="hero-title" delay={0.5} />
+              <br />
+              <SplitReveal text="Property While You Sleep." className="hero-title-gold" delay={0.8} />
             </h1>
-            <p className="hero-sub">
-              Simmer's AI voice system qualifies every lead in 60 seconds, sends property brochures via WhatsApp mid-call, and books appointments — fully automated, around the clock.
-            </p>
-            <div className="hero-actions">
-              <a href="#waitlist" className="btn-primary">Request Early Access</a>
-              <a href="#how-it-works" className="btn-ghost">See How It Works</a>
-            </div>
-          </div>
-        </section>
 
-        {/* STATS STRIP */}
-        <div className="stats-strip">
-          <StatCard value={60} suffix="s" label="First AI call after lead capture" delay={0} />
-          <StatCard value={5} suffix="" label="Languages spoken natively" delay={100} />
-          <StatCard value={14} suffix=" days" label="Automated nurture sequence" delay={200} />
-          <StatCard value={100} suffix="%" label="Pipeline automated end-to-end" delay={300} />
-        </div>
+            <motion.p
+              className="hero-sub"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE, delay: 1.25 }}
+            >
+              Simmer qualifies every lead in 60 seconds, sends brochures via WhatsApp mid-call, and books appointments — fully automated. <strong style={{ color: "var(--text)", fontWeight: 400 }}>Be the first to know when we launch.</strong>
+            </motion.p>
 
-        {/* PROBLEM */}
-        <section>
-          <div className="reveal section-label">The Problem</div>
-          <h2 className="reveal reveal-d1 section-h2">
-            Your pipeline<br />has a <em>leak.</em>
-          </h2>
-          <p className="reveal reveal-d2 section-body">
-            Most real estate agents respond to leads hours after they come in. By then, the prospect has already spoken to three competitors. Simmer eliminates the gap entirely.
-          </p>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE, delay: 1.5 }}
+            >
+              <SignupForm />
+            </motion.div>
 
-          <div className="problem-grid reveal">
-            <div className="problem-col">
-              <div className="problem-col-label">
-                <span className="dot dot-red" />
-                Without Simmer
-              </div>
+            <motion.div
+              className="lang-strip"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, ease: EASE, delay: 1.9 }}
+            >
               {[
-                ["Hours to first contact", "The average agent responds 3–5 hours after a lead comes in. The prospect is already cold."],
-                ["Manual qualification", "Hours spent on calls with buyers who aren't serious — time you'll never get back."],
-                ["Inconsistent follow-up", "Leads go cold because nobody remembered to send the brochure or book the callback."],
-                ["Language barriers", "International buyers get lost in translation. Opportunities disappear."],
-              ].map(([title, body]) => (
-                <div className="problem-item" key={title}>
-                  <span className="problem-item-icon">—</span>
-                  <div className="problem-item-text">
-                    <strong>{title}</strong>
-                    {body}
-                  </div>
-                </div>
+                { flag: "🇦🇪", lang: "Arabic" },
+                { flag: "🇬🇧", lang: "English" },
+                { flag: "🇮🇳", lang: "Hindi" },
+                { flag: "🇷🇺", lang: "Russian" },
+                { flag: "🇨🇳", lang: "Mandarin" },
+              ].map(({ flag, lang }) => (
+                <span key={lang} className="lang-chip">
+                  {flag} {lang}
+                </span>
               ))}
-            </div>
-            <div className="problem-col right">
-              <div className="problem-col-label" style={{ color: "var(--gold)" }}>
-                <span className="dot dot-gold" />
-                With Simmer
-              </div>
-              {[
-                ["60-second response", "Your AI agent calls every new lead within 60 seconds of clicking your ad — every time, without exception."],
-                ["Automated qualification", "Budget, lifestyle, and investment goals captured while four AI sub-agents silently do the research."],
-                ["14-day nurture on autopilot", "WhatsApp, email, and AI callbacks run automatically. No lead falls through the cracks."],
-                ["5 languages, native fluency", "Arabic, English, Hindi, Russian, and Mandarin — the AI adapts tone and language instantly."],
-              ].map(([title, body]) => (
-                <div className="problem-item" key={title}>
-                  <span className="problem-item-icon" style={{ color: "var(--gold)" }}>✦</span>
-                  <div className="problem-item-text">
-                    <strong>{title}</strong>
-                    {body}
-                  </div>
-                </div>
-              ))}
-            </div>
+            </motion.div>
+          </div>
+
+          <div className="scroll-hint" aria-hidden>
+            <div className="scroll-line" />
+            <span>Scroll</span>
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section id="how-it-works" style={{ background: "var(--bg2)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-          <div className="reveal section-label">How It Works</div>
-          <h2 className="reveal reveal-d1 section-h2">
-            Seven steps.<br /><em>Zero manual effort.</em>
-          </h2>
-          <div className="steps">
-            {STEPS.map((s, i) => (
-              <div className={`step reveal reveal-d${Math.min(i % 3 + 1, 3)}`} key={s.n}>
-                <div className="step-num">{s.n}</div>
-                <div className="step-content">
-                  <div className="step-title">{s.title}</div>
-                  <div className="step-body">{s.body}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <div className="divider" aria-hidden />
 
-        {/* PARALLEL AGENTS */}
-        <section>
-          <div className="reveal section-label">AI Sub-Agents</div>
-          <h2 className="reveal reveal-d1 section-h2">
-            Four agents working<br /><em>while you sleep.</em>
-          </h2>
-          <p className="reveal reveal-d2 section-body">
-            The moment a qualification call begins, four specialised AI agents fire in parallel — each delivering a piece of the picture your lead didn't even know they needed.
-          </p>
-          <div className="agents-grid">
-            {AGENTS.map((a, i) => (
-              <div className={`agent-card reveal reveal-d${(i % 2) + 1}`} key={a.name}>
-                <span className="agent-icon">{a.icon}</span>
-                <div className="agent-name">{a.name}</div>
-                <div className="agent-desc">{a.desc}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* LANGUAGES */}
-        <section className="lang-section">
-          <div className="lang-inner">
-            <div className="reveal section-label">Multi-Language</div>
-            <h2 className="reveal reveal-d1 section-h2">
-              Your AI speaks<br /><em>their language.</em>
+        {/* FEATURES */}
+        <section className="features">
+          <div className="features-inner">
+            <div className="features-label">What We Do</div>
+            <h2 className="features-heading">
+              Seven steps.<br /><em>Zero manual effort.</em>
             </h2>
-            <p className="reveal reveal-d2 section-body">
-              Dubai's buyers come from everywhere. Simmer's voice AI adapts in real time — matching language, dialect, and tone to each caller.
-            </p>
-            <div className="lang-grid reveal">
-              {LANGS.map((l) => (
-                <div className="lang-item" key={l.code}>
-                  <span className="lang-flag">{l.flag}</span>
-                  <div className="lang-code">{l.code}</div>
-                  <div className="lang-name">{l.name}</div>
-                </div>
-              ))}
+            <div className="features-grid">
+              <FeatureCard
+                icon="⚡"
+                value="60s"
+                label="First AI Call"
+                desc="Your AI agent calls every new lead within 60 seconds of clicking your ad — every time, without exception."
+                delay={0}
+              />
+              <FeatureCard
+                icon="🌍"
+                value="5"
+                label="Languages Spoken"
+                desc="Arabic, English, Hindi, Russian, and Mandarin — with adaptive tone matching and native fluency."
+                delay={0.1}
+              />
+              <FeatureCard
+                icon="📲"
+                value="14"
+                label="Day Nurture"
+                desc="Multi-channel follow-ups across WhatsApp, email, and AI callbacks run automatically for two weeks."
+                delay={0.2}
+              />
             </div>
           </div>
         </section>
 
-        {/* PIPELINE VISUAL */}
-        <section>
-          <div className="reveal section-label">The Full Pipeline</div>
-          <h2 className="reveal reveal-d1 section-h2">
-            Lead to close,<br /><em>end to end.</em>
-          </h2>
-          <div className="pipeline reveal">
-            {[
-              { icon: "📱", label: "Ad Click" },
-              { icon: "⚡", label: "Webhook Trigger" },
-              { icon: "🤖", label: "AI Calls Lead" },
-              { icon: "🧠", label: "Qualifies & Researches" },
-              { icon: "📲", label: "Sends Brochure" },
-              { icon: "📅", label: "Books Appointment" },
-              { icon: "🔁", label: "14-Day Nurture" },
-              { icon: "🤝", label: "Agent Closes" },
-            ].map((node, i, arr) => (
-              <div key={node.label} style={{ display: "flex", alignItems: "center" }}>
-                <div className="pipeline-node">
-                  <span className="pipeline-node-icon">{node.icon}</span>
-                  <div className="pipeline-node-label">{node.label}</div>
-                </div>
-                {i < arr.length - 1 && <div className="pipeline-arrow">›</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="cta-section" id="waitlist">
-          <h2 className="cta-h2 reveal">
-            Ready to automate<br />your <em>entire pipeline?</em>
-          </h2>
-          <p className="cta-sub reveal reveal-d1">
-            Join the early access list. We onboard agents market by market. Dubai is first.
-          </p>
-          <div className="cta-form reveal reveal-d2">
-            <input className="cta-input" type="email" placeholder="your@email.com" />
-            <button className="cta-submit">Get Access</button>
+        {/* PIPELINE */}
+        <section className="pipeline-section">
+          <div className="pipeline-inner">
+            <h2 className="pipeline-heading">
+              Lead to close,<br /><em>end to end.</em>
+            </h2>
+            <div className="pipeline-steps">
+              {[
+                { n: "01", icon: "📱", label: "Ad Click" },
+                { n: "02", icon: "⚡", label: "AI Calls in 60s" },
+                { n: "03", icon: "🧠", label: "Qualifies Lead" },
+                { n: "04", icon: "📲", label: "Sends Brochure" },
+                { n: "05", icon: "📅", label: "Books Appt" },
+                { n: "06", icon: "🔁", label: "14-Day Nurture" },
+                { n: "07", icon: "🤝", label: "Agent Closes" },
+              ].map((s, i) => (
+                <motion.div
+                  key={s.n}
+                  className="p-step"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.06 }}
+                >
+                  <span className="p-step-num">{s.n}</span>
+                  <span className="p-step-icon">{s.icon}</span>
+                  <div className="p-step-label">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* FOOTER */}
         <footer>
-          <a href="#" className="footer-logo">Simmer Properties<span>.</span></a>
+          <a href="#" className="footer-logo">Simmer Properties <em>.</em></a>
           <span className="footer-copy">© 2026 Simmer Properties. All rights reserved.</span>
         </footer>
       </div>
