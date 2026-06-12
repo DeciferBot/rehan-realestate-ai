@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useInView, animate, useMotionValue, useTransform } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { IconArrowRight, IconCheck } from "@/components/AitaasIcons";
 
 const AitaasCanvas = dynamic(() => import("@/components/AitaasCanvas"), { ssr: false });
+const AitaasHeroCanvas = dynamic(() => import("@/components/AitaasHeroCanvas"), { ssr: false });
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -61,22 +62,53 @@ const INTEGRATIONS = [
   "Property Finder", "Bayut", "Twilio", "Zapier", "Zoho CRM",
 ];
 
+const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/*-+#@";
+const HEADLINE = "YOUR NEXT HIRE\nIS AN AI AGENT.";
+
 export default function AitaasHome() {
   const h1Ref = useRef<HTMLHeadingElement>(null);
   const heroRef = useRef<HTMLElement>(null);
+  const mouseNorm = useRef({ x: 0.5, y: 0.5 });
   const trx = useRef(0), try_ = useRef(0), crx = useRef(0), cry = useRef(0);
   const rafId = useRef<number>(0);
+  const [heroText, setHeroText] = useState("");
+  const [heroDone, setHeroDone] = useState(false);
+  const [showSub, setShowSub] = useState(false);
 
+  // Glitch typewriter
+  useEffect(() => {
+    let i = 0;
+    const iv = setInterval(() => {
+      const revealed = HEADLINE.slice(0, i);
+      const tail = Math.min(4, HEADLINE.length - i);
+      let glitch = "";
+      for (let g = 0; g < tail; g++) glitch += GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+      setHeroText(revealed + glitch);
+      i++;
+      if (i > HEADLINE.length) {
+        clearInterval(iv);
+        setHeroText(HEADLINE);
+        setHeroDone(true);
+        setTimeout(() => setShowSub(true), 200);
+      }
+    }, 38);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Mouse parallax on h1
   useEffect(() => {
     const hero = heroRef.current;
     const h1 = h1Ref.current;
     if (!hero || !h1) return;
     const onMove = (e: MouseEvent) => {
       const r = hero.getBoundingClientRect();
-      trx.current = ((e.clientY - r.top) / r.height - 0.5) * -4;
-      try_.current = ((e.clientX - r.left) / r.width - 0.5) * 4;
+      const nx = (e.clientX - r.left) / r.width;
+      const ny = (e.clientY - r.top) / r.height;
+      mouseNorm.current = { x: nx, y: ny };
+      trx.current = (ny - 0.5) * -3.5;
+      try_.current = (nx - 0.5) * 3.5;
     };
-    const onLeave = () => { trx.current = 0; try_.current = 0; };
+    const onLeave = () => { trx.current = 0; try_.current = 0; mouseNorm.current = { x: 0.5, y: 0.5 }; };
     const tick = () => {
       crx.current += (trx.current - crx.current) * 0.055;
       cry.current += (try_.current - cry.current) * 0.055;
@@ -147,31 +179,110 @@ export default function AitaasHome() {
         .hp-h1 {
           font-family: 'Barlow Condensed', sans-serif;
           font-weight: 700; text-transform: uppercase;
-          font-size: clamp(4.5rem, 9vw, 9rem);
+          font-size: clamp(4rem, 8.5vw, 8.5rem);
           line-height: 0.92; letter-spacing: -0.02em;
           color: var(--c-ink); margin-bottom: 32px;
-          max-width: 18ch;
+          max-width: 18ch; white-space: pre-line;
           transform-style: preserve-3d;
+          min-height: 1.86em;
         }
-        .hp-h1 em { font-style: normal; color: var(--c-copper); }
-        .hp-word {
-          display: inline-block;
+        .hp-h1-cursor {
+          display: inline-block; width: 4px; height: 0.8em;
+          background: var(--c-copper); vertical-align: middle;
+          margin-left: 6px;
+          animation: hp-blink 0.65s step-end infinite;
+        }
+        @keyframes hp-blink { 50% { opacity: 0; } }
+
+        /* HUD corners */
+        .hp-hud-corner {
+          position: absolute; width: 32px; height: 32px; z-index: 5;
+          opacity: 0; animation: hp-fi 0.4s ease forwards;
+        }
+        .hp-hud-corner svg { display: block; }
+        .hp-hud-tl { top: 20px; left: 20px; animation-delay: 0.2s; }
+        .hp-hud-tr { top: 20px; right: 20px; animation-delay: 0.3s; }
+        .hp-hud-bl { bottom: 20px; left: 20px; animation-delay: 0.4s; }
+        .hp-hud-br { bottom: 20px; right: 20px; animation-delay: 0.5s; }
+
+        /* Scan line */
+        .hp-scan {
+          position: absolute; left: 0; right: 0; height: 1px; z-index: 5;
+          background: linear-gradient(to right, transparent 0%, var(--c-copper) 30%, oklch(0.72 0.17 34 / 0.9) 50%, var(--c-copper) 70%, transparent 100%);
           opacity: 0;
-          transform: translateY(28px);
-          animation: hp-word-in 0.7s cubic-bezier(0.23,1,0.32,1) forwards;
+          animation: hp-scan 5s ease-in-out 1s infinite;
         }
-        .hp-word-gap { display: inline-block; width: 0.28em; }
-        .hw0 { animation-delay: 0.25s; }
-        .hw1 { animation-delay: 0.32s; }
-        .hw2 { animation-delay: 0.39s; }
-        .hw3 { animation-delay: 0.46s; }
-        .hw4 { animation-delay: 0.53s; }
-        .hw5 { animation-delay: 0.60s; }
-        @keyframes hp-word-in {
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes hp-scan {
+          0%   { top: -1px; opacity: 0; }
+          3%   { opacity: 1; }
+          97%  { opacity: 0.7; }
+          100% { top: 100%; opacity: 0; }
         }
+
+        /* HUD status */
+        .hp-hud-status {
+          position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+          display: flex; align-items: center; gap: 8px; z-index: 6;
+          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: oklch(0.72 0.17 34 / 0.5); white-space: nowrap;
+          opacity: 0; animation: hp-fi 0.5s ease 0.7s forwards;
+        }
+        .hp-hud-dot {
+          width: 5px; height: 5px; border-radius: 50%;
+          background: var(--c-copper); flex-shrink: 0;
+          animation: hp-pulse 2.2s ease-in-out 1s infinite;
+        }
+        @keyframes hp-pulse {
+          0%,100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.72 0.17 34 / 0.6); }
+          50%     { opacity: 0.6; box-shadow: 0 0 0 7px oklch(0.72 0.17 34 / 0); }
+        }
+
+        /* HUD side panels */
+        .hp-hud-panel {
+          position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
+          display: flex; flex-direction: column; gap: 24px;
+          opacity: 0; animation: hp-fi 0.6s ease 2.4s forwards;
+        }
+        .hp-hud-panel-l { left: 24px; align-items: flex-start; }
+        .hp-hud-panel-r { right: 24px; align-items: flex-end; }
+        .hp-hud-dv {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 1.5rem; font-weight: 700;
+          color: var(--c-copper); line-height: 1;
+          font-variant-numeric: tabular-nums;
+        }
+        .hp-hud-dl {
+          font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+          color: oklch(0.72 0.17 34 / 0.3); margin-top: 2px;
+        }
+
+        /* HUD bottom bar */
+        .hp-hud-bottom {
+          position: absolute; bottom: 20px; left: 64px; right: 64px; z-index: 6;
+          display: flex; align-items: center; gap: 12px;
+          opacity: 0; animation: hp-fi 0.5s ease 2.8s forwards;
+        }
+        .hp-hud-blbl {
+          font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+          color: oklch(0.72 0.17 34 / 0.28); white-space: nowrap;
+        }
+        .hp-hud-track {
+          flex: 1; height: 1px; background: oklch(0.72 0.17 34 / 0.1);
+          position: relative; overflow: hidden;
+        }
+        .hp-hud-fill {
+          position: absolute; top: 0; left: 0; height: 100%;
+          background: oklch(0.72 0.17 34 / 0.45);
+          width: 0; animation: hp-prog 3.5s cubic-bezier(0.23,1,0.32,1) 1.4s forwards;
+        }
+        @keyframes hp-prog { to { width: 68%; } }
+        @keyframes hp-fi { to { opacity: 1; } }
+
+        @media (max-width: 860px) { .hp-hud-panel { display: none; } }
         @media (prefers-reduced-motion: reduce) {
-          .hp-word { opacity: 1; transform: none; animation: none; }
+          .hp-h1-cursor, .hp-scan, .hp-hud-dot { animation: none !important; opacity: 1 !important; }
+          .hp-hud-corner, .hp-hud-status, .hp-hud-panel, .hp-hud-bottom { animation: none !important; opacity: 1 !important; }
+          .hp-hud-fill { width: 68% !important; animation: none !important; }
         }
         .hp-hero-row {
           display: grid;
@@ -774,8 +885,49 @@ export default function AitaasHome() {
         />
         <div className="hp-hero-overlay" />
         <div className="hp-hero-canvas-bg">
-          <AitaasCanvas />
+          <AitaasHeroCanvas mouseRef={mouseNorm} />
         </div>
+
+        {/* HUD corners */}
+        {(["tl","tr","bl","br"] as const).map((pos) => (
+          <div key={pos} className={`hp-hud-corner hp-hud-${pos}`}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+              {pos === "tl" && <path d="M1 16 L1 1 L16 1" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
+              {pos === "tr" && <path d="M31 16 L31 1 L16 1" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
+              {pos === "bl" && <path d="M1 16 L1 31 L16 31" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
+              {pos === "br" && <path d="M31 16 L31 31 L16 31" stroke="var(--c-copper)" strokeWidth="1.2" opacity="0.5"/>}
+            </svg>
+          </div>
+        ))}
+
+        {/* Scan line */}
+        <div className="hp-scan" aria-hidden />
+
+        {/* Status bar */}
+        <div className="hp-hud-status">
+          <span className="hp-hud-dot" />
+          7 agents active — all systems nominal
+        </div>
+
+        {/* Side data panels */}
+        <div className="hp-hud-panel hp-hud-panel-l">
+          {[["847","Calls / hr"],["91%","Connect rate"],["12s","Response"]].map(([v,l]) => (
+            <div key={l}><div className="hp-hud-dv">{v}</div><div className="hp-hud-dl">{l}</div></div>
+          ))}
+        </div>
+        <div className="hp-hud-panel hp-hud-panel-r">
+          {[["9","Agent products"],["7","Languages"],["99%","Uptime"]].map(([v,l]) => (
+            <div key={l} style={{ textAlign: "right" }}><div className="hp-hud-dv">{v}</div><div className="hp-hud-dl">{l}</div></div>
+          ))}
+        </div>
+
+        {/* Bottom progress bar */}
+        <div className="hp-hud-bottom">
+          <span className="hp-hud-blbl">Agent capacity</span>
+          <div className="hp-hud-track"><div className="hp-hud-fill" /></div>
+          <span className="hp-hud-blbl" style={{ color: "oklch(0.72 0.17 34 / 0.5)" }}>68%</span>
+        </div>
+
         <div className="hp-hero-content">
           <motion.span
             className="hp-tag"
@@ -785,15 +937,15 @@ export default function AitaasHome() {
             AI Workers for Business
           </motion.span>
           <h1 className="hp-h1" ref={h1Ref}>
-            <span className="hp-word hw0">Your</span><span className="hp-word-gap" />
-            <span className="hp-word hw1">Next</span><br />
-            <span className="hp-word hw2">Hire</span><span className="hp-word-gap" />
-            <span className="hp-word hw3">is</span><span className="hp-word-gap" />
-            <span className="hp-word hw4">an</span><br />
-            <em><span className="hp-word hw5" style={{ color: "var(--c-copper)" }}>AI Agent.</span></em>
+            {heroText}
+            {!heroDone && <span className="hp-h1-cursor" aria-hidden />}
           </h1>
           <div className="hp-hero-row">
-            <motion.div initial={{ y: 14 }} animate={{ y: 0 }} transition={{ duration: 0.6, ease: E, delay: 0.5 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: showSub ? 1 : 0, y: showSub ? 0 : 14 }}
+              transition={{ duration: 0.6, ease: E }}
+            >
               <p className="hp-sub">
                 Voice and digital agents that call your leads in 60 seconds, book appointments overnight,
                 recover overdue payments, and run follow-ups — in 7 languages, around the clock.
@@ -805,7 +957,11 @@ export default function AitaasHome() {
                 </Link>
               </div>
             </motion.div>
-            <motion.div initial={{ y: 10 }} animate={{ y: 0 }} transition={{ duration: 0.55, ease: E, delay: 0.7 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: showSub ? 1 : 0, y: showSub ? 0 : 10 }}
+              transition={{ duration: 0.55, ease: E, delay: 0.15 }}
+            >
               <div className="hp-stats">
                 {[
                   { val: 9, suffix: "", label: "Agent products" },
