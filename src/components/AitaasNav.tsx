@@ -33,13 +33,14 @@ export default function AitaasNav() {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
           height: 64px; display: flex; align-items: center;
           padding: 0 clamp(20px, 5vw, 72px);
-          border-bottom: 1px solid transparent;
+          background: oklch(0.07 0.008 255 / 0.95);
+          backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+          border-bottom: 1px solid var(--a-border, oklch(0.18 0.007 255));
           transition: border-color 0.3s, background 0.3s;
         }
         .an.scrolled {
-          background: oklch(0.07 0.008 255 / 0.90);
-          backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-          border-bottom-color: oklch(0.18 0.007 255);
+          background: oklch(0.07 0.008 255 / 0.98);
+          border-bottom-color: oklch(0.22 0.007 255);
         }
         .an-logo {
           font-family: 'DM Serif Display', serif; font-size: 18px;

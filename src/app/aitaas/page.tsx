@@ -516,7 +516,7 @@ export default function AitaasHome() {
             transition={{ duration: 0.55, ease: E, delay: 0.95 }}
           >
             <Link href="/aitaas/contact" className="a-btn">Book a Discovery Call</Link>
-            <Link href="/aitaas/solutions" className="a-btn a-btn--ghost">Explore Products →</Link>
+            <Link href="/aitaas/solutions" className="a-btn a-btn--ghost" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>Explore Products <IconArrowRight size={14} color="currentColor" /></Link>
           </motion.div>
 
           <motion.div className="ah-metrics"
@@ -642,7 +642,7 @@ export default function AitaasHome() {
               </h2>
             </FadeUp>
             <FadeIn delay={0.1}>
-              <Link href="/aitaas/solutions" className="a-btn a-btn--ghost">View all solutions →</Link>
+              <Link href="/aitaas/solutions" className="a-btn a-btn--ghost" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>View all solutions <IconArrowRight size={14} color="currentColor" /></Link>
             </FadeIn>
           </div>
           <div className="ah-prod-grid">
@@ -742,7 +742,7 @@ export default function AitaasHome() {
                 <div className="ah-price-features">
                   {p.features.map((f) => (
                     <div key={f} className="ah-price-feature">
-                      <span className="ah-price-check">✓</span>
+                      <span className="ah-price-check" style={{ display: "flex", alignItems: "center" }}><IconCheck size={13} color="currentColor" /></span>
                       <span>{f}</span>
                     </div>
                   ))}
@@ -762,7 +762,7 @@ export default function AitaasHome() {
               </div>
               <div className="ah-price-note-item">
                 <div className="ah-price-note-label">Full Pricing</div>
-                <div className="ah-price-note-val"><Link href="/aitaas/pricing" style={{ color: "var(--a-amber)", textDecoration: "none" }}>View detailed pricing and models →</Link></div>
+                <div className="ah-price-note-val"><Link href="/aitaas/pricing" style={{ color: "var(--a-amber)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>View detailed pricing and models <IconArrowRight size={13} color="currentColor" /></Link></div>
               </div>
             </div>
           </FadeIn>
