@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, useInView, animate, useMotionValue, useTransform } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -62,6 +62,37 @@ const INTEGRATIONS = [
 ];
 
 export default function AitaasHome() {
+  const h1Ref = useRef<HTMLHeadingElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const trx = useRef(0), try_ = useRef(0), crx = useRef(0), cry = useRef(0);
+  const rafId = useRef<number>(0);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    const h1 = h1Ref.current;
+    if (!hero || !h1) return;
+    const onMove = (e: MouseEvent) => {
+      const r = hero.getBoundingClientRect();
+      trx.current = ((e.clientY - r.top) / r.height - 0.5) * -4;
+      try_.current = ((e.clientX - r.left) / r.width - 0.5) * 4;
+    };
+    const onLeave = () => { trx.current = 0; try_.current = 0; };
+    const tick = () => {
+      crx.current += (trx.current - crx.current) * 0.055;
+      cry.current += (try_.current - cry.current) * 0.055;
+      h1.style.transform = `perspective(700px) rotateX(${crx.current}deg) rotateY(${cry.current}deg)`;
+      rafId.current = requestAnimationFrame(tick);
+    };
+    hero.addEventListener("mousemove", onMove);
+    hero.addEventListener("mouseleave", onLeave);
+    rafId.current = requestAnimationFrame(tick);
+    return () => {
+      hero.removeEventListener("mousemove", onMove);
+      hero.removeEventListener("mouseleave", onLeave);
+      cancelAnimationFrame(rafId.current);
+    };
+  }, []);
+
   return (
     <>
       <style>{`
@@ -120,8 +151,28 @@ export default function AitaasHome() {
           line-height: 0.92; letter-spacing: -0.02em;
           color: var(--c-ink); margin-bottom: 32px;
           max-width: 18ch;
+          transform-style: preserve-3d;
         }
         .hp-h1 em { font-style: normal; color: var(--c-copper); }
+        .hp-word {
+          display: inline-block;
+          opacity: 0;
+          transform: translateY(28px);
+          animation: hp-word-in 0.7s cubic-bezier(0.23,1,0.32,1) forwards;
+        }
+        .hp-word-gap { display: inline-block; width: 0.28em; }
+        .hw0 { animation-delay: 0.25s; }
+        .hw1 { animation-delay: 0.32s; }
+        .hw2 { animation-delay: 0.39s; }
+        .hw3 { animation-delay: 0.46s; }
+        .hw4 { animation-delay: 0.53s; }
+        .hw5 { animation-delay: 0.60s; }
+        @keyframes hp-word-in {
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hp-word { opacity: 1; transform: none; animation: none; }
+        }
         .hp-hero-row {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -714,7 +765,7 @@ export default function AitaasHome() {
       `}</style>
 
       {/* ══ HERO ══════════════════════════════════════════════ */}
-      <section className="hp-hero">
+      <section className="hp-hero" ref={heroRef}>
         <div className="hp-hero-bg" />
         <ImgWithFallback
           src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1800&q=75"
@@ -733,13 +784,14 @@ export default function AitaasHome() {
           >
             AI Workers for Business
           </motion.span>
-          <motion.h1
-            className="hp-h1"
-            initial={{ y: 20 }} animate={{ y: 0 }}
-            transition={{ duration: 0.65, ease: E, delay: 0.3 }}
-          >
-            Your Next<br />Hire is an<br /><em>AI Agent.</em>
-          </motion.h1>
+          <h1 className="hp-h1" ref={h1Ref}>
+            <span className="hp-word hw0">Your</span><span className="hp-word-gap" />
+            <span className="hp-word hw1">Next</span><br />
+            <span className="hp-word hw2">Hire</span><span className="hp-word-gap" />
+            <span className="hp-word hw3">is</span><span className="hp-word-gap" />
+            <span className="hp-word hw4">an</span><br />
+            <em><span className="hp-word hw5" style={{ color: "var(--c-copper)" }}>AI Agent.</span></em>
+          </h1>
           <div className="hp-hero-row">
             <motion.div initial={{ y: 14 }} animate={{ y: 0 }} transition={{ duration: 0.6, ease: E, delay: 0.5 }}>
               <p className="hp-sub">
