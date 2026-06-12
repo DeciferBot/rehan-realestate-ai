@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { motion, useInView, animate, useMotionValue, useTransform } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { IconArrowRight, IconCheck } from "@/components/AitaasIcons";
@@ -22,19 +22,6 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
   );
 }
 
-function Count({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const mv = useMotionValue(0);
-  const display = useTransform(mv, (v) => `${Math.round(v)}${suffix}`);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref as React.RefObject<Element>, { once: true });
-  useEffect(() => {
-    if (!inView) return;
-    const c = animate(mv, to, { duration: 1.6, ease: [0.16, 1, 0.3, 1] });
-    return () => c.stop();
-  }, [inView]); // eslint-disable-line
-  return <motion.span ref={ref}>{display}</motion.span>;
-}
-
 function ImgWithFallback({ src, alt, className, style }: { src: string; alt: string; className?: string; style?: React.CSSProperties }) {
   const [loaded, setLoaded] = useState(true);
   if (!loaded) return null;
@@ -47,12 +34,12 @@ function ImgWithFallback({ src, alt, className, style }: { src: string; alt: str
 }
 
 const AGENTS = [
-  { name: "Property Sales Agent", vertical: "Real Estate", proof: "78% of deals go to the first responder" },
-  { name: "Revenue Recovery Agent", vertical: "Finance", proof: "3× faster collection cycles" },
-  { name: "Healthcare Booking Agent", vertical: "Clinics", proof: "Zero missed calls after hours" },
-  { name: "Cart Recovery Agent", vertical: "E-commerce", proof: "31% average recovery rate" },
-  { name: "Admissions Agent", vertical: "Education", proof: "35%+ appointment conversion" },
-  { name: "Social Media Executive", vertical: "Marketing", proof: "24/7 autonomous operations" },
+  { name: "Property Sales Agent", vertical: "Real Estate", proof: "Speaks Arabic, English, Russian, Hindi, and Mandarin" },
+  { name: "Revenue Recovery Agent", vertical: "Finance", proof: "Chases overdue invoices politely, relentlessly, in four languages" },
+  { name: "Healthcare Booking Agent", vertical: "Clinics", proof: "Fills the diary while reception is closed" },
+  { name: "Cart Recovery Agent", vertical: "E-commerce", proof: "Wins back abandoned carts over WhatsApp" },
+  { name: "Admissions Agent", vertical: "Education", proof: "Turns programme enquiries into campus tours" },
+  { name: "Social Media Executive", vertical: "Marketing", proof: "Replies to every DM and comment, around the clock" },
 ];
 
 const INDUSTRIES = ["Real Estate", "Healthcare", "Retail", "Education", "Finance", "Automotive", "Enterprise"];
@@ -186,24 +173,6 @@ export default function AitaasHome() {
             animation: none; opacity: 1; transform: none;
           }
         }
-
-        /* ─── TICKER ────────────────────────────────────────── */
-        .hp-ticker {
-          background: var(--c-surface);
-          border-bottom: 1px solid var(--c-border);
-          padding: 13px 0; overflow: hidden;
-        }
-        .hp-ticker-track {
-          display: flex; white-space: nowrap;
-          animation: ticker 36s linear infinite;
-        }
-        @keyframes ticker { to { transform: translateX(-50%); } }
-        .hp-ticker-item {
-          display: inline-flex; align-items: center; gap: 20px;
-          padding: 0 36px; font-size: 11px; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--c-muted); flex-shrink: 0;
-        }
-        .hp-ticker-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--c-copper-dim); }
 
         /* ─── PROBLEM ───────────────────────────────────────── */
         .hp-problem {
@@ -595,29 +564,6 @@ export default function AitaasHome() {
         .hp-ind-arrow { color: var(--c-border); flex-shrink: 0; }
         @media (hover: hover) { .hp-ind-row:hover .hp-ind-arrow { color: var(--c-copper); } }
 
-        /* ─── RESULTS ───────────────────────────────────────── */
-        .hp-results {
-          border-bottom: 1px solid var(--c-border);
-          background: oklch(0.04 0.008 260);
-        }
-        .hp-results-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr);
-          border-left: 1px solid var(--c-border);
-        }
-        .hp-result-cell {
-          padding: clamp(36px, 5vw, 64px) clamp(24px, 3vw, 44px);
-          border-right: 1px solid var(--c-border);
-        }
-        .hp-result-num {
-          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-          font-size: clamp(3rem, 5vw, 5rem); letter-spacing: -0.02em;
-          color: var(--c-copper); line-height: 1; margin-bottom: 10px;
-        }
-        .hp-result-label { font-size: 15px; font-weight: 500; color: var(--c-ink); margin-bottom: 4px; }
-        .hp-result-sub { font-size: 12px; color: var(--c-muted); }
-        @media (max-width: 860px) { .hp-results-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 500px) { .hp-results-grid { grid-template-columns: 1fr; } }
-
         /* ─── INTEGRATIONS ──────────────────────────────────── */
         .hp-int-strip {
           border-bottom: 1px solid var(--c-border);
@@ -795,19 +741,6 @@ export default function AitaasHome() {
         </div>
       </section>
 
-      {/* ══ TICKER ════════════════════════════════════════════ */}
-      <div className="hp-ticker" aria-hidden>
-        <div className="hp-ticker-track">
-          {[...Array(2)].map((_, s) =>
-            ["Real Estate", "Healthcare", "E-commerce", "Education", "Finance", "Automotive", "Collections", "Property Investment", "Insurance"].map((item) => (
-              <span key={`${s}-${item}`} className="hp-ticker-item">
-                {item}<span className="hp-ticker-sep" />
-              </span>
-            ))
-          )}
-        </div>
-      </div>
-
       {/* ══ PROBLEM ═══════════════════════════════════════════ */}
       <section className="hp-problem">
         <div className="hp-problem-bg-num" aria-hidden>78%</div>
@@ -836,7 +769,7 @@ export default function AitaasHome() {
                 <div className="hp-problem-photo-overlay" />
                 <div className="hp-problem-photo-stat">
                   <div className="hp-problem-stat-num">78%</div>
-                  <div className="hp-problem-stat-label">of deals go to the first responder</div>
+                  <div className="hp-problem-stat-label">of buyers choose the vendor that responds first — industry lead-response research</div>
                 </div>
               </div>
             </Reveal>
@@ -849,21 +782,23 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <div className="hp-demo-inner">
             <Reveal>
-              <p className="hp-demo-kicker">The agent, live</p>
+              <p className="hp-demo-kicker">Beyond voice</p>
               <h2 className="hp-demo-h">
-                Qualifies, books,<br />and <em>delivers</em><br />before the call ends.
+                The same agent,<br />on <em>WhatsApp.</em>
               </h2>
               <p className="hp-demo-body">
-                While the agent speaks to the lead, it simultaneously queries your live inventory,
-                sends the brochure to WhatsApp, and blocks the viewing slot on your calendar.
-                The CRM is updated before the call drops.
+                Not every lead picks up the phone. The agent meets them where they
+                already are: it answers portal enquiries over chat, sends brochures
+                and payment plans mid-conversation, and holds viewing slots on your
+                live calendar. Voice and chat share one memory, so a lead can start
+                on a call and finish on WhatsApp without repeating a word.
               </p>
               <div className="hp-demo-facts">
                 {[
-                  "Calls every lead within 60 seconds of enquiry",
-                  "Delivers brochures and payment plans mid-call",
+                  "Answers portal and website enquiries instantly",
+                  "Delivers brochures and payment plans mid-conversation",
                   "Books viewings on your live calendar",
-                  "Pushes full transcript and lead score to your CRM",
+                  "Hands off to voice with full context when the lead prefers a call",
                 ].map((f) => (
                   <div key={f} className="hp-demo-fact">
                     <span className="hp-demo-fact-icon"><IconCheck size={14} /></span>
@@ -880,7 +815,7 @@ export default function AitaasHome() {
                     <div className="hp-phone-dot" style={{ background: "oklch(0.75 0.18 88)" }} />
                     <div className="hp-phone-dot" style={{ background: "oklch(0.65 0.2 145)" }} />
                   </div>
-                  <span style={{ fontSize: 11, color: "var(--c-muted)", marginLeft: 8, letterSpacing: "0.04em" }}>Property Sales Agent · Dubai Hills</span>
+                  <span style={{ fontSize: 11, color: "var(--c-muted)", marginLeft: 8, letterSpacing: "0.04em" }}>Property Sales Agent · WhatsApp</span>
                   <div className="hp-phone-live">
                     <div className="hp-phone-live-dot" />
                     Live
@@ -924,7 +859,7 @@ export default function AitaasHome() {
           <div className="hp-agents-hd">
             <Reveal>
               <h2 className="hp-agents-h">
-                Nine agents.<br /><em>Every gap covered.</em>
+                Six agents, one for<br /><em>each gap in your pipeline.</em>
               </h2>
             </Reveal>
             <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
@@ -976,7 +911,7 @@ export default function AitaasHome() {
             <Reveal>
               <p className="hp-network-kicker">Orchestration layer</p>
               <h2 className="hp-network-h">
-                One call.<br /><em>Parallel intelligence.</em>
+                Behind every call,<br /><em>an orchestrated team.</em>
               </h2>
               <p className="hp-network-body">
                 Every conversation triggers a network of specialised sub-agents running in parallel.
@@ -998,7 +933,7 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <Reveal>
             <h2 className="hp-how-h">
-              How it works<br /><em>in 60 seconds.</em>
+              From enquiry<br /><em>to booked meeting.</em>
             </h2>
           </Reveal>
           <div className="hp-steps">
@@ -1035,7 +970,7 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <div className="hp-ind-header">
             <Reveal>
-              <h2 className="hp-ind-h">Industries we serve</h2>
+              <h2 className="hp-ind-h">Built for</h2>
             </Reveal>
           </div>
           <div className="hp-ind-list">
@@ -1048,24 +983,6 @@ export default function AitaasHome() {
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ══ RESULTS ═══════════════════════════════════════════ */}
-      <section className="hp-results">
-        <div className="hp-results-grid">
-          {[
-            { val: 92, suffix: "%", label: "Intent accuracy", sub: "First-attempt recognition" },
-            { val: 35, suffix: "%+", label: "Appointment rate", sub: "From qualified conversations" },
-            { val: 60, suffix: "s", label: "First response", sub: "Guaranteed, 24/7" },
-            { val: 14, suffix: "d", label: "To go live", sub: "From contract to first call" },
-          ].map((r) => (
-            <Reveal key={r.label} className="hp-result-cell">
-              <div className="hp-result-num"><Count to={r.val} suffix={r.suffix} /></div>
-              <div className="hp-result-label">{r.label}</div>
-              <div className="hp-result-sub">{r.sub}</div>
-            </Reveal>
-          ))}
         </div>
       </section>
 
@@ -1089,7 +1006,7 @@ export default function AitaasHome() {
           <div className="hp-pricing-top">
             <Reveal>
               <h2 className="hp-pricing-h">
-                Replace a hire.<br /><em>Starting at<br />AED 2,500.</em>
+                A fraction of a hire,<br /><em>from AED 2,500<br />a month.</em>
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
@@ -1139,8 +1056,8 @@ export default function AitaasHome() {
       {/* ══ CTA ═══════════════════════════════════════════════ */}
       <section className="hp-cta">
         <ImgWithFallback
-          src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=70"
-          alt="Luxury property"
+          src="https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1600&q=70"
+          alt="Dubai at dusk"
           className="hp-cta-bg-photo"
         />
         <div className="hp-cta-overlay" />
@@ -1148,7 +1065,7 @@ export default function AitaasHome() {
           <Reveal>
             <div className="hp-cta-inner">
               <h2 className="hp-cta-h">
-                14 days.<br /><em>Live agents.</em><br />Zero risk.
+                Prove it on<br /><em>your own leads.</em>
               </h2>
               <p className="hp-cta-sub">
                 We deploy a live agent on your real enquiries for 14 days at no charge.

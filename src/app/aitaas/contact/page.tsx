@@ -51,6 +51,7 @@ export default function ContactPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -58,10 +59,25 @@ export default function ContactPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.interest.trim()) {
+      setError(true);
+      return;
+    }
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSubmitted(true);
-    setSubmitting(false);
+    setError(false);
+    try {
+      const res = await fetch("/api/aitaas-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      setSubmitted(true);
+    } catch {
+      setError(true);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -318,6 +334,15 @@ export default function ContactPage() {
                   <button type="submit" className="ct-submit" disabled={submitting}>
                     {submitting ? "Sending..." : <>Send request <IconArrowRight size={13} /></>}
                   </button>
+                  {error && (
+                    <p style={{ fontSize: 13, color: "var(--c-copper)", lineHeight: 1.6 }}>
+                      We couldn&apos;t send your request. Check the required fields, or email us
+                      directly at{" "}
+                      <a href="mailto:chopraa@gmail.com" style={{ color: "var(--c-copper)" }}>
+                        chopraa@gmail.com
+                      </a>.
+                    </p>
+                  )}
                 </form>
               )}
             </Reveal>

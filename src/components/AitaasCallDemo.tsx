@@ -437,8 +437,8 @@ export default function AitaasCallDemo() {
 
         <div className="cd-foot">
           <span><span className="cd-foot-lang">EN · AR</span> live voice</span>
-          <span>Latency 180 ms</span>
-          <span>Recording on</span>
+          <span>Simulated call</span>
+          <span>Transcript on</span>
         </div>
       </div>
     </>

@@ -56,16 +56,6 @@ export default function AitaasNav() {
           color: oklch(0.96 0.003 80); text-decoration: none;
           display: flex; align-items: center; gap: 8px; flex-shrink: 0;
         }
-        .cn-logo-sep {
-          display: inline-block; width: 4px; height: 4px;
-          background: oklch(0.72 0.17 34); border-radius: 50%;
-        }
-        .cn-logo-sub {
-          font-size: 10px; letter-spacing: 0.12em;
-          color: oklch(0.58 0.007 80); font-weight: 500;
-          align-self: center; padding-top: 1px;
-        }
-
         .cn-links {
           display: flex; align-items: center; gap: 4px;
           margin-left: auto; list-style: none;
@@ -147,8 +137,6 @@ export default function AitaasNav() {
       >
         <Link href="/aitaas" className="cn-logo">
           AITaaS
-          <span className="cn-logo-sep" aria-hidden />
-          <span className="cn-logo-sub">by ENG</span>
         </Link>
 
         <ul className="cn-links">
