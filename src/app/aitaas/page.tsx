@@ -179,10 +179,10 @@ export default function AitaasHome() {
         .hp-h1 {
           font-family: 'Barlow Condensed', sans-serif;
           font-weight: 700; text-transform: uppercase;
-          font-size: clamp(4rem, 8.5vw, 8.5rem);
+          font-size: clamp(3.2rem, 5.5vw, 6rem);
           line-height: 0.92; letter-spacing: -0.02em;
           color: var(--c-ink); margin-bottom: 32px;
-          max-width: 18ch; white-space: pre-line;
+          max-width: 16ch; white-space: pre-line;
           transform-style: preserve-3d;
           min-height: 1.86em;
         }
@@ -907,18 +907,6 @@ export default function AitaasHome() {
         <div className="hp-hud-status">
           <span className="hp-hud-dot" />
           7 agents active — all systems nominal
-        </div>
-
-        {/* Side data panels */}
-        <div className="hp-hud-panel hp-hud-panel-l">
-          {[["847","Calls / hr"],["91%","Connect rate"],["12s","Response"]].map(([v,l]) => (
-            <div key={l}><div className="hp-hud-dv">{v}</div><div className="hp-hud-dl">{l}</div></div>
-          ))}
-        </div>
-        <div className="hp-hud-panel hp-hud-panel-r">
-          {[["9","Agent products"],["7","Languages"],["99%","Uptime"]].map(([v,l]) => (
-            <div key={l} style={{ textAlign: "right" }}><div className="hp-hud-dv">{v}</div><div className="hp-hud-dl">{l}</div></div>
-          ))}
         </div>
 
         {/* Bottom progress bar */}
