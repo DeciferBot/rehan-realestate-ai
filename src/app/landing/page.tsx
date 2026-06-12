@@ -2,202 +2,95 @@
 
 import {
   motion,
-  useMotionValue,
-  useSpring,
   useInView,
   AnimatePresence,
+  useScroll,
   useTransform,
 } from "framer-motion";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 
-/* ─── easing ─────────────────────────────────────────────────────────── */
-const EASE = [0.23, 1, 0.32, 1] as const;
-const SPRING = { type: "spring", stiffness: 280, damping: 28 } as const;
+/* ─── constants ───────────────────────────────────────────────────────── */
+const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-/* ─── word-reveal helpers ─────────────────────────────────────────────── */
-function SplitReveal({
-  text,
-  className,
+/* ─── word-reveal ─────────────────────────────────────────────────────── */
+function Reveal({
+  children,
   delay = 0,
+  className,
 }: {
-  text: string;
-  className?: string;
+  children: React.ReactNode;
   delay?: number;
+  className?: string;
 }) {
-  const words = text.split(" ");
+  return (
+    <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }} className={className}>
+      <motion.span
+        style={{ display: "inline-block" }}
+        initial={{ y: "105%", opacity: 0 }}
+        animate={{ y: "0%", opacity: 1 }}
+        transition={{ duration: 0.72, ease: EASE_OUT, delay }}
+      >
+        {children}
+      </motion.span>
+    </span>
+  );
+}
+
+function SplitReveal({ text, delay = 0, className }: { text: string; delay?: number; className?: string }) {
   return (
     <span className={className} aria-label={text}>
-      {words.map((w, i) => (
-        <span
-          key={i}
-          style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}
-        >
-          <motion.span
-            initial={{ y: "110%", opacity: 0 }}
-            animate={{ y: "0%", opacity: 1 }}
-            transition={{
-              duration: 0.7,
-              ease: EASE,
-              delay: delay + i * 0.065,
-            }}
-            style={{ display: "inline-block" }}
-          >
-            {w}
-            {i < words.length - 1 ? " " : ""}
-          </motion.span>
-        </span>
+      {text.split(" ").map((word, i) => (
+        <Reveal key={i} delay={delay + i * 0.07}>
+          {word}{i < text.split(" ").length - 1 ? " " : ""}
+        </Reveal>
       ))}
     </span>
   );
 }
 
-/* ─── magnetic button ─────────────────────────────────────────────────── */
-function MagneticBtn({
+/* ─── scroll reveal ───────────────────────────────────────────────────── */
+function ScrollReveal({
   children,
+  delay = 0,
   className,
-  onClick,
-  type = "button",
 }: {
   children: React.ReactNode;
+  delay?: number;
   className?: string;
-  onClick?: () => void;
-  type?: "button" | "submit";
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 20 });
-  const sy = useSpring(y, { stiffness: 200, damping: 20 });
-
-  const handleMouse = useCallback(
-    (e: React.MouseEvent) => {
-      const el = ref.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      x.set((e.clientX - cx) * 0.35);
-      y.set((e.clientY - cy) * 0.35);
-    },
-    [x, y]
-  );
-
-  const reset = useCallback(() => {
-    x.set(0);
-    y.set(0);
-  }, [x, y]);
-
-  return (
-    <motion.button
-      ref={ref}
-      type={type}
-      className={className}
-      onMouseMove={handleMouse}
-      onMouseLeave={reset}
-      style={{ x: sx, y: sy }}
-      whileTap={{ scale: 0.96 }}
-      onClick={onClick}
-    >
-      {children}
-    </motion.button>
-  );
-}
-
-/* ─── feature card ────────────────────────────────────────────────────── */
-function FeatureCard({
-  icon,
-  label,
-  value,
-  desc,
-  delay,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  desc: string;
-  delay: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
     <motion.div
       ref={ref}
-      className="feature-card"
-      initial={{ opacity: 0, y: 30, scale: 0.97 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.6, ease: EASE, delay }}
+      className={className}
+      initial={{ opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.65, ease: EASE_OUT, delay }}
     >
-      <span className="feature-icon">{icon}</span>
-      <div className="feature-value">{value}</div>
-      <div className="feature-label">{label}</div>
-      <div className="feature-desc">{desc}</div>
+      {children}
     </motion.div>
   );
 }
 
-/* ─── custom cursor ───────────────────────────────────────────────────── */
-function Cursor() {
-  const mx = useMotionValue(-100);
-  const my = useMotionValue(-100);
-  const cx = useSpring(mx, { stiffness: 500, damping: 32 });
-  const cy = useSpring(my, { stiffness: 500, damping: 32 });
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    const move = (e: MouseEvent) => { mx.set(e.clientX); my.set(e.clientY); };
-    const over = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest("a,button,input")) setHovered(true);
-    };
-    const out = () => setHovered(false);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseover", over);
-    window.addEventListener("mouseout", out);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseover", over);
-      window.removeEventListener("mouseout", out);
-    };
-  }, [mx, my]);
-
+/* ─── parallax hero text ──────────────────────────────────────────────── */
+function ParallaxText({ children, speed = 0.3 }: { children: React.ReactNode; speed?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 600], [0, 600 * speed]);
   return (
-    <motion.div
-      className="cursor-dot"
-      style={{ x: cx, y: cy }}
-      animate={{ scale: hovered ? 2.8 : 1, opacity: hovered ? 0.5 : 1 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-    />
-  );
-}
-
-/* ─── aurora background ───────────────────────────────────────────────── */
-function Aurora() {
-  return (
-    <div className="aurora-wrap" aria-hidden>
-      <motion.div
-        className="aurora-blob a1"
-        animate={{ x: [0, 60, -30, 0], y: [0, -50, 30, 0], scale: [1, 1.15, 0.9, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="aurora-blob a2"
-        animate={{ x: [0, -80, 40, 0], y: [0, 60, -40, 0], scale: [1, 0.88, 1.12, 1] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-      />
-      <motion.div
-        className="aurora-blob a3"
-        animate={{ x: [0, 40, -60, 0], y: [0, -30, 50, 0], scale: [1, 1.08, 0.94, 1] }}
-        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut", delay: 6 }}
-      />
-    </div>
+    <motion.div ref={ref} style={{ y }}>
+      {children}
+    </motion.div>
   );
 }
 
 /* ─── signup form ─────────────────────────────────────────────────────── */
-type FormState = "idle" | "loading" | "success" | "error";
+type State = "idle" | "loading" | "success" | "error";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<FormState>("idle");
+  const [state, setState] = useState<State>("idle");
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -217,13 +110,11 @@ function SignupForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (res.ok) {
+      if (res.ok || (await res.json().then((d) => d.error === "already_registered").catch(() => false))) {
         setState("success");
-        setCount((c) => (c ?? 0) + 1);
+        setCount((c) => (c !== null ? c + 1 : c));
       } else {
-        const d = await res.json();
-        if (d.error === "already_registered") setState("success");
-        else setState("error");
+        setState("error");
       }
     } catch {
       setState("error");
@@ -231,570 +122,832 @@ function SignupForm() {
   };
 
   return (
-    <div className="form-wrap">
+    <div className="form-root">
       <AnimatePresence mode="wait">
         {state === "success" ? (
           <motion.div
-            key="success"
-            className="success-msg"
-            initial={{ opacity: 0, y: 12, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.45, ease: EASE }}
+            key="ok"
+            className="form-success"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
           >
-            <motion.span
-              className="check"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ ...SPRING, delay: 0.15 }}
-            >
-              ✦
-            </motion.span>
-            <span>You&apos;re on the list. We&apos;ll be in touch.</span>
+            <span className="form-success-mark">✦</span>
+            You&apos;re on the list. We&apos;ll reach out directly.
           </motion.div>
         ) : (
           <motion.form
             key="form"
-            className="signup-form"
             onSubmit={submit}
-            initial={{ opacity: 0, y: 10 }}
+            className="form"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.4, ease: EASE }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
           >
-            <div className="input-wrap">
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="email-input"
-                disabled={state === "loading"}
-              />
-              <MagneticBtn
-                type="submit"
-                className={`submit-btn${state === "loading" ? " loading" : ""}`}
-              >
-                {state === "loading" ? (
-                  <span className="spinner" />
-                ) : (
-                  <>
-                    <span className="btn-text">Join Waitlist</span>
-                    <span className="btn-fill" />
-                  </>
-                )}
-              </MagneticBtn>
-            </div>
-            {state === "error" && (
-              <motion.p
-                className="error-msg"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                Something went wrong. Please try again.
-              </motion.p>
-            )}
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Your work email"
+              required
+              className="form-input"
+              disabled={state === "loading"}
+            />
+            <motion.button
+              type="submit"
+              className={`form-btn${state === "loading" ? " form-btn--loading" : ""}`}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.12 }}
+            >
+              {state === "loading" ? <span className="spinner" /> : "Request access"}
+            </motion.button>
           </motion.form>
         )}
       </AnimatePresence>
-
-      {count !== null && (
+      {count !== null && count > 0 && (
         <motion.p
-          className="count-line"
+          className="form-count"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.8, duration: 0.6 }}
+          transition={{ delay: 1.6, duration: 0.6 }}
         >
-          <span className="count-num">{count.toLocaleString()}</span> agents already on the list
+          {count.toLocaleString()} agents already on the list
         </motion.p>
       )}
     </div>
   );
 }
 
-/* ─── main page ───────────────────────────────────────────────────────── */
+/* ─── page ────────────────────────────────────────────────────────────── */
 export default function LandingPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --bg:        #06070D;
-          --bg2:       #0D0E18;
-          --gold:      #C8922A;
-          --gold-dim:  #7A5618;
-          --gold-glow: rgba(200,146,42,0.18);
-          --text:      #EDE8DF;
-          --muted:     #5C5850;
-          --border:    rgba(255,255,255,0.07);
-          --ease:      cubic-bezier(0.23,1,0.32,1);
+          --bg:              oklch(0.08 0.010 20);
+          --surface:         oklch(0.11 0.009 20);
+          --surface2:        oklch(0.15 0.007 20);
+          --crimson:         oklch(0.52 0.210 20);
+          --crimson-dim:     oklch(0.32 0.110 20);
+          --crimson-glow:    oklch(0.52 0.210 20 / 0.14);
+          --crimson-bright:  oklch(0.63 0.185 20);
+          --ink:             oklch(0.94 0.008 55);
+          --ink-2:           oklch(0.72 0.010 55);
+          --muted:           oklch(0.48 0.010 55);
+          --border:          oklch(0.19 0.008 55);
+          --border-strong:   oklch(0.26 0.009 55);
+          --ease:            cubic-bezier(0.16,1,0.3,1);
         }
 
         html { scroll-behavior: smooth; }
-        body { background: var(--bg); color: var(--text); font-family:'Outfit',sans-serif; -webkit-font-smoothing:antialiased; }
-        .landing-root { min-height: 100vh; overflow-x: hidden; cursor: none; }
+        body { background: var(--bg); color: var(--ink); font-family: 'Outfit', sans-serif;
+               font-weight: 300; -webkit-font-smoothing: antialiased; }
+        .lp { min-height: 100dvh; overflow-x: hidden; }
 
-        @media (hover: none) {
-          .landing-root { cursor: auto; }
-          .cursor-dot { display: none; }
-        }
-
-        /* ── cursor ── */
-        .cursor-dot {
-          position: fixed; top: -6px; left: -6px;
-          width: 12px; height: 12px; border-radius: 50%;
-          background: var(--gold); pointer-events: none;
-          z-index: 9999; mix-blend-mode: normal;
-          transform-origin: center;
-        }
-
-        /* ── grain overlay ── */
+        /* ── grain ── */
         .grain {
           position: fixed; inset: 0; z-index: 5; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          opacity: 0.032;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          opacity: 0.028;
         }
 
-        /* ── aurora ── */
-        .aurora-wrap { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
-        .aurora-blob {
-          position: absolute; border-radius: 50%;
-          filter: blur(100px); opacity: 0.28;
+        /* ── ambient glow ── */
+        .glow-tl {
+          position: absolute; width: 700px; height: 700px;
+          left: -220px; top: -180px; border-radius: 50%;
+          background: radial-gradient(circle, oklch(0.52 0.210 20 / 0.18) 0%, transparent 65%);
+          filter: blur(40px); pointer-events: none; z-index: 0;
+          animation: glowPulse 12s ease-in-out infinite;
         }
-        .a1 { width: 600px; height: 600px; left: -120px; top: -120px; background: radial-gradient(circle, #C8922A 0%, transparent 70%); }
-        .a2 { width: 700px; height: 700px; right: -180px; top: 60px; background: radial-gradient(circle, #2A3D8A 0%, transparent 70%); }
-        .a3 { width: 500px; height: 500px; left: 30%; bottom: -80px; background: radial-gradient(circle, #8A2A6A 0%, transparent 70%); }
+        .glow-br {
+          position: absolute; width: 500px; height: 500px;
+          right: -100px; bottom: -100px; border-radius: 50%;
+          background: radial-gradient(circle, oklch(0.40 0.120 20 / 0.12) 0%, transparent 65%);
+          filter: blur(60px); pointer-events: none; z-index: 0;
+          animation: glowPulse 16s ease-in-out infinite reverse;
+        }
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50%       { opacity: 1;   transform: scale(1.08); }
+        }
 
         /* ── nav ── */
         .nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           display: flex; align-items: center; justify-content: space-between;
-          padding: 0 clamp(24px, 5vw, 80px); height: 64px;
+          padding: 0 clamp(20px, 5vw, 80px); height: 60px;
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.3s, background 0.3s;
+        }
+        .nav.scrolled {
+          background: oklch(0.08 0.010 20 / 0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom-color: var(--border);
         }
         .nav-logo {
           font-family: 'Cormorant Garant', serif; font-weight: 500;
-          font-size: 20px; letter-spacing: 0.08em; color: var(--text);
-          text-decoration: none;
+          font-size: 19px; letter-spacing: 0.06em; color: var(--ink);
+          text-decoration: none; display: flex; align-items: center; gap: 4px;
         }
-        .nav-logo em { font-style: normal; color: var(--gold); }
-        .nav-badge {
-          font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--gold); border: 1px solid var(--gold-dim);
-          padding: 5px 14px; font-family: 'Outfit', sans-serif;
+        .nav-logo-dot { color: var(--crimson); }
+        .nav-pill {
+          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--crimson); border: 1px solid var(--crimson-dim);
+          padding: 5px 13px; font-family: 'Outfit', sans-serif; font-weight: 500;
         }
 
         /* ── hero ── */
         .hero {
           position: relative; min-height: 100svh;
-          display: flex; flex-direction: column;
-          justify-content: center; align-items: center;
-          text-align: center; padding: 100px clamp(24px, 6vw, 100px) 80px;
+          display: flex; flex-direction: column; justify-content: flex-end;
+          padding: 0 clamp(20px, 6vw, 96px) clamp(60px, 8vh, 96px);
           overflow: hidden;
         }
-        .hero-inner { position: relative; z-index: 2; max-width: 900px; width: 100%; }
+        .hero-inner { position: relative; z-index: 2; }
 
-        .eyebrow {
-          display: inline-flex; align-items: center; gap: 12px;
-          font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-          color: var(--gold); margin-bottom: 36px;
+        .hero-kicker {
+          display: flex; align-items: center; gap: 12px;
+          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+          color: var(--muted); margin-bottom: 32px;
         }
-        .eyebrow-line { width: 28px; height: 1px; background: var(--gold); flex-shrink: 0; }
+        .hero-kicker-line { width: 24px; height: 1px; background: var(--crimson-dim); }
 
-        .hero-title {
+        .hero-h1 {
           font-family: 'Cormorant Garant', serif;
-          font-size: clamp(52px, 10vw, 130px);
-          font-weight: 300; line-height: 0.95;
-          letter-spacing: -0.02em; color: var(--text);
-          margin-bottom: 8px;
+          font-size: clamp(2.8rem, 7.5vw, 5.8rem);
+          font-weight: 300; line-height: 1.0; letter-spacing: -0.025em;
+          color: var(--ink); max-width: 820px; margin-bottom: 32px;
+          text-wrap: balance;
         }
-        .hero-title-gold {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(52px, 10vw, 130px);
-          font-weight: 300; line-height: 0.95;
-          letter-spacing: -0.02em;
-          color: var(--gold);
-          margin-bottom: 44px;
-          font-style: italic;
-        }
-        .hero-sub {
-          font-size: clamp(15px, 2vw, 18px); line-height: 1.7;
-          color: var(--muted); max-width: 520px; margin: 0 auto 52px;
+        .hero-h1-em { color: var(--crimson); font-style: italic; }
+
+        .hero-body {
+          max-width: 540px; font-size: clamp(15px, 1.8vw, 17px);
+          line-height: 1.72; color: var(--ink-2); margin-bottom: 44px;
           font-weight: 300;
         }
 
-        /* ── form ── */
-        .form-wrap { width: 100%; max-width: 480px; margin: 0 auto; }
-        .signup-form { width: 100%; }
-        .input-wrap {
-          display: flex; width: 100%;
-          border: 1px solid var(--border);
-          transition: border-color 0.2s ease;
+        .hero-stat-row {
+          display: flex; align-items: center; gap: 0;
+          border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+          margin-bottom: 44px; flex-wrap: wrap;
         }
-        .input-wrap:focus-within {
-          border-color: rgba(200,146,42,0.5);
-          box-shadow: 0 0 0 3px var(--gold-glow);
+        .hero-stat {
+          display: flex; flex-direction: column; padding: 20px 32px 20px 0;
+          gap: 4px; flex-shrink: 0;
         }
-        .email-input {
-          flex: 1; background: rgba(255,255,255,0.03);
-          border: none; outline: none; padding: 15px 20px;
-          font-family: 'Outfit', sans-serif; font-size: 14px;
-          color: var(--text); min-width: 0;
+        .hero-stat:not(:last-child) { margin-right: 32px; border-right: 1px solid var(--border); padding-right: 32px; }
+        .hero-stat-num {
+          font-family: 'Cormorant Garant', serif; font-size: 2.2rem;
+          font-weight: 300; color: var(--crimson); line-height: 1;
         }
-        .email-input::placeholder { color: var(--muted); }
-        .submit-btn {
-          position: relative; background: var(--gold); border: none;
-          padding: 15px 28px; cursor: none;
-          font-family: 'Outfit', sans-serif; font-size: 13px;
-          font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-          color: #06070D; overflow: hidden; flex-shrink: 0;
-          transition: transform 160ms var(--ease);
+        .hero-stat-label {
+          font-size: 11px; color: var(--muted); letter-spacing: 0.05em; line-height: 1.4;
+          max-width: 120px;
         }
-        .btn-fill {
-          position: absolute; inset: 0; background: rgba(255,255,255,0.18);
-          clip-path: inset(0 100% 0 0);
-          transition: clip-path 0.35s var(--ease);
+
+        /* ── scroll hint ── */
+        .scroll-hint {
+          position: absolute; bottom: 32px; right: clamp(20px, 5vw, 80px);
+          z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .scroll-hint-line {
+          width: 1px; height: 48px;
+          background: linear-gradient(to bottom, var(--crimson-dim), transparent);
+          animation: scrollLine 2.2s ease-in-out infinite;
+        }
+        @keyframes scrollLine {
+          0%, 100% { opacity: 0.4; transform: scaleY(0.7) translateY(0); }
+          50%       { opacity: 1;   transform: scaleY(1)   translateY(4px); }
+        }
+
+        /* ── divider ── */
+        .section-rule {
+          width: 1px; height: 60px;
+          background: linear-gradient(to bottom, transparent, var(--crimson-dim), transparent);
+          margin: 0 auto;
+        }
+
+        /* ── section wrapper ── */
+        .section { padding: clamp(64px, 9vw, 120px) clamp(20px, 6vw, 96px); position: relative; z-index: 2; }
+        .section-inner { max-width: 1080px; margin: 0 auto; }
+
+        /* ── narrative section ── */
+        .narrative { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .narrative-grid {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
+        }
+        .narrative-pull {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(1.8rem, 3vw, 2.8rem);
+          font-weight: 300; line-height: 1.15; letter-spacing: -0.02em;
+          color: var(--ink); text-wrap: balance;
+        }
+        .narrative-pull em { font-style: italic; color: var(--crimson); }
+        .narrative-body {
+          font-size: 15px; line-height: 1.8; color: var(--ink-2);
+          display: flex; flex-direction: column; gap: 20px; padding-top: 8px;
+        }
+        .narrative-body p { max-width: 52ch; }
+
+        /* ── story timeline ── */
+        .timeline-section { border-top: 1px solid var(--border); }
+        .timeline-heading {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+          font-weight: 300; letter-spacing: -0.02em; margin-bottom: 56px;
+          color: var(--ink); max-width: 600px; text-wrap: balance;
+        }
+        .timeline-heading em { font-style: italic; color: var(--crimson); }
+        .timeline { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+        .timeline-item {
+          display: grid; grid-template-columns: 200px 1fr;
+          border-bottom: 1px solid var(--border); overflow: hidden;
+          transition: background 0.2s;
+        }
+        .timeline-item:last-child { border-bottom: none; }
+        @media (hover: hover) and (pointer: fine) {
+          .timeline-item:hover { background: oklch(0.12 0.009 20); }
+        }
+        .timeline-time {
+          padding: 28px 24px; border-right: 1px solid var(--border);
+          font-family: 'Cormorant Garant', serif;
+          font-size: 13px; color: var(--crimson);
+          letter-spacing: 0.08em; font-style: italic;
+          display: flex; align-items: center;
+        }
+        .timeline-content { padding: 28px 32px; }
+        .timeline-title {
+          font-size: 15px; font-weight: 500; color: var(--ink);
+          margin-bottom: 6px;
+        }
+        .timeline-desc { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 58ch; }
+
+        /* ── parallel engine ── */
+        .engine-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .engine-header { margin-bottom: 56px; }
+        .engine-tag {
+          display: inline-block; font-size: 10px; letter-spacing: 0.15em;
+          text-transform: uppercase; color: var(--crimson);
+          border: 1px solid var(--crimson-dim); padding: 4px 12px;
+          margin-bottom: 20px;
+        }
+        .engine-heading {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+          font-weight: 300; letter-spacing: -0.02em; color: var(--ink);
+          max-width: 560px; text-wrap: balance; line-height: 1.15;
+        }
+        .engine-heading em { font-style: italic; color: var(--crimson); }
+        .engine-sub {
+          font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 52ch;
+          margin-top: 16px;
+        }
+        .engine-grid {
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 1px; background: var(--border); border: 1px solid var(--border);
+        }
+        .engine-card {
+          background: var(--bg); padding: clamp(28px, 3.5vw, 44px);
+          transition: background 0.2s;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .engine-card:hover { background: oklch(0.10 0.009 20); }
+        }
+        .engine-card-label {
+          font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--crimson-bright); margin-bottom: 16px;
+        }
+        .engine-card-title {
+          font-family: 'Cormorant Garant', serif;
+          font-size: 1.5rem; font-weight: 400; color: var(--ink);
+          margin-bottom: 12px; letter-spacing: -0.01em;
+        }
+        .engine-card-body { font-size: 14px; line-height: 1.75; color: var(--muted); max-width: 40ch; }
+
+        /* ── market section ── */
+        .market-section { border-top: 1px solid var(--border); }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .market-stat-block { position: relative; }
+        .market-big-num {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(4rem, 10vw, 9rem);
+          font-weight: 300; color: var(--crimson);
+          line-height: 0.9; letter-spacing: -0.03em;
+        }
+        .market-big-label { font-size: 13px; color: var(--muted); margin-top: 16px; max-width: 30ch; line-height: 1.6; }
+        .market-body { display: flex; flex-direction: column; gap: 24px; }
+        .market-body p { font-size: 15px; line-height: 1.8; color: var(--ink-2); max-width: 50ch; }
+        .market-body strong { color: var(--ink); font-weight: 500; }
+
+        /* ── manifesto ── */
+        .manifesto-section { border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+        .manifesto-section::before {
+          content: ''; position: absolute; inset: 0;
+          background: radial-gradient(ellipse 60% 50% at 50% 100%, oklch(0.52 0.210 20 / 0.07) 0%, transparent 70%);
           pointer-events: none;
         }
-        .submit-btn:hover .btn-fill { clip-path: inset(0 0% 0 0); }
+        .manifesto-inner { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
+        .manifesto-text {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(1.7rem, 3.2vw, 3rem);
+          font-weight: 300; line-height: 1.25; letter-spacing: -0.025em;
+          color: var(--ink); max-width: 16em; text-wrap: balance;
+        }
+        .manifesto-text em { color: var(--crimson); font-style: italic; }
+        .manifesto-caption { font-size: 14px; color: var(--muted); margin-top: 32px; max-width: 50ch; line-height: 1.7; }
 
+        /* ── languages ── */
+        .lang-section { border-top: 1px solid var(--border); }
+        .lang-header { margin-bottom: 48px; }
+        .lang-heading {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(1.5rem, 2.5vw, 2.4rem);
+          font-weight: 300; letter-spacing: -0.02em; color: var(--ink);
+          text-wrap: balance;
+        }
+        .lang-heading em { font-style: italic; color: var(--crimson); }
+        .lang-row {
+          display: flex; border: 1px solid var(--border); overflow: hidden;
+        }
+        .lang-item {
+          flex: 1; padding: clamp(20px, 3vw, 32px) 20px;
+          border-right: 1px solid var(--border);
+          display: flex; flex-direction: column; align-items: center; gap: 8px;
+          transition: background 0.2s;
+        }
+        .lang-item:last-child { border-right: none; }
+        @media (hover: hover) and (pointer: fine) {
+          .lang-item:hover { background: oklch(0.12 0.009 20); }
+        }
+        .lang-flag { font-size: 24px; }
+        .lang-name { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+        /* ── CTA section ── */
+        .cta-section { border-top: 1px solid var(--border); }
+        .cta-inner { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .cta-heading {
+          font-family: 'Cormorant Garant', serif;
+          font-size: clamp(2rem, 3.5vw, 3.2rem);
+          font-weight: 300; letter-spacing: -0.025em; line-height: 1.1;
+          color: var(--ink); text-wrap: balance;
+        }
+        .cta-heading em { font-style: italic; color: var(--crimson); }
+        .cta-body { font-size: 14px; color: var(--muted); line-height: 1.75; margin-top: 20px; max-width: 44ch; }
+        .cta-right { display: flex; flex-direction: column; gap: 0; }
+
+        /* ── form ── */
+        .form-root { width: 100%; }
+        .form { display: flex; flex-direction: column; gap: 0; }
+        .form-input {
+          background: var(--surface); border: 1px solid var(--border-strong);
+          color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 14px;
+          padding: 15px 18px; outline: none;
+          transition: border-color 0.18s;
+        }
+        .form-input::placeholder { color: var(--muted); }
+        .form-input:focus { border-color: var(--crimson-dim); box-shadow: 0 0 0 3px var(--crimson-glow); }
+        .form-btn {
+          background: var(--crimson); color: oklch(0.97 0.005 20);
+          border: none; padding: 15px 24px; cursor: pointer;
+          font-family: 'Outfit', sans-serif; font-size: 13px;
+          font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+          transition: background 0.18s;
+          position: relative; overflow: hidden;
+        }
+        .form-btn::after {
+          content: ''; position: absolute; inset: 0;
+          background: oklch(1 0 0 / 0.1);
+          clip-path: inset(0 100% 0 0);
+          transition: clip-path 0.3s var(--ease);
+        }
+        .form-btn:hover::after { clip-path: inset(0 0 0 0); }
+        .form-btn--loading { pointer-events: none; opacity: 0.7; }
+        .form-success {
+          display: flex; align-items: center; gap: 12px;
+          padding: 16px 18px; border: 1px solid var(--crimson-dim);
+          background: oklch(0.52 0.210 20 / 0.06);
+          font-size: 14px; color: var(--ink-2); line-height: 1.5;
+        }
+        .form-success-mark { color: var(--crimson); font-size: 16px; flex-shrink: 0; }
+        .form-count { font-size: 12px; color: var(--muted); margin-top: 16px; letter-spacing: 0.04em; }
         .spinner {
-          display: inline-block; width: 14px; height: 14px;
-          border: 2px solid rgba(6,7,13,0.3); border-top-color: #06070D;
+          display: inline-block; width: 13px; height: 13px;
+          border: 2px solid oklch(0.97 0.005 20 / 0.3);
+          border-top-color: oklch(0.97 0.005 20);
           border-radius: 50%; animation: spin 0.7s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .success-msg {
-          display: flex; align-items: center; justify-content: center;
-          gap: 12px; padding: 18px 24px;
-          background: rgba(200,146,42,0.08); border: 1px solid var(--gold-dim);
-          font-size: 14px; color: var(--text);
-        }
-        .check { color: var(--gold); font-size: 18px; }
-        .error-msg { font-size: 13px; color: #E05050; margin-top: 8px; }
-
-        .count-line {
-          font-size: 12px; color: var(--muted); margin-top: 20px;
-          letter-spacing: 0.04em; text-align: center;
-        }
-        .count-num { color: var(--gold); font-weight: 500; }
-
-        /* ── language strip ── */
-        .lang-strip {
-          display: flex; align-items: center; justify-content: center;
-          gap: 24px; margin-top: 56px; flex-wrap: wrap;
-        }
-        .lang-chip {
-          display: flex; align-items: center; gap: 8px;
-          padding: 6px 14px; border: 1px solid var(--border);
-          font-size: 12px; color: var(--muted); letter-spacing: 0.06em;
-          transition: border-color 0.2s, color 0.2s;
-        }
-        @media (hover: hover) and (pointer: fine) {
-          .lang-chip:hover { border-color: var(--gold-dim); color: var(--gold); }
-        }
-
-        /* ── scroll indicator ── */
-        .scroll-hint {
-          position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-          z-index: 2; display: flex; flex-direction: column; align-items: center;
-          gap: 8px; color: var(--muted); font-size: 11px; letter-spacing: 0.1em;
-          text-transform: uppercase;
-        }
-        .scroll-line {
-          width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold-dim), transparent);
-          animation: scrollPulse 2s ease-in-out infinite;
-        }
-        @keyframes scrollPulse {
-          0%, 100% { opacity: 0.3; transform: scaleY(1); }
-          50%       { opacity: 1;   transform: scaleY(1.1); }
-        }
-
-        /* ── divider ── */
-        .divider {
-          width: 1px; height: 80px; background: linear-gradient(to bottom, transparent, var(--gold-dim), transparent);
-          margin: 0 auto;
-        }
-
-        /* ── features ── */
-        .features {
-          padding: clamp(60px, 8vw, 120px) clamp(24px, 6vw, 80px);
-          position: relative; z-index: 2;
-        }
-        .features-inner { max-width: 1100px; margin: 0 auto; }
-        .features-label {
-          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-          color: var(--gold); text-align: center; margin-bottom: 16px;
-          display: flex; align-items: center; justify-content: center; gap: 16px;
-        }
-        .features-label::before, .features-label::after {
-          content:''; flex: 1; max-width: 60px; height: 1px; background: var(--gold-dim);
-        }
-        .features-heading {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(32px, 4.5vw, 56px); font-weight: 300;
-          text-align: center; margin-bottom: 64px; line-height: 1.1;
-        }
-        .features-heading em { font-style: italic; color: var(--gold); }
-        .features-grid {
-          display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 1px; background: var(--border);
-          border: 1px solid var(--border); overflow: hidden;
-        }
-        .feature-card {
-          background: var(--bg2); padding: clamp(28px, 4vw, 48px) clamp(24px, 3vw, 40px);
-          transition: background 0.25s;
-        }
-        @media (hover: hover) and (pointer: fine) {
-          .feature-card:hover { background: rgba(200,146,42,0.04); }
-        }
-        .feature-icon { font-size: 28px; margin-bottom: 20px; display: block; }
-        .feature-value {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(40px, 5vw, 64px); font-weight: 300;
-          color: var(--gold); line-height: 1; margin-bottom: 8px;
-        }
-        .feature-label {
-          font-size: 13px; font-weight: 500; color: var(--text);
-          letter-spacing: 0.04em; margin-bottom: 14px; text-transform: uppercase;
-        }
-        .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
-
-        /* ── pipeline section ── */
-        .pipeline-section {
-          padding: clamp(60px, 8vw, 100px) clamp(24px, 6vw, 80px);
-          position: relative; z-index: 2; overflow: hidden;
-          border-top: 1px solid var(--border);
-        }
-        .pipeline-section::before {
-          content: ''; position: absolute; inset: 0;
-          background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,146,42,0.04) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .pipeline-inner { max-width: 1100px; margin: 0 auto; }
-        .pipeline-heading {
-          font-family: 'Cormorant Garant', serif;
-          font-size: clamp(32px, 4.5vw, 56px); font-weight: 300;
-          text-align: center; margin-bottom: 56px; line-height: 1.1;
-        }
-        .pipeline-heading em { font-style: italic; color: var(--gold); }
-        .pipeline-steps {
-          display: grid; grid-template-columns: repeat(7, 1fr);
-          gap: 1px; background: var(--border);
-          border: 1px solid var(--border); overflow: hidden;
-        }
-        .p-step {
-          background: var(--bg2); padding: 28px 16px;
-          text-align: center; position: relative;
-          transition: background 0.2s;
-        }
-        @media (hover: hover) and (pointer: fine) {
-          .p-step:hover { background: rgba(200,146,42,0.04); }
-        }
-        .p-step-num {
-          font-family: 'Cormorant Garant', serif; font-size: 11px;
-          color: var(--gold-dim); margin-bottom: 10px; display: block;
-          letter-spacing: 0.1em;
-        }
-        .p-step-icon { font-size: 22px; margin-bottom: 10px; display: block; }
-        .p-step-label {
-          font-size: 11px; color: var(--muted); line-height: 1.5;
-          letter-spacing: 0.04em;
-        }
-
         /* ── footer ── */
         footer {
-          padding: 36px clamp(24px, 5vw, 80px);
           border-top: 1px solid var(--border);
-          display: flex; align-items: center; justify-content: space-between;
-          flex-wrap: wrap; gap: 16px; position: relative; z-index: 2;
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 28px clamp(20px, 6vw, 96px); flex-wrap: wrap; gap: 16px;
+          position: relative; z-index: 2;
         }
         .footer-logo {
-          font-family: 'Cormorant Garant', serif; font-size: 18px;
-          font-weight: 400; color: var(--muted); text-decoration: none;
+          font-family: 'Cormorant Garant', serif; font-size: 17px;
+          color: var(--muted); text-decoration: none; letter-spacing: 0.04em;
         }
-        .footer-logo em { font-style: normal; color: var(--gold-dim); }
+        .footer-logo span { color: var(--crimson-dim); }
         .footer-copy { font-size: 12px; color: var(--muted); }
 
         /* ── responsive ── */
-        @media (max-width: 900px) {
-          .features-grid { grid-template-columns: 1fr; }
-          .pipeline-steps { grid-template-columns: repeat(4, 1fr); }
-          .p-step:nth-child(n+5) { display: none; }
+        @media (max-width: 860px) {
+          .narrative-grid { grid-template-columns: 1fr; gap: 32px; }
+          .timeline-item { grid-template-columns: 120px 1fr; }
+          .engine-grid { grid-template-columns: 1fr; }
+          .market-grid { grid-template-columns: 1fr; gap: 40px; }
+          .cta-inner { grid-template-columns: 1fr; gap: 40px; }
+          .lang-row { flex-wrap: wrap; }
+          .lang-item { flex: 1 1 calc(33.33% - 1px); }
         }
-        @media (max-width: 600px) {
-          .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
-          .p-step:nth-child(n+3) { display: none; }
-          .lang-strip { gap: 12px; }
-          .input-wrap { flex-direction: column; }
-          .submit-btn { width: 100%; text-align: center; }
+        @media (max-width: 560px) {
+          .hero-stat-row { flex-direction: column; gap: 0; }
+          .hero-stat { border-right: none !important; border-bottom: 1px solid var(--border); padding: 16px 0 !important; margin-right: 0 !important; }
+          .hero-stat:last-child { border-bottom: none; }
+          .timeline-item { grid-template-columns: 1fr; }
+          .timeline-time { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 24px; }
+          .lang-item { flex: 1 1 50%; }
         }
 
         /* ── reduced motion ── */
         @media (prefers-reduced-motion: reduce) {
-          .aurora-blob, .scroll-line, .spinner { animation: none !important; }
+          .glow-tl, .glow-br, .scroll-hint-line, .spinner { animation: none !important; }
           * { transition-duration: 0.01ms !important; }
         }
       `}</style>
 
-      {/* Grain + Cursor */}
       <div className="grain" aria-hidden />
-      <Cursor />
 
-      <div className="landing-root">
+      <div className="lp">
         {/* NAV */}
-        <motion.nav
-          className="nav"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
-        >
-          <a href="#" className="nav-logo">Simmer <em>.</em></a>
-          <span className="nav-badge">Early Access</span>
-        </motion.nav>
+        <NavBar />
 
         {/* HERO */}
         <section className="hero">
-          <Aurora />
+          <div className="glow-tl" aria-hidden />
+          <div className="glow-br" aria-hidden />
 
-          <div className="hero-inner">
-            <motion.div
-              className="eyebrow"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE, delay: 0.3 }}
-            >
-              <span className="eyebrow-line" />
-              PropTech for Real Estate Agents
-              <span className="eyebrow-line" />
-            </motion.div>
+          <ParallaxText speed={0.18}>
+            <div className="hero-inner">
+              <motion.div
+                className="hero-kicker"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <span className="hero-kicker-line" />
+                PropTech built for the speed of Dubai
+              </motion.div>
 
-            <h1>
-              <SplitReveal text="The AI That Sells" className="hero-title" delay={0.5} />
-              <br />
-              <SplitReveal text="Property While You Sleep." className="hero-title-gold" delay={0.8} />
-            </h1>
-
-            <motion.p
-              className="hero-sub"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE, delay: 1.25 }}
-            >
-              Simmer qualifies every lead in 60 seconds, sends brochures via WhatsApp mid-call, and books appointments — fully automated. <strong style={{ color: "var(--text)", fontWeight: 400 }}>Be the first to know when we launch.</strong>
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE, delay: 1.5 }}
-            >
-              <SignupForm />
-            </motion.div>
-
-            <motion.div
-              className="lang-strip"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, ease: EASE, delay: 1.9 }}
-            >
-              {[
-                { flag: "🇦🇪", lang: "Arabic" },
-                { flag: "🇬🇧", lang: "English" },
-                { flag: "🇮🇳", lang: "Hindi" },
-                { flag: "🇷🇺", lang: "Russian" },
-                { flag: "🇨🇳", lang: "Mandarin" },
-              ].map(({ flag, lang }) => (
-                <span key={lang} className="lang-chip">
-                  {flag} {lang}
+              <h1 className="hero-h1">
+                <SplitReveal text="Your Next Deal" delay={0.35} />
+                <br />
+                <SplitReveal text="Called. Nobody" delay={0.65} />{" "}
+                <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}>
+                  <motion.span
+                    className="hero-h1-em"
+                    style={{ display: "inline-block", fontFamily: "'Cormorant Garant', serif", fontStyle: "italic", fontWeight: 300 }}
+                    initial={{ y: "105%", opacity: 0 }}
+                    animate={{ y: "0%", opacity: 1 }}
+                    transition={{ duration: 0.72, ease: EASE_OUT, delay: 0.94 }}
+                  >
+                    Answered.
+                  </motion.span>
                 </span>
-              ))}
-            </motion.div>
-          </div>
+              </h1>
+
+              <motion.p
+                className="hero-body"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.65, ease: EASE_OUT, delay: 1.2 }}
+              >
+                A lead clicks your ad and a clock starts. Within 5 minutes, the probability of qualifying them
+                drops by 80%. The average agent calls back in 47 hours. Simmer calls in 60 seconds, in the
+                lead&apos;s language, with their property matches and mortgage breakdown already prepared.
+              </motion.p>
+
+              <motion.div
+                className="hero-stat-row"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.5 }}
+              >
+                {[
+                  { num: "60s", label: "Response time from ad click" },
+                  { num: "78%", label: "Win rate when first to contact" },
+                  { num: "80%", label: "Drop in qualification after 1 hour" },
+                  { num: "47hrs", label: "Industry average response time" },
+                ].map((s) => (
+                  <div className="hero-stat" key={s.num}>
+                    <span className="hero-stat-num">{s.num}</span>
+                    <span className="hero-stat-label">{s.label}</span>
+                  </div>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, ease: EASE_OUT, delay: 1.7 }}
+              >
+                <SignupForm />
+              </motion.div>
+            </div>
+          </ParallaxText>
 
           <div className="scroll-hint" aria-hidden>
-            <div className="scroll-line" />
-            <span>Scroll</span>
+            <div className="scroll-hint-line" />
           </div>
         </section>
 
-        <div className="divider" aria-hidden />
-
-        {/* FEATURES */}
-        <section className="features">
-          <div className="features-inner">
-            <div className="features-label">What We Do</div>
-            <h2 className="features-heading">
-              Seven steps.<br /><em>Zero manual effort.</em>
-            </h2>
-            <div className="features-grid">
-              <FeatureCard
-                icon="⚡"
-                value="60s"
-                label="First AI Call"
-                desc="Your AI agent calls every new lead within 60 seconds of clicking your ad — every time, without exception."
-                delay={0}
-              />
-              <FeatureCard
-                icon="🌍"
-                value="5"
-                label="Languages Spoken"
-                desc="Arabic, English, Hindi, Russian, and Mandarin — with adaptive tone matching and native fluency."
-                delay={0.1}
-              />
-              <FeatureCard
-                icon="📲"
-                value="14"
-                label="Day Nurture"
-                desc="Multi-channel follow-ups across WhatsApp, email, and AI callbacks run automatically for two weeks."
-                delay={0.2}
-              />
+        {/* NARRATIVE */}
+        <section className="section narrative">
+          <div className="section-inner">
+            <div className="narrative-grid">
+              <ScrollReveal>
+                <p className="narrative-pull">
+                  The gap between interest and contact is where <em>real estate deals die.</em>
+                </p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.1}>
+                <div className="narrative-body">
+                  <p>
+                    A buyer in Moscow clicks your Palm Jumeirah listing at 11pm local time. You are asleep.
+                    By the time you see the notification in the morning, they have spoken to three other agents
+                    and visited two showrooms.
+                  </p>
+                  <p>
+                    This is not a story about effort. Your agents work hard. This is the mathematics of
+                    first-contact advantage: the agent who responds first wins the deal 78% of the time,
+                    regardless of the quality of the property.
+                  </p>
+                  <p>
+                    Simmer does not close deals. Your agents do. Simmer ensures that when your agent picks
+                    up the phone, they are talking to a qualified buyer who already has the property brochure,
+                    the school report, and the mortgage breakdown in their WhatsApp.
+                  </p>
+                </div>
+              </ScrollReveal>
             </div>
           </div>
         </section>
 
-        {/* PIPELINE */}
-        <section className="pipeline-section">
-          <div className="pipeline-inner">
-            <h2 className="pipeline-heading">
-              Lead to close,<br /><em>end to end.</em>
-            </h2>
-            <div className="pipeline-steps">
+        {/* TIMELINE */}
+        <section className="section timeline-section">
+          <div className="section-inner">
+            <ScrollReveal>
+              <h2 className="timeline-heading">
+                What happens in the <em>60 seconds</em> after a lead clicks your ad.
+              </h2>
+            </ScrollReveal>
+            <div className="timeline">
               {[
-                { n: "01", icon: "📱", label: "Ad Click" },
-                { n: "02", icon: "⚡", label: "AI Calls in 60s" },
-                { n: "03", icon: "🧠", label: "Qualifies Lead" },
-                { n: "04", icon: "📲", label: "Sends Brochure" },
-                { n: "05", icon: "📅", label: "Books Appt" },
-                { n: "06", icon: "🔁", label: "14-Day Nurture" },
-                { n: "07", icon: "🤝", label: "Agent Closes" },
-              ].map((s, i) => (
-                <motion.div
-                  key={s.n}
-                  className="p-step"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.06 }}
-                >
-                  <span className="p-step-num">{s.n}</span>
-                  <span className="p-step-icon">{s.icon}</span>
-                  <div className="p-step-label">{s.label}</div>
-                </motion.div>
+                {
+                  time: "T + 0:00",
+                  title: "Lead captured",
+                  desc: "A prospect clicks your Meta or Instagram ad. The webhook fires. Simmer creates a lead record and queues the AI caller. Total latency: under 200ms.",
+                },
+                {
+                  time: "T + 0:58",
+                  title: "AI calls the lead",
+                  desc: "Vapi.ai initiates the call. The AI identifies the lead's preferred language from their profile and opens in Arabic, Hindi, Russian, Mandarin, or English, with adaptive tone matching from the first sentence.",
+                },
+                {
+                  time: "T + 1:30",
+                  title: "Qualification begins. Four agents fire in parallel.",
+                  desc: "While the AI asks about budget, lifestyle, and investment horizon, four specialized research agents activate simultaneously. The lead is answering questions. The system is already finding their perfect property.",
+                },
+                {
+                  time: "T + 2:45",
+                  title: "Brochures arrive on their phone",
+                  desc: "WhatsApp delivers property brochures matched to stated preferences, a school catchment report for families, and an EMI breakdown in their local currency. Mid-call. Before they have hung up.",
+                },
+                {
+                  time: "T + 4:10",
+                  title: "Appointment confirmed",
+                  desc: "The AI proposes three calendar slots, the lead chooses one, and Google Calendar sends confirmations to both parties. Your agent has a meeting in their diary before they have seen the lead come in.",
+                },
+                {
+                  time: "Day 2–14",
+                  title: "Automated nurture runs in the background",
+                  desc: "If no appointment is booked, multi-channel follow-up sequences run across WhatsApp, email, and AI callbacks for 14 days. No lead goes cold without a fight.",
+                },
+                {
+                  time: "Meeting day",
+                  title: "Your agent receives a complete dossier",
+                  desc: "Full call transcript, qualification summary, property interests, mortgage data, and school preferences. The agent arrives knowing more about the buyer than most closers learn in three meetings.",
+                },
+              ].map((item, i) => (
+                <ScrollReveal key={item.time} delay={i * 0.04}>
+                  <div className="timeline-item">
+                    <div className="timeline-time">{item.time}</div>
+                    <div className="timeline-content">
+                      <div className="timeline-title">{item.title}</div>
+                      <div className="timeline-desc">{item.desc}</div>
+                    </div>
+                  </div>
+                </ScrollReveal>
               ))}
             </div>
           </div>
         </section>
 
-        {/* FOOTER */}
+        {/* PARALLEL ENGINE */}
+        <section className="section engine-section">
+          <div className="section-inner">
+            <ScrollReveal>
+              <div className="engine-header">
+                <span className="engine-tag">The Parallel Engine</span>
+                <h2 className="engine-heading">
+                  While your AI is talking, four agents are <em>already researching.</em>
+                </h2>
+                <p className="engine-sub">
+                  A human agent can ask questions or do research. Not both, not simultaneously.
+                  Simmer does both at once, across four specialized systems, in real time.
+                </p>
+              </div>
+            </ScrollReveal>
+            <div className="engine-grid">
+              {[
+                {
+                  label: "Agent 01",
+                  title: "School Mapper",
+                  body: "Pulls school ratings, catchment boundaries, tuition fees, and commute times from Google Maps. Families make school access a primary purchase criterion. Simmer delivers the answer before they ask.",
+                  delay: 0,
+                },
+                {
+                  label: "Agent 02",
+                  title: "Mortgage Calculator",
+                  body: "Generates EMI breakdowns tailored to the lead's budget, preferred currency, and local lending rates. Delivered to WhatsApp mid-call so the monthly cost is concrete before the conversation ends.",
+                  delay: 0.08,
+                },
+                {
+                  label: "Agent 03",
+                  title: "Property Recommender",
+                  body: "Filters the full inventory against stated preferences in real time. Surfaces the three best matches before the call ends. The lead receives a shortlist, not a catalogue.",
+                  delay: 0.16,
+                },
+                {
+                  label: "Agent 04",
+                  title: "Profile Builder",
+                  body: "Captures intent signals, investment horizon, family composition, and conversation sentiment. Writes it directly into the CRM. When your agent meets the buyer, the dossier is already there.",
+                  delay: 0.24,
+                },
+              ].map((card) => (
+                <ScrollReveal key={card.label} delay={card.delay}>
+                  <div className="engine-card">
+                    <div className="engine-card-label">{card.label}</div>
+                    <h3 className="engine-card-title">{card.title}</h3>
+                    <p className="engine-card-body">{card.body}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* MARKET */}
+        <section className="section market-section">
+          <div className="section-inner">
+            <div className="market-grid">
+              <ScrollReveal>
+                <div className="market-stat-block">
+                  <div className="market-big-num">528B</div>
+                  <p className="market-big-label">
+                    AED in Dubai property transactions in 2023 alone, growing at 20% year on year.
+                    The fastest-growing luxury market on earth.
+                  </p>
+                </div>
+              </ScrollReveal>
+              <ScrollReveal delay={0.1}>
+                <div className="market-body">
+                  <p>
+                    <strong>90% of Dubai buyers are international.</strong> They browse in Russian,
+                    Mandarin, Arabic, and Hindi. They are in different time zones. They close in hours
+                    when the experience is right, and disappear in minutes when it is not.
+                  </p>
+                  <p>
+                    Today, the agencies winning in this market are the ones that respond fastest and
+                    speak the right language. They do it by hiring more people. That approach does not
+                    scale. Simmer does.
+                  </p>
+                  <p>
+                    We are starting in Dubai. The same problem exists in Singapore, London, Miami,
+                    and every international gateway city where buyers and agents do not share a native
+                    language or a timezone.
+                  </p>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* LANGUAGES */}
+        <section className="section lang-section">
+          <div className="section-inner">
+            <ScrollReveal>
+              <div className="lang-header">
+                <h2 className="lang-heading">
+                  Your AI agent speaks <em>their language.</em> From the first word.
+                </h2>
+              </div>
+            </ScrollReveal>
+            <ScrollReveal delay={0.1}>
+              <div className="lang-row">
+                {[
+                  { flag: "🇦🇪", name: "Arabic" },
+                  { flag: "🇬🇧", name: "English" },
+                  { flag: "🇮🇳", name: "Hindi" },
+                  { flag: "🇷🇺", name: "Russian" },
+                  { flag: "🇨🇳", name: "Mandarin" },
+                ].map((l) => (
+                  <div className="lang-item" key={l.name}>
+                    <span className="lang-flag">{l.flag}</span>
+                    <span className="lang-name">{l.name}</span>
+                  </div>
+                ))}
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* MANIFESTO */}
+        <section className="section manifesto-section">
+          <div className="manifesto-inner">
+            <ScrollReveal>
+              <p className="manifesto-text">
+                We are not building a better chatbot.
+                We are building the <em>response layer</em> for how real estate is sold
+                in every international market on earth.
+              </p>
+              <p className="manifesto-caption">
+                The agents who deploy Simmer first will qualify more leads in a week than
+                their competition does in a month. First-mover advantage in a market this
+                size is measured in careers, not quarters.
+              </p>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="section cta-section">
+          <div className="cta-inner">
+            <ScrollReveal>
+              <h2 className="cta-heading">
+                Get early access before we open <em>to the market.</em>
+              </h2>
+              <p className="cta-body">
+                We are onboarding a small number of Dubai agencies in the first cohort.
+                Early partners will shape the product and lock in founding-tier pricing.
+              </p>
+            </ScrollReveal>
+            <ScrollReveal delay={0.12}>
+              <div className="cta-right">
+                <SignupForm />
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
         <footer>
-          <a href="#" className="footer-logo">Simmer Properties <em>.</em></a>
+          <a href="#" className="footer-logo">Simmer Properties<span>.</span></a>
           <span className="footer-copy">© 2026 Simmer Properties. All rights reserved.</span>
         </footer>
       </div>
     </>
+  );
+}
+
+/* ─── nav with scroll state ───────────────────────────────────────────── */
+function NavBar() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", h, { passive: true });
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+  return (
+    <motion.nav
+      className={`nav${scrolled ? " scrolled" : ""}`}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.1 }}
+    >
+      <a href="#" className="nav-logo">
+        Simmer<span className="nav-logo-dot">.</span>
+      </a>
+      <span className="nav-pill">Early Access</span>
+    </motion.nav>
   );
 }
