@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMarketing = pathname.startsWith("/landing");
+  const isMarketing = pathname.startsWith("/landing") || pathname.startsWith("/aitaas");
 
   if (isMarketing) {
     return <>{children}</>;
