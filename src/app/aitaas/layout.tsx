@@ -1,8 +1,27 @@
 import AitaasNav from "@/components/AitaasNav";
+import AitaasFooter from "@/components/AitaasFooter";
+import type { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL("https://simmerproperties.com"),
   title: "AITaaS — AI Agents for Your Business",
-  description: "Voice and digital AI agents that call leads, book appointments, recover revenue, and close pipeline — in 7 languages, 24 hours a day.",
+  description:
+    "Voice and digital AI agents that call leads in 60 seconds, book appointments overnight, recover revenue, and follow up in 7 languages, around the clock.",
+  openGraph: {
+    title: "AITaaS — AI Agents for Your Business",
+    description:
+      "Voice and digital AI agents that call leads in 60 seconds, book appointments overnight, recover revenue, and follow up in 7 languages, around the clock.",
+    url: "/aitaas",
+    siteName: "AITaaS",
+    type: "website",
+    locale: "en_AE",
+  },
+  twitter: {
+    card: "summary",
+    title: "AITaaS — AI Agents for Your Business",
+    description:
+      "AI agents that call leads in 60 seconds, book appointments overnight, and follow up in 7 languages.",
+  },
 };
 
 export default function AitaasLayout({ children }: { children: React.ReactNode }) {
@@ -67,27 +86,6 @@ export default function AitaasLayout({ children }: { children: React.ReactNode }
         }
         .c-btn--ghost:hover { border-color: var(--c-ink-2); opacity: 1; }
 
-        /* ── shared footer ── */
-        .c-footer {
-          border-top: 1px solid var(--c-border);
-          padding: 40px clamp(20px, 5vw, 72px);
-          display: flex; justify-content: space-between; align-items: center;
-          flex-wrap: wrap; gap: 20px;
-        }
-        .c-footer-logo {
-          font-family: 'Barlow Condensed', sans-serif; font-size: 16px;
-          font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-          color: var(--c-muted); text-decoration: none;
-        }
-        .c-footer-logo span { color: var(--c-copper-dim); }
-        .c-footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
-        .c-footer-link {
-          font-size: 12px; color: var(--c-muted); text-decoration: none;
-          letter-spacing: 0.04em; transition: color 0.15s;
-        }
-        .c-footer-link:hover { color: var(--c-ink); }
-        .c-footer-copy { font-size: 11px; color: var(--c-muted); }
-
         /* ── reduced motion ── */
         @media (prefers-reduced-motion: reduce) {
           * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
@@ -97,18 +95,7 @@ export default function AitaasLayout({ children }: { children: React.ReactNode }
       <div className="c-body">
         <AitaasNav />
         {children}
-        <footer className="c-footer">
-          <a href="/aitaas" className="c-footer-logo">
-            AITaaS<span> / </span>by ENG
-          </a>
-          <div className="c-footer-links">
-            <a href="/aitaas/solutions" className="c-footer-link">Agents</a>
-            <a href="/aitaas/pricing" className="c-footer-link">Pricing</a>
-            <a href="/aitaas/contact" className="c-footer-link">Contact</a>
-            <a href="/landing" className="c-footer-link">Simmer Properties</a>
-          </div>
-          <span className="c-footer-copy">© 2026 ENG Worldwide. All rights reserved.</span>
-        </footer>
+        <AitaasFooter />
       </div>
     </>
   );

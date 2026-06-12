@@ -49,6 +49,83 @@ const INTEGRATIONS = [
   "Property Finder", "Bayut", "Twilio", "Zapier", "Zoho CRM",
 ];
 
+const PILOT_STEPS = [
+  {
+    day: "Day 0",
+    name: "Discovery",
+    body: "A 30-minute call. We map your sales process, scripts, inventory sources, and where leads currently fall through.",
+  },
+  {
+    day: "Days 1–3",
+    name: "Build",
+    body: "Your agent is configured on your listings, calendar, and CRM. You hear the voice and approve every script before it speaks to a customer.",
+  },
+  {
+    day: "Days 4–14",
+    name: "Live",
+    body: "The agent answers your real enquiries. Every recording and transcript reaches you as it happens, so nothing runs unseen.",
+  },
+  {
+    day: "Day 14",
+    name: "Decision",
+    body: "You get the full report: every call, booking, and outcome. Keep all of it whether you continue or not.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "What happens when a caller asks something the agent can't answer?",
+    a: "It escalates to your team with the full transcript and context attached, and the lead is flagged in your CRM. The customer is never left at a dead end, and your staff never start a conversation blind.",
+  },
+  {
+    q: "Which languages does it actually speak?",
+    a: "Arabic and English are standard on every agent. Hindi, Urdu, Russian, French, Mandarin, and Tagalog are available per agent depending on your market. The Essential tier covers English plus one language, Professional covers three, and Enterprise covers all of them.",
+  },
+  {
+    q: "Do we have to replace our CRM or phone system?",
+    a: "No. The agents connect to your existing stack from day one: WhatsApp, Salesforce, HubSpot, Zoho, Google Calendar, Property Finder, Bayut, Twilio, and Zapier for everything else.",
+  },
+  {
+    q: "Who owns the recordings, transcripts, and leads?",
+    a: "You do, unconditionally. Every lead, booking, recording, and transcript generated during the pilot or a paid plan belongs to you, including if you walk away on day 14.",
+  },
+  {
+    q: "How long until we're live?",
+    a: "Fourteen days from contract to first call, and the free pilot follows the same timeline on your real enquiries. Most of that window is us configuring scripts and integrations to your approval, not you doing work.",
+  },
+  {
+    q: "What does it cost to try?",
+    a: "Nothing. The 14-day pilot is free with no setup fees. After that, plans start at AED 2,500 per month, or a revenue-share model where you pay only on results.",
+  },
+];
+
+function FaqList() {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <div className="hp-faq-list">
+      {FAQS.map((f, i) => (
+        <div key={f.q} className={`hp-faq-item${open === i ? " open" : ""}`}>
+          <button
+            className="hp-faq-q"
+            onClick={() => setOpen(open === i ? null : i)}
+            aria-expanded={open === i}
+          >
+            {f.q}
+            <span className="hp-faq-q-icon" aria-hidden>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </button>
+          <div className="hp-faq-a" style={{ maxHeight: open === i ? 480 : 0, opacity: open === i ? 1 : 0 }}>
+            <div className="hp-faq-a-inner">{f.a}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AitaasHome() {
   return (
     <>
@@ -682,6 +759,98 @@ export default function AitaasHome() {
           color: var(--c-ink-2); max-width: 44ch; margin-bottom: 40px;
         }
         .hp-cta-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* ─── PILOT TIMELINE ────────────────────────────────── */
+        .hp-pilot {
+          border-bottom: 1px solid var(--c-border);
+          background: var(--c-surface);
+          padding: clamp(80px, 12vw, 140px) 0;
+        }
+        .hp-pilot-hd { margin-bottom: clamp(40px, 5vw, 64px); max-width: 640px; }
+        .hp-pilot-kicker {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-copper); margin-bottom: 20px;
+        }
+        .hp-pilot-h {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 20px; text-wrap: balance;
+        }
+        .hp-pilot-h em { color: var(--c-copper); font-style: normal; }
+        .hp-pilot-sub { font-size: 16px; line-height: 1.7; color: var(--c-ink-2); max-width: 52ch; }
+        .hp-pilot-steps {
+          display: grid; grid-template-columns: repeat(4, 1fr);
+          gap: 1px; background: var(--c-border);
+          border: 1px solid var(--c-border);
+        }
+        .hp-pilot-step { background: var(--c-bg); padding: clamp(24px, 3vw, 36px); }
+        .hp-pilot-day {
+          display: inline-block;
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+          color: var(--c-copper);
+          border: 1px solid oklch(0.72 0.17 34 / 0.35);
+          padding: 5px 12px; margin-bottom: 18px;
+        }
+        .hp-pilot-step-name {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: 1.4rem;
+          color: var(--c-ink); margin-bottom: 10px; line-height: 1;
+        }
+        .hp-pilot-step-body { font-size: 13.5px; line-height: 1.7; color: var(--c-muted); }
+        @media (max-width: 920px) { .hp-pilot-steps { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 520px) { .hp-pilot-steps { grid-template-columns: 1fr; } }
+
+        /* ─── FAQ ───────────────────────────────────────────── */
+        .hp-faq {
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(80px, 12vw, 140px) 0;
+        }
+        .hp-faq-grid {
+          display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+          gap: clamp(40px, 6vw, 96px); align-items: start;
+        }
+        .hp-faq-h {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: clamp(2.4rem, 4vw, 4rem);
+          letter-spacing: -0.015em; line-height: 0.95; color: var(--c-ink);
+          margin-bottom: 20px;
+        }
+        .hp-faq-h em { color: var(--c-copper); font-style: normal; }
+        .hp-faq-sub { font-size: 15px; line-height: 1.7; color: var(--c-ink-2); max-width: 36ch; }
+        .hp-faq-list { display: flex; flex-direction: column; }
+        .hp-faq-item { border-top: 1px solid var(--c-border); }
+        .hp-faq-item:last-child { border-bottom: 1px solid var(--c-border); }
+        .hp-faq-q {
+          width: 100%; display: flex; align-items: center; justify-content: space-between;
+          gap: 20px; padding: 22px 0; background: none; border: none;
+          cursor: pointer; text-align: left;
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 16px; font-weight: 600; color: var(--c-ink);
+          transition: color 0.15s;
+        }
+        .hp-faq-q:hover { color: var(--c-copper); }
+        .hp-faq-q-icon {
+          flex-shrink: 0; width: 22px; height: 22px;
+          display: flex; align-items: center; justify-content: center;
+          color: var(--c-copper);
+          transition: transform 0.25s var(--c-ease);
+        }
+        .hp-faq-item.open .hp-faq-q-icon { transform: rotate(45deg); }
+        .hp-faq-a {
+          overflow: hidden;
+          transition: max-height 0.4s var(--c-ease), opacity 0.3s;
+        }
+        .hp-faq-a-inner {
+          padding: 0 0 24px; font-size: 14.5px; line-height: 1.75;
+          color: var(--c-ink-2); max-width: 62ch;
+        }
+        @media (max-width: 860px) { .hp-faq-grid { grid-template-columns: 1fr; gap: 40px; } }
+        @media (prefers-reduced-motion: reduce) {
+          .hp-faq-a { transition: none; }
+          .hp-faq-q-icon { transition: none; }
+        }
       `}</style>
 
       {/* ══ HERO ══════════════════════════════════════════════ */}
@@ -1049,6 +1218,53 @@ export default function AitaasHome() {
                 </Link>
               </Reveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ PILOT TIMELINE ════════════════════════════════════ */}
+      <section className="hp-pilot">
+        <div className="c-wrap">
+          <Reveal>
+            <div className="hp-pilot-hd">
+              <p className="hp-pilot-kicker">The 14-day pilot</p>
+              <h2 className="hp-pilot-h">
+                Exactly what happens,<br /><em>day by day.</em>
+              </h2>
+              <p className="hp-pilot-sub">
+                No commitment, no setup fee, and nothing runs without your approval.
+                Here is the entire process from first call to decision.
+              </p>
+            </div>
+          </Reveal>
+          <div className="hp-pilot-steps">
+            {PILOT_STEPS.map((s, i) => (
+              <Reveal key={s.day} delay={i * 0.07} className="hp-pilot-step">
+                <span className="hp-pilot-day">{s.day}</span>
+                <div className="hp-pilot-step-name">{s.name}</div>
+                <p className="hp-pilot-step-body">{s.body}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ FAQ ═══════════════════════════════════════════════ */}
+      <section className="hp-faq">
+        <div className="c-wrap">
+          <div className="hp-faq-grid">
+            <Reveal>
+              <h2 className="hp-faq-h">
+                The questions<br /><em>everyone asks.</em>
+              </h2>
+              <p className="hp-faq-sub">
+                Straight answers. Anything else, ask us directly and a person will reply
+                within four hours on business days.
+              </p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <FaqList />
+            </Reveal>
           </div>
         </div>
       </section>

@@ -361,6 +361,16 @@ export default function ContactPage() {
                     </div>
                   </div>
                 ))}
+                <div className="ct-sidebar-note" style={{ marginBottom: 0 }}>
+                  <p className="ct-sidebar-note-label">Prefer email?</p>
+                  <p className="ct-sidebar-note-body">
+                    Write to us directly at{" "}
+                    <a href="mailto:chopraa@gmail.com" style={{ color: "var(--c-copper)", textDecoration: "none" }}>
+                      chopraa@gmail.com
+                    </a>{" "}
+                    — same inbox, same person, same 4-hour response.
+                  </p>
+                </div>
                 <div className="ct-sidebar-note">
                   <p className="ct-sidebar-note-label">How the pilot works</p>
                   <p className="ct-sidebar-note-body">
