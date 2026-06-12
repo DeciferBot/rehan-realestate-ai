@@ -244,7 +244,7 @@ export default function AitaasHome() {
         }
 
         @media (max-width: 1020px) {
-          .hp-hero-inner { grid-template-columns: 1fr; gap: 56px; }
+          .hp-hero-inner { grid-template-columns: minmax(0, 1fr); gap: 56px; }
           .hp-hero-demo { justify-self: stretch; justify-content: center; }
         }
         @media (max-width: 860px) {

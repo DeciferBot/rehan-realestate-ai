@@ -140,7 +140,8 @@ export default function AitaasCallDemo() {
           Math.sin(t * 1.9 + i * 0.55) * 0.35 +
           Math.sin(t * 3.1 + i * 1.3) * 0.25 +
           Math.sin(t * 0.7 + i * 0.2) * 0.4;
-        const h = Math.max(0.06, Math.abs(wave) * amp);
+        const floor = 0.08 + Math.abs(Math.sin(i * 7.31)) * 0.22;
+        const h = Math.max(floor, Math.abs(wave) * amp);
         b.style.transform = `scaleY(${h.toFixed(3)})`;
       });
       raf = requestAnimationFrame(tick);
@@ -337,16 +338,18 @@ export default function AitaasCallDemo() {
 
         .cd-foot {
           display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 4px 16px;
           padding: 12px 18px;
           border-top: 1px solid var(--c-border);
           font-size: 10.5px; letter-spacing: 0.06em;
           text-transform: uppercase; color: var(--c-muted);
         }
+        .cd-foot span { white-space: nowrap; }
         .cd-foot-lang { color: var(--c-copper); }
 
         @media (max-width: 860px) {
           .cd { max-width: 100%; }
-          .cd-body { height: 280px; }
+          .cd-body { height: clamp(300px, 48svh, 380px); }
         }
         @media (prefers-reduced-motion: reduce) {
           .cd-live-dot, .cd-dialing-dots span, .cd-typing span { animation: none; }
@@ -377,8 +380,8 @@ export default function AitaasCallDemo() {
         </div>
 
         <div className="cd-wave" aria-hidden>
-          <div ref={barsRef} style={{ display: "flex", alignItems: "center", gap: 3, width: "100%", height: "100%" }}>
-            {Array.from({ length: 36 }).map((_, i) => (
+          <div ref={barsRef} style={{ display: "flex", alignItems: "center", gap: 2, width: "100%", height: "100%" }}>
+            {Array.from({ length: 48 }).map((_, i) => (
               <span key={i} className="cd-bar" style={reduced ? { transform: `scaleY(${0.1 + ((i * 7) % 10) / 14})` } : undefined} />
             ))}
           </div>
