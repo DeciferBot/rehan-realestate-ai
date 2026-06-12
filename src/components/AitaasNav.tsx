@@ -32,14 +32,22 @@ export default function AitaasNav() {
       <style>{`
         .cn {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-          height: 60px; display: flex; align-items: center;
+          height: 64px; display: flex; align-items: center;
           padding: 0 clamp(20px, 5vw, 72px);
-          background: oklch(0.05 0.008 260 / 0.96);
-          backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-          border-bottom: 1px solid oklch(0.14 0.007 260);
-          transition: border-color 0.3s;
+          background: oklch(0.07 0.012 260 / 0.97);
+          backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+          border-bottom: 1px solid oklch(0.18 0.009 260);
+          transition: border-color 0.3s, background 0.3s;
+          box-shadow: 0 1px 0 0 oklch(0.72 0.17 34 / 0.25);
         }
-        .cn.at-top { border-bottom-color: transparent; }
+        .cn::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0;
+          height: 2px; background: oklch(0.72 0.17 34);
+        }
+        .cn.at-top {
+          border-bottom-color: transparent;
+          background: oklch(0.05 0.008 260 / 0.85);
+        }
 
         .cn-logo {
           font-family: 'Barlow Condensed', sans-serif;
@@ -54,7 +62,7 @@ export default function AitaasNav() {
         }
         .cn-logo-sub {
           font-size: 10px; letter-spacing: 0.12em;
-          color: oklch(0.46 0.005 80); font-weight: 500;
+          color: oklch(0.58 0.007 80); font-weight: 500;
           align-self: center; padding-top: 1px;
         }
 
@@ -64,7 +72,7 @@ export default function AitaasNav() {
         }
         .cn-link {
           font-family: 'Hanken Grotesk', sans-serif; font-size: 13px;
-          font-weight: 500; color: oklch(0.56 0.005 80);
+          font-weight: 500; color: oklch(0.68 0.006 80);
           text-decoration: none; padding: 6px 14px; letter-spacing: 0.01em;
           transition: color 0.15s; position: relative;
         }

@@ -99,13 +99,29 @@ export default function AitaasHome() {
           display: grid; grid-template-columns: 1fr 1fr;
           overflow: hidden;
         }
+        /* dot grid overlay */
+        .hp-hero::before {
+          content: '';
+          position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background-image: radial-gradient(circle, oklch(0.36 0.007 260) 1px, transparent 1px);
+          background-size: 32px 32px;
+          mask-image: linear-gradient(to right, transparent 0%, black 30%, black 60%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to right, transparent 0%, black 30%, black 60%, transparent 100%);
+          opacity: 0.35;
+        }
+        /* copper ambient glow right side */
+        .hp-hero::after {
+          content: '';
+          position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background: radial-gradient(ellipse 60% 70% at 75% 50%, oklch(0.72 0.17 34 / 0.07) 0%, transparent 70%);
+        }
         .hp-hero-left {
           display: flex; flex-direction: column; justify-content: flex-end;
           padding: 120px clamp(20px, 5vw, 72px) clamp(56px, 8vh, 88px);
           position: relative; z-index: 2;
         }
         .hp-hero-right {
-          position: relative;
+          position: relative; z-index: 1;
         }
         .hp-hero-canvas {
           position: absolute; inset: 0;
@@ -160,6 +176,133 @@ export default function AitaasHome() {
           .hp-hero-right { height: 280px; }
           .hp-h1 { font-size: 3rem; }
           .hp-ctas { flex-direction: column; }
+        }
+
+        /* ────────────────────────────────────────────────
+           INTEGRATIONS STRIP
+        ──────────────────────────────────────────────── */
+        .hp-integrations {
+          border-bottom: 1px solid var(--c-border);
+          padding: clamp(32px,5vw,56px) 0;
+          background: var(--c-surface);
+        }
+        .hp-int-label {
+          font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--c-muted);
+          margin-bottom: 28px;
+        }
+        .hp-int-logos {
+          display: flex; align-items: center; gap: 0;
+          flex-wrap: wrap;
+          border: 1px solid var(--c-border);
+        }
+        .hp-int-logo {
+          display: flex; align-items: center; gap: 10px;
+          padding: 18px 28px;
+          border-right: 1px solid var(--c-border);
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 13px; font-weight: 600;
+          color: var(--c-muted);
+          transition: color 0.15s;
+          white-space: nowrap;
+        }
+        .hp-int-logo:last-child { border-right: none; }
+        .hp-int-logo:hover { color: var(--c-ink-2); }
+        .hp-int-logo svg { flex-shrink: 0; }
+
+        /* ────────────────────────────────────────────────
+           LIVE CALL VISUAL
+        ──────────────────────────────────────────────── */
+        .hp-visual {
+          background: var(--c-surface);
+          border-top: 1px solid var(--c-border);
+        }
+        .hp-visual-inner {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: clamp(48px, 8vw, 96px); align-items: center;
+        }
+        @media (max-width: 860px) { .hp-visual-inner { grid-template-columns: 1fr; } }
+        .hp-visual-h {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+          text-transform: uppercase; font-size: clamp(2rem, 3.5vw, 3.2rem);
+          letter-spacing: -0.01em; color: var(--c-ink); line-height: 1;
+          margin-bottom: 20px;
+        }
+        .hp-visual-h em { color: var(--c-copper); font-style: normal; }
+        .hp-visual-body {
+          font-size: 15px; line-height: 1.75; color: var(--c-ink-2);
+          margin-bottom: 32px; max-width: 46ch;
+        }
+        /* Phone call mockup */
+        .hp-call-card {
+          background: var(--c-bg);
+          border: 1px solid var(--c-border);
+          padding: 0;
+          overflow: hidden;
+          position: relative;
+        }
+        .hp-call-header {
+          background: oklch(0.72 0.17 34 / 0.12);
+          border-bottom: 1px solid oklch(0.72 0.17 34 / 0.3);
+          padding: 14px 20px;
+          display: flex; align-items: center; gap: 10px;
+        }
+        .hp-call-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: oklch(0.72 0.17 34);
+          animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.7); }
+        }
+        .hp-call-status {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+          text-transform: uppercase; color: oklch(0.72 0.17 34);
+        }
+        .hp-call-timer {
+          margin-left: auto; font-size: 11px;
+          font-family: 'Barlow Condensed', sans-serif;
+          color: var(--c-muted); letter-spacing: 0.1em;
+        }
+        .hp-call-lines {
+          padding: 20px;
+          display: flex; flex-direction: column; gap: 12px;
+        }
+        .hp-call-line {
+          display: flex; gap: 12px; align-items: flex-start;
+        }
+        .hp-call-speaker {
+          font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--c-muted);
+          min-width: 32px; padding-top: 2px; flex-shrink: 0;
+        }
+        .hp-call-speaker.ai { color: var(--c-copper); }
+        .hp-call-bubble {
+          font-size: 12px; line-height: 1.5; color: var(--c-ink-2);
+          background: var(--c-surface2);
+          padding: 8px 12px;
+          border-radius: 0;
+          flex: 1;
+        }
+        .hp-call-bubble.ai {
+          background: oklch(0.72 0.17 34 / 0.1);
+          color: var(--c-ink);
+          border-left: 2px solid oklch(0.72 0.17 34 / 0.5);
+        }
+        .hp-call-footer {
+          border-top: 1px solid var(--c-border);
+          padding: 14px 20px;
+          display: flex; gap: 16px; align-items: center;
+        }
+        .hp-call-badge {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 10px; font-weight: 500; color: var(--c-muted);
+          letter-spacing: 0.04em;
+        }
+        .hp-call-badge-dot {
+          width: 5px; height: 5px; border-radius: 50%;
+          background: var(--c-copper-dim);
         }
 
         /* ────────────────────────────────────────────────
@@ -547,6 +690,29 @@ export default function AitaasHome() {
         </div>
       </section>
 
+      {/* ── INTEGRATIONS ────────────────────────────────── */}
+      <section className="hp-integrations">
+        <div className="c-wrap">
+          <p className="hp-int-label">Connects to your existing stack</p>
+          <div className="hp-int-logos">
+            {[
+              { name: "WhatsApp", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="oklch(0.72 0.17 34)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.12 1.522 5.852L.057 23.998l6.302-1.453A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.894a9.869 9.869 0 01-5.031-1.378l-.36-.214-3.742.863.936-3.636-.235-.374A9.855 9.855 0 012.106 12C2.106 6.54 6.54 2.106 12 2.106S21.894 6.54 21.894 12 17.46 21.894 12 21.894z"/></svg> },
+              { name: "Salesforce", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="2" fill="oklch(0.72 0.17 34 / 0.2)"/><text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="700" fill="oklch(0.72 0.17 34)" fontFamily="sans-serif">SF</text></svg> },
+              { name: "Google Calendar", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="18" rx="1" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><path d="M8 2v4M16 2v4M2 10h20" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
+              { name: "HubSpot", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="17" cy="7" r="3" fill="oklch(0.72 0.17 34 / 0.7)"/><path d="M14.5 9.5L9 13M9 11a4 4 0 100 6 4 4 0 000-6z" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5" fill="none"/></svg> },
+              { name: "Property Finder", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V21H15v-5h-6v5H3V9.5z" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
+              { name: "Bayut", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><path d="M8 12h8M12 8v8" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/></svg> },
+              { name: "Twilio", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5"/><circle cx="9" cy="9" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="15" cy="9" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="9" cy="15" r="1.5" fill="oklch(0.72 0.17 34)"/><circle cx="15" cy="15" r="1.5" fill="oklch(0.72 0.17 34)"/></svg> },
+              { name: "Zapier", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v6M12 16v6M2 12h6M16 12h6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24" stroke="oklch(0.72 0.17 34)" strokeWidth="1.5" strokeLinecap="round"/></svg> },
+            ].map(({ name, icon }) => (
+              <div key={name} className="hp-int-logo">
+                {icon} {name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── TICKER ──────────────────────────────────────── */}
       <div className="hp-ticker" aria-hidden>
         <div className="hp-ticker-track">
@@ -637,6 +803,61 @@ export default function AitaasHome() {
                 </Link>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── LIVE CALL VISUAL ────────────────────────────── */}
+      <section className="c-sect hp-visual">
+        <div className="c-wrap">
+          <div className="hp-visual-inner">
+            <Reveal>
+              <h2 className="hp-visual-h">
+                A call that qualifies,<br />
+                books, and <em>delivers</em><br />
+                — before it ends.
+              </h2>
+              <p className="hp-visual-body">
+                Every inbound enquiry triggers a full workflow in parallel: the agent is speaking
+                to the lead while simultaneously querying live inventory, dispatching a brochure
+                to WhatsApp, and blocking a viewing slot on your calendar.
+              </p>
+              <Link href="/aitaas/contact" className="c-btn">
+                See a live demo <IconArrowRight size={13} color="currentColor" />
+              </Link>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <div className="hp-call-card">
+                <div className="hp-call-header">
+                  <div className="hp-call-dot" />
+                  <span className="hp-call-status">Live call · Property Sales Agent</span>
+                  <span className="hp-call-timer">02:14</span>
+                </div>
+                <div className="hp-call-lines">
+                  <div className="hp-call-line">
+                    <span className="hp-call-speaker">Lead</span>
+                    <div className="hp-call-bubble">Hi, I saw your ad for the Dubai Hills villa. What's the price?</div>
+                  </div>
+                  <div className="hp-call-line">
+                    <span className="hp-call-speaker ai">Agent</span>
+                    <div className="hp-call-bubble ai">Good afternoon! The Villa starts at AED 4.2M. We have two units available right now. Are you looking for a 4 or 5-bedroom?</div>
+                  </div>
+                  <div className="hp-call-line">
+                    <span className="hp-call-speaker">Lead</span>
+                    <div className="hp-call-bubble">Five bedroom. What's the payment plan?</div>
+                  </div>
+                  <div className="hp-call-line">
+                    <span className="hp-call-speaker ai">Agent</span>
+                    <div className="hp-call-bubble ai">I'm sending the full brochure and payment schedule to your WhatsApp now. Can we schedule a viewing for Saturday?</div>
+                  </div>
+                </div>
+                <div className="hp-call-footer">
+                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />Brochure sent via WhatsApp</div>
+                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />Viewing slot held</div>
+                  <div className="hp-call-badge"><div className="hp-call-badge-dot" />CRM updated</div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
