@@ -1,9 +1,17 @@
 import Header from "@/components/Header";
 import { getConversations, getConversationThread } from "@/lib/spine";
+import { getContactDossier } from "@/lib/subagents";
 import Composer from "./Composer";
 import AgentRespondButton from "./AgentRespondButton";
 import Link from "next/link";
-import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe } from "lucide-react";
+import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator } from "lucide-react";
+
+function aed(n: number): string {
+  if (!n) return "—";
+  if (n >= 1_000_000) return `AED ${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 2)}M`;
+  return `AED ${Math.round(n / 1000)}K`;
+}
+const fitBadge: Record<string, string> = { "at-budget": "badge-success", stretch: "badge-warning", below: "badge-info" };
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +52,7 @@ export default async function InboxPage({
   const conversations = await getConversations();
   const selectedId = c ?? conversations[0]?.id ?? null;
   const thread = selectedId ? await getConversationThread(selectedId) : null;
+  const dossier = thread ? await getContactDossier(thread.contact.budget) : null;
 
   return (
     <div>
@@ -52,7 +61,7 @@ export default async function InboxPage({
         subtitle="Every lead, every channel, one thread — voice · WhatsApp · email"
       />
       <div style={{ padding: "20px 28px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 16, height: "calc(100dvh - 150px)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: thread ? "300px 1fr 300px" : "340px 1fr", gap: 16, height: "calc(100dvh - 150px)" }}>
 
           {/* Conversation list */}
           <div className="panel-lg" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
@@ -176,6 +185,89 @@ export default async function InboxPage({
               </div>
             )}
           </div>
+
+          {/* Dossier — live sub-agent output */}
+          {thread && dossier && (
+            <div className="panel-lg" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                Lead dossier
+              </div>
+
+              <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <User size={12} style={{ color: "var(--dim)" }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Profile</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {[
+                    { label: "Language", value: thread.contact.language ?? "—" },
+                    { label: "Status", value: thread.contact.status },
+                    { label: "Budget", value: thread.contact.budget ?? "—", accent: true },
+                    { label: "Intent", value: thread.contact.investType === "investment" ? "Investment" : thread.contact.investType === "live-in" ? "Live-in" : "—" },
+                    { label: "Source", value: thread.contact.source ?? "—" },
+                  ].map(({ label, value, accent }) => (
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "var(--dim)" }}>{label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: accent ? "var(--accent)" : "var(--ink)", textAlign: "right" }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                  <Building2 size={12} style={{ color: "var(--dim)" }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Best matches</span>
+                  <span className="live-dot live-dot-green" style={{ marginLeft: "auto" }} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {dossier.recommendations.map((r) => (
+                    <div key={r.id} style={{ padding: "9px 10px", borderRadius: 8, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.project}</span>
+                        <span className={`badge ${fitBadge[r.fit] ?? "badge-muted"}`} style={{ flexShrink: 0 }}>{r.fit === "at-budget" ? "fits" : r.fit}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10, color: "var(--dim)" }}>
+                        <span>{r.bedrooms}BR · {r.location}</span>
+                        <span className="mono" style={{ fontWeight: 600, color: "var(--accent)" }}>{aed(r.price)}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {dossier.recommendations.length === 0 && (
+                    <div style={{ fontSize: 11, color: "var(--dim)" }}>No matching inventory.</div>
+                  )}
+                </div>
+              </div>
+
+              {dossier.mortgage && (
+                <div style={{ padding: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                    <Calculator size={12} style={{ color: "var(--dim)" }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Mortgage</span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--dim)" }}>on top match</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {[
+                      { label: "Property value", value: aed(dossier.mortgage.value) },
+                      { label: "Down payment (20%)", value: aed(dossier.mortgage.downPayment) },
+                      { label: "Loan amount", value: aed(dossier.mortgage.loanAmount) },
+                      { label: "Rate (est.)", value: `${dossier.mortgage.ratePct}% p.a.` },
+                      { label: "Term", value: `${dossier.mortgage.years} years` },
+                    ].map(({ label, value }) => (
+                      <div key={label} style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, color: "var(--dim)" }}>{label}</span>
+                        <span style={{ fontSize: 12, color: "var(--ink)" }}>{value}</span>
+                      </div>
+                    ))}
+                    <div style={{ paddingTop: 8, marginTop: 2, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>Monthly</span>
+                      <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>AED {dossier.mortgage.monthly.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
