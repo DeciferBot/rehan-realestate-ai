@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import { getConversations, getConversationThread } from "@/lib/spine";
 import Composer from "./Composer";
+import AgentRespondButton from "./AgentRespondButton";
 import Link from "next/link";
 import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe } from "lucide-react";
 
@@ -121,6 +122,7 @@ export default async function InboxPage({
                   <span className={`badge ${statusBadge[thread.contact.status] ?? "badge-muted"}`} style={{ marginLeft: "auto" }}>
                     {thread.contact.status}
                   </span>
+                  <AgentRespondButton conversationId={thread.id} />
                 </div>
 
                 <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
