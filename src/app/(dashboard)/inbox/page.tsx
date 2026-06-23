@@ -5,7 +5,7 @@ import Composer from "./Composer";
 import AgentRespondButton from "./AgentRespondButton";
 import QualifyButton from "./QualifyButton";
 import Link from "next/link";
-import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge } from "lucide-react";
+import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge, ChevronLeft } from "lucide-react";
 
 function aed(n: number): string {
   if (!n) return "—";
@@ -62,10 +62,10 @@ export default async function InboxPage({
         subtitle="Every lead, every channel, one thread — voice · WhatsApp · email"
       />
       <div style={{ padding: "20px 28px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: thread ? "300px 1fr 300px" : "340px 1fr", gap: 16, height: "calc(100dvh - 150px)" }}>
+        <div className={`inbox-grid${c ? " has-thread" : ""}`} style={{ display: "grid", gridTemplateColumns: thread ? "300px 1fr 300px" : "340px 1fr", gap: 16, height: "calc(100dvh - 150px)" }}>
 
           {/* Conversation list */}
-          <div className="panel-lg" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div className="panel-lg inbox-list" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
               <InboxIcon size={13} style={{ color: "var(--dim)" }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Inbox</span>
@@ -116,10 +116,11 @@ export default async function InboxPage({
           </div>
 
           {/* Thread */}
-          <div className="panel-lg" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div className="panel-lg inbox-thread" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
             {thread ? (
               <>
                 <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <Link href="/inbox" className="inbox-back" style={{ alignItems: "center", color: "var(--muted)", textDecoration: "none", marginRight: 2 }} aria-label="Back to conversations"><ChevronLeft size={18} /></Link>
                   <span style={{ fontSize: 18 }}>{thread.contact.flag}</span>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{thread.contact.fullName}</div>
@@ -190,7 +191,7 @@ export default async function InboxPage({
 
           {/* Dossier — live sub-agent output */}
           {thread && dossier && (
-            <div className="panel-lg" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
+            <div className="panel-lg inbox-dossier" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
               <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
                 Lead dossier
               </div>

@@ -506,6 +506,7 @@ html, body {
   }
   .app-main {
     margin-left: 0;
+    overflow-x: hidden;
   }
   .app-overlay {
     display: block;
@@ -527,4 +528,36 @@ html, body {
 /* Hide the header search on small phones to keep controls on one line */
 @media (max-width: 560px) {
   .header-search { display: none !important; }
+}
+
+/* ─────────────────────────────────────────────────
+   RESPONSIVE PAGE GRIDS
+───────────────────────────────────────────────── */
+.inbox-back { display: none; }
+
+@media (max-width: 900px) {
+  /* Dashboard: two-column → single column; status rail wraps cleanly */
+  .dash-grid { grid-template-columns: 1fr !important; }
+  /* Let grid/flex children shrink below content width (prevents blow-out) */
+  .dash-grid > *, .dash-grid .panel-lg, .inbox-grid > * { min-width: 0; }
+  .status-rail { height: auto !important; flex-wrap: wrap; row-gap: 8px; padding-top: 10px !important; padding-bottom: 10px !important; }
+  .status-rail .divider-v { display: none; }
+
+  /* Inbox: 3-pane → one pane at a time. List by default; thread+dossier when a
+     conversation is open (?c set). */
+  .inbox-grid { grid-template-columns: 1fr !important; height: auto !important; }
+  .inbox-grid:not(.has-thread) .inbox-thread,
+  .inbox-grid:not(.has-thread) .inbox-dossier { display: none !important; }
+  .inbox-grid.has-thread .inbox-list { display: none !important; }
+  .inbox-grid .inbox-thread { min-height: 60dvh; }
+  .inbox-back { display: inline-flex; }
+
+  /* Any wide table scrolls horizontally inside its panel instead of overflowing */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 600px; }
+  .panel-lg:has(> .data-table) { overflow-x: auto !important; }
+
+  /* Two-up settings/inventory blocks stack */
+  .stack-mobile { grid-template-columns: 1fr !important; }
+  .wrap-mobile { flex-wrap: wrap; }
 }

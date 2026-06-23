@@ -131,7 +131,7 @@ export default function Header({ title, subtitle }: { title: string; subtitle?: 
             R
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Rehan</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Simmer Properties</div>
             <div style={{ fontSize: 10, color: "var(--dim)" }}>Admin</div>
           </div>
         </div>

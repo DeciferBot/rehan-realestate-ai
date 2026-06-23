@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { useSidebar } from "@/components/sidebar-context";
 import {
-  LayoutDashboard, Users, Building2, Phone, Calendar,
+  LayoutDashboard, Users, Building2, Calendar,
   FolderOpen, Settings, LogOut, Inbox, Bot, Layers,
 } from "lucide-react";
 
@@ -13,7 +13,6 @@ const navItems = [
   { href: "/inbox",         label: "Conversations", icon: Inbox },
   { href: "/leads",         label: "Leads",         icon: Users },
   { href: "/properties",    label: "Properties",    icon: Building2 },
-  { href: "/agent-console", label: "Agent Console", icon: Phone },
   { href: "/appointments",  label: "Appointments",  icon: Calendar },
   { href: "/developers",    label: "Developers",    icon: FolderOpen },
   { href: "/settings/inventory", label: "Inventory", icon: Layers },
@@ -66,13 +65,13 @@ export default function Sidebar() {
             fontSize: 13, fontWeight: 700, color: "white",
             fontFamily: "var(--font-sans)",
             letterSpacing: "-0.01em",
-          }}>R</div>
+          }}>A</div>
           <div>
             <div style={{ color: "var(--ink)", fontWeight: 600, fontSize: 14, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
-              Rehan
+              Acre
             </div>
             <div style={{ color: "var(--dim)", fontSize: 10, letterSpacing: "0.06em", marginTop: 2 }}>
-              Real Estate AI
+              Simmer Properties
             </div>
           </div>
         </div>
@@ -86,7 +85,7 @@ export default function Sidebar() {
           borderRadius: 7,
         }}>
           <span className="live-dot live-dot-green" />
-          <span style={{ fontSize: 12, color: "var(--success)", fontWeight: 500 }}>3 agents live</span>
+          <span style={{ fontSize: 12, color: "var(--success)", fontWeight: 500 }}>Acre · online</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
             {agents.map((a) => (
               <div key={a.name} title={`Agent ${a.name}`} style={{
@@ -145,7 +144,7 @@ export default function Sidebar() {
             fontSize: 12, fontWeight: 700, color: "white", flexShrink: 0,
           }}>R</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Rehan</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Simmer Properties</div>
             <div style={{ fontSize: 10, color: "var(--dim)" }}>Administrator</div>
           </div>
         </div>

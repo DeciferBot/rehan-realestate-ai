@@ -31,7 +31,7 @@ export default async function Dashboard() {
       <Header title="Dashboard" subtitle="Real-time command overview" />
 
       {/* Status rail */}
-      <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", background: "var(--bg)", height: 52, padding: "0 28px", flexWrap: "wrap" }}>
+      <div className="status-rail" style={{ display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", background: "var(--bg)", height: 52, padding: "0 28px", flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, paddingRight: 28 }}>
           <Users size={14} style={{ color: "var(--dim)" }} />
           <span className="mono" style={{ fontSize: 19, fontWeight: 700, color: "var(--ink)", lineHeight: 1 }}>{s.activeLeads}</span>
@@ -58,7 +58,7 @@ export default async function Dashboard() {
       </div>
 
       {/* Main grid */}
-      <div style={{ padding: "24px 28px", display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
+      <div className="dash-grid" style={{ padding: "24px 28px", display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
 
         {/* LEFT */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
