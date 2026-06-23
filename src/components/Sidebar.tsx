@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Building2, Phone, Calendar,
-  FolderOpen, Settings, LogOut, Inbox,
+  FolderOpen, Settings, LogOut, Inbox, Bot,
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/agent-console", label: "Agent Console", icon: Phone },
   { href: "/appointments",  label: "Appointments",  icon: Calendar },
   { href: "/developers",    label: "Developers",    icon: FolderOpen },
+  { href: "/settings/agent", label: "Agent Setup",  icon: Bot },
 ];
 
 const agents = [
@@ -105,10 +106,10 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div style={{ padding: "8px 8px 12px", borderTop: "1px solid var(--border)" }}>
-        <div className="nav-item" style={{ cursor: "pointer" }}>
+        <Link href="/settings/agent" className="nav-item" style={{ cursor: "pointer" }}>
           <Settings size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Settings</span>
-        </div>
+        </Link>
         <div className="nav-item" style={{ cursor: "pointer" }}>
           <LogOut size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Sign out</span>
