@@ -24,132 +24,132 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
 
 const AGENTS = [
   {
-    id: "property-sales",
-    name: "Property Sales Agent",
-    tag: "Voice",
-    headline: "Calls every lead in 60 seconds. Brochures delivered before they hang up.",
-    body: "Your ads run 24/7. Your team doesn't. This agent calls every inbound lead within 60 seconds of enquiry — in their language — qualifies budget and timeline, delivers matched brochures to WhatsApp mid-call, and books the viewing. By the time your human agent picks up the file, the appointment is already confirmed.",
+    id: "lead-response",
+    name: "Lead-Response Agent",
+    tag: "Voice + WhatsApp",
+    headline: "Calls and WhatsApps every new lead in 60 seconds. Brochures delivered before they hang up.",
+    body: "Your portals and ad spend run 24/7. Your team doesn't. This Acre agent calls and WhatsApps every inbound lead within 60 seconds — in their own language — opens with your business's persona, and starts the conversation while interest is still hot. Replies are grounded in your live inventory, so it talks real units, real prices, and real payment plans from the first message.",
     capabilities: [
-      "Lead qualification: budget, timeline, preferences",
-      "Property matching from live inventory",
-      "Brochure delivery via WhatsApp mid-call",
-      "Viewing and callback booking",
-      "Mortgage breakdown in the lead's currency",
-      "Full transcript and dossier to CRM",
+      "60-second voice and WhatsApp first touch",
+      "Replies grounded in your live unit inventory",
+      "Speaks the lead's own language automatically",
+      "Real prices, payment plans, and handover dates",
+      "Brochure delivery via WhatsApp mid-conversation",
+      "Full transcript logged to your command center",
     ],
     languages: ["Arabic", "English", "Russian", "Hindi", "Mandarin"],
-    pricing: "Revenue share (2.5% closed) or subscription",
+    pricing: "Revenue share or per-business subscription",
     stat: "60s",
-    statLabel: "from enquiry to first outbound call",
-    industry: "Real Estate",
+    statLabel: "from enquiry to first outbound contact",
+    industry: "UAE Real Estate",
   },
   {
-    id: "revenue-recovery",
-    name: "Revenue Recovery Agent",
-    tag: "Voice",
-    headline: "Recovers overdue payments without a collections team.",
-    body: "Automated payment calls that sound nothing like a robot. The Revenue Recovery Agent contacts overdue accounts at the right time, in the right language, with empathy and a clear path to resolution. It accepts card payments, sets up installment plans, and updates your billing system in real time.",
+    id: "qualifier",
+    name: "Qualifier Agent",
+    tag: "Voice + WhatsApp",
+    headline: "Qualifies every lead on budget, intent, and timeline before your team lifts a finger.",
+    body: "Not every enquiry is a buyer. The Qualifier works each lead across voice and WhatsApp in their own language, drawing out budget, intent, timeline, financing, preferred area, and family needs. It scores readiness against your business's criteria so your closers only ever spend time on deals that are real — every answer captured to the dossier.",
     capabilities: [
-      "Overdue account detection via CRM or billing API",
-      "Outbound call in customer's preferred language",
-      "Flexible repayment plan negotiation",
-      "Secure payment link delivery via SMS/WhatsApp",
-      "Escalation routing for high-value accounts",
-      "Real-time billing system updates",
+      "Budget, intent, and timeline discovery",
+      "Financing and cash-vs-mortgage check",
+      "Preferred area and family-size profiling",
+      "Scoring against your qualification criteria",
+      "Conversation in the lead's own language",
+      "Structured dossier built as it talks",
     ],
-    languages: ["Arabic", "English", "Hindi", "Urdu"],
-    pricing: "Performance share (8–12% of recovered amount) or flat subscription",
+    languages: ["Arabic", "English", "Hindi", "Russian"],
+    pricing: "Per-business subscription or revenue share",
     stat: "24/7",
-    statLabel: "outreach across every timezone",
-    industry: "Finance & Collections",
+    statLabel: "qualification across every timezone",
+    industry: "UAE Real Estate",
   },
   {
-    id: "appointment-booking",
-    name: "Appointment Booking Agent",
-    tag: "Voice + Digital",
-    headline: "Converts web enquiries into confirmed bookings without staff intervention.",
-    body: "Every missed call, late-night form, or weekend enquiry becomes a confirmed appointment. The Booking Agent reaches out immediately, qualifies the request, checks live calendar availability, and sends a confirmation — complete with preparation instructions and a branded reminder sequence.",
+    id: "inventory-concierge",
+    name: "Inventory Concierge",
+    tag: "Voice + WhatsApp",
+    headline: "Answers any project or unit question from your live availability — instantly, accurately.",
+    body: "Buyers ask about floors, views, sizes, payment plans, and handover dates at all hours. The Inventory Concierge answers from your business's live inventory — ingested straight from developer availability PDFs across Arada projects like Akala, W Residences, Inaura, and Masaar — so every reply quotes real units and real numbers. No outdated PDFs forwarded by hand, no broker on hold.",
     capabilities: [
-      "24/7 inbound enquiry response",
-      "Live calendar integration (Google, Outlook, Calendly)",
-      "Multi-resource scheduling with conflict resolution",
-      "Branded SMS and WhatsApp confirmation",
-      "Automated 24h and 1h reminder sequence",
+      "Live inventory ingested from developer PDFs",
+      "Real units, prices, sizes, and floor plans",
+      "Payment-plan and handover-date answers",
+      "Arada projects: Akala, W Residences, Inaura, Masaar",
+      "Mortgage math in the buyer's own currency",
+      "Always current — never a stale brochure",
+    ],
+    languages: ["Arabic", "English", "Russian", "Mandarin"],
+    pricing: "Per-business subscription or revenue share",
+    stat: "100%",
+    statLabel: "of unit questions answered, day or night",
+    industry: "UAE Real Estate",
+  },
+  {
+    id: "appointment-booker",
+    name: "Appointment Booker",
+    tag: "Voice + WhatsApp",
+    headline: "Turns interested buyers into confirmed viewings without a coordinator in the loop.",
+    body: "A qualified buyer cools fast without a date in the diary. The Appointment Booker proposes times, checks your brokers' live availability, locks the viewing for the matched units, and confirms over WhatsApp — with a branded reminder sequence and a no-show re-book flow. Every booking lands in your command center against the lead's dossier.",
+    capabilities: [
+      "Live broker calendar availability check",
+      "Viewings booked for the matched units",
+      "Confirmation in the buyer's own language",
+      "Branded WhatsApp reminder sequence",
+      "Automated 24h and 1h reminders",
       "No-show re-booking workflow",
     ],
-    languages: ["Arabic", "English", "French", "Hindi"],
-    pricing: "Per booking or monthly subscription",
-    stat: "100%",
-    statLabel: "of enquiries answered, day or night",
-    industry: "Healthcare, Beauty, Legal, Education",
-  },
-  {
-    id: "leasing",
-    name: "Leasing Agent",
-    tag: "Voice",
-    headline: "Handles unit enquiries, qualifying, and move-in scheduling end to end.",
-    body: "Rental inventory does not sell itself. The Leasing Agent responds to every portal enquiry, qualifies tenants on income and move-in date, schedules viewings for the right units, and sends the application link — all before a property manager sees the lead.",
-    capabilities: [
-      "Portal and website lead intake",
-      "Tenant qualification: income, move-in date, preferences",
-      "Unit matching from live availability",
-      "Viewing coordination and confirmation",
-      "Application link delivery and follow-up",
-      "Rejection handling with alternative suggestions",
-    ],
-    languages: ["Arabic", "English", "Hindi", "Tagalog"],
-    pricing: "Per signed lease or monthly subscription",
+    languages: ["Arabic", "English", "Hindi", "Russian"],
+    pricing: "Per-business subscription or revenue share",
     stat: "5 min",
-    statLabel: "from portal lead to first call",
-    industry: "Real Estate, Property Management",
+    statLabel: "from qualified lead to confirmed viewing",
+    industry: "UAE Real Estate",
   },
   {
-    id: "cart-recovery",
-    name: "Cart Recovery Agent",
-    tag: "Digital",
-    headline: "Recovers abandoned carts with personalised outreach, not bulk SMS blasts.",
-    body: "One-size SMS blasts go unread. This agent reaches customers who abandoned high-value carts with a personalised WhatsApp sequence, offers a time-bound incentive, answers objections in real time, and guides them back to checkout — then closes via a direct payment link.",
+    id: "whatsapp-brochure",
+    name: "WhatsApp & Brochure Agent",
+    tag: "WhatsApp + Email",
+    headline: "Keeps every buyer warm on WhatsApp and email with the right brochure, not bulk blasts.",
+    body: "Buyers go quiet, but they do not disappear. This Acre agent works your pipeline across WhatsApp and email in each buyer's language, sends the exact brochure for the units they care about, answers objections in real time from live inventory, and nudges them back toward a viewing — with a personalised follow-up sequence instead of a generic blast.",
     capabilities: [
-      "Abandoned cart detection via Shopify/WooCommerce webhook",
-      "Personalised WhatsApp outreach within 15 minutes",
-      "Objection handling in natural language",
-      "Time-bound discount or offer delivery",
-      "Direct-to-checkout payment link",
-      "Post-purchase upsell and review request",
+      "Personalised WhatsApp and email follow-up",
+      "Right-unit brochures from live inventory",
+      "Objection handling grounded in real pricing",
+      "Outreach in the buyer's own language",
+      "Re-engagement of quiet leads at the right moment",
+      "Every touch logged to the command center",
     ],
-    languages: ["Arabic", "English", "Hindi"],
-    pricing: "Revenue share (4–6%) or monthly subscription",
-    stat: "15 min",
-    statLabel: "from abandonment to outreach",
-    industry: "E-commerce, Retail",
+    languages: ["Arabic", "English", "Hindi", "Russian"],
+    pricing: "Per-business subscription or revenue share",
+    stat: "5+",
+    statLabel: "languages across WhatsApp and email",
+    industry: "UAE Real Estate",
   },
   {
-    id: "admissions",
-    name: "Admissions Agent",
-    tag: "Voice + Digital",
-    headline: "Turns programme enquiries into enrolled students without admissions staff overhead.",
-    body: "Prospective students enquire at all hours. The Admissions Agent responds immediately, walks through programme fit, confirms intake dates, answers fee and scholarship questions, and hands the applicant a pre-filled application form — all in the language they asked in.",
+    id: "closer-handoff",
+    name: "Closer Hand-off / Dossier",
+    tag: "Command Center",
+    headline: "Escalates hot buyers to your human closers with a full dossier and one-click take-over.",
+    body: "When a buyer is ready, speed and context win the deal. This Acre agent detects intent, escalates the hot buyer to the right human closer, and hands over a complete dossier — budget, intent, timeline, financing, preferred area, recommended units, and mortgage math. Your closer opens the command center, sees the whole conversation across voice, WhatsApp, and email, and takes over in one click.",
     capabilities: [
-      "24/7 enquiry response across web, WhatsApp, SMS",
-      "Programme fit and eligibility assessment",
-      "Scholarship and payment plan information",
-      "Application form pre-fill and submission guidance",
-      "Follow-up sequence for incomplete applications",
-      "Open day and tour booking",
+      "Hot-buyer detection and instant escalation",
+      "Full dossier: budget, intent, timeline, financing",
+      "Recommended units plus live mortgage math",
+      "One unified inbox across voice, WhatsApp, email",
+      "One-click human take-over mid-conversation",
+      "Escalation rules programmable per business",
     ],
-    languages: ["Arabic", "English", "Hindi", "French", "Mandarin"],
-    pricing: "Per enrolled student or monthly subscription",
-    stat: "5",
-    statLabel: "languages, including Mandarin",
-    industry: "Education, Training",
+    languages: ["Arabic", "English", "Hindi", "Russian", "Mandarin"],
+    pricing: "Per-business subscription or revenue share",
+    stat: "1-click",
+    statLabel: "human take-over with full context",
+    industry: "UAE Real Estate",
   },
 ];
 
 const INDUSTRIES = [
-  { label: "Real Estate", Icon: IconBuilding },
-  { label: "Healthcare", Icon: IconHospital },
-  { label: "E-commerce", Icon: IconShoppingBag },
-  { label: "Education", Icon: IconGraduationCap },
+  { label: "Off-Plan Sales", Icon: IconBuilding },
+  { label: "Secondary Market", Icon: IconHospital },
+  { label: "Developer Sales", Icon: IconShoppingBag },
+  { label: "Investor Relations", Icon: IconGraduationCap },
 ];
 
 export default function SolutionsPage() {
@@ -357,9 +357,9 @@ export default function SolutionsPage() {
       <section className="sol-hero c-sect">
         <div className="c-wrap">
           <Reveal>
-            <p className="sol-hero-eyebrow">AI Agents</p>
-            <h1 className="sol-hero-h">Six agents.<br />Every revenue gap covered.</h1>
-            <p className="sol-hero-sub">Voice and digital agents for every stage of the customer journey — from first enquiry to collected payment. Each one is built for a specific outcome, not a general capability.</p>
+            <p className="sol-hero-eyebrow">Acre AI Agents</p>
+            <h1 className="sol-hero-h">Six agents.<br />Every lead covered.</h1>
+            <p className="sol-hero-sub">An AI sales force for UAE developers, brokers, and institutional landlords. Voice, WhatsApp, and email agents for every stage of the deal — from first enquiry to closer hand-off. Each one is grounded in your live inventory and built for a specific outcome, not a general capability.</p>
           </Reveal>
         </div>
       </section>
@@ -432,7 +432,7 @@ export default function SolutionsPage() {
                         </p>
                       </div>
                       <Link
-                        href="/aitaas/contact"
+                        href="/contact"
                         className="sol-card-cta"
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -452,7 +452,7 @@ export default function SolutionsPage() {
         <div className="c-wrap">
           <Reveal>
             <div className="sol-ind-row">
-              <h2 className="sol-ind-h">Industries served</h2>
+              <h2 className="sol-ind-h">Built for every desk</h2>
               <div className="sol-ind-tiles">
                 {INDUSTRIES.map(({ label, Icon }) => (
                   <div key={label} className="sol-ind-tile">
@@ -460,13 +460,13 @@ export default function SolutionsPage() {
                   </div>
                 ))}
                 <div className="sol-ind-tile">
-                  <IconClock size={15} /> Hospitality
+                  <IconClock size={15} /> Leasing
                 </div>
                 <div className="sol-ind-tile">
-                  <IconGlobe size={15} /> Automotive
+                  <IconGlobe size={15} /> Holiday Homes
                 </div>
                 <div className="sol-ind-tile">
-                  <IconGlobe size={15} /> Financial Services
+                  <IconGlobe size={15} /> Mortgage Brokerage
                 </div>
               </div>
             </div>
@@ -478,9 +478,9 @@ export default function SolutionsPage() {
       <section className="sol-cta">
         <div className="c-wrap">
           <Reveal>
-            <h2 className="sol-cta-h">Not sure which<br />agent fits your problem?</h2>
-            <p className="sol-cta-sub">Book a 30-minute call. We will map your revenue gaps to the right agents and show you a working prototype before any commitment.</p>
-            <Link href="/aitaas/contact" className="c-btn">
+            <h2 className="sol-cta-h">Not sure which<br />agent fits your desk?</h2>
+            <p className="sol-cta-sub">Book a 30-minute call. We&apos;ll map your lead flow to the right Acre agents and show you a working prototype on your own inventory before any commitment.</p>
+            <Link href="/contact" className="c-btn">
               Book a discovery call <IconArrowRight size={13} />
             </Link>
           </Reveal>

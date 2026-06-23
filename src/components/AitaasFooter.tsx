@@ -3,10 +3,10 @@
 import Link from "next/link";
 
 const PAGES = [
-  { href: "/aitaas/solutions", label: "Agents" },
-  { href: "/aitaas/pricing", label: "Pricing" },
-  { href: "/aitaas/contact", label: "Contact" },
-  { href: "/aitaas/contact", label: "Book a demo" },
+  { href: "/solutions", label: "Agents" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/contact", label: "Contact" },
+  { href: "/contact", label: "Book a demo" },
 ];
 
 export default function AitaasFooter() {
@@ -65,10 +65,9 @@ export default function AitaasFooter() {
         <div className="c-wrap">
           <div className="cf-grid">
             <div>
-              <div className="cf-brand">AITaaS</div>
+              <div className="cf-brand">Acre</div>
               <p className="cf-blurb">
-                Voice and digital AI agents for revenue teams in the UAE and GCC.
-                They call, qualify, book, and follow up so your pipeline never sleeps.
+                AI sales agents for real estate brokerages across the UAE and GCC. They call, WhatsApp, and email every lead in their language, qualify, book viewings, and hand hot buyers to your closers.
               </p>
             </div>
             <div>
@@ -86,7 +85,7 @@ export default function AitaasFooter() {
             </div>
           </div>
           <div className="cf-bottom">
-            <span className="cf-bottom-line">© 2026 AITaaS. All rights reserved.</span>
+            <span className="cf-bottom-line">© 2026 Acre. All rights reserved.</span>
             <span className="cf-bottom-line">Serving the UAE and GCC</span>
           </div>
         </div>

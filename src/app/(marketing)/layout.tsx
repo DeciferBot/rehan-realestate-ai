@@ -4,23 +4,23 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://simmerproperties.com"),
-  title: "AITaaS — AI Agents for Your Business",
+  title: "Acre — AI Sales Agents for Real Estate",
   description:
-    "Voice and digital AI agents that call leads in 60 seconds, book appointments overnight, recover revenue, and follow up in 7 languages, around the clock.",
+    "Acre gives UAE developers, brokers, and institutional landlords a team of AI agents that call, WhatsApp, and email every lead in seconds — in their language, grounded in your live inventory — qualifying buyers and escalating the hot ones to your closers.",
   openGraph: {
-    title: "AITaaS — AI Agents for Your Business",
+    title: "Acre — AI Sales Agents for Real Estate",
     description:
-      "Voice and digital AI agents that call leads in 60 seconds, book appointments overnight, recover revenue, and follow up in 7 languages, around the clock.",
-    url: "/aitaas",
-    siteName: "AITaaS",
+      "AI agents that engage every lead instantly across voice, WhatsApp, and email, grounded in your live inventory — qualifying buyers and handing hot ones to your closers.",
+    url: "/",
+    siteName: "Acre",
     type: "website",
     locale: "en_AE",
   },
   twitter: {
     card: "summary",
-    title: "AITaaS — AI Agents for Your Business",
+    title: "Acre — AI Sales Agents for Real Estate",
     description:
-      "AI agents that call leads in 60 seconds, book appointments overnight, and follow up in 7 languages.",
+      "AI sales agents that call, WhatsApp, and email every lead in their language, qualify, and book viewings — grounded in your live inventory.",
   },
 };
 

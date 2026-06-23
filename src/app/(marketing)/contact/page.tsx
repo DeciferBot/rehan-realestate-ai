@@ -20,14 +20,14 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
 }
 
 const INTERESTS = [
-  "Lead Recovery & Follow-Up",
-  "Appointment Booking Agent",
-  "Customer Support Agent",
-  "Revenue Recovery Agent",
-  "Leasing & Property Enquiries",
-  "Cart Recovery",
-  "Admissions Agent",
-  "Custom / Multiple Solutions",
+  "Instant Lead Engagement",
+  "Viewing Booking Agent",
+  "Buyer & Tenant Qualification",
+  "WhatsApp & Voice Follow-Up",
+  "Multilingual Lead Response",
+  "Hot Buyer Escalation",
+  "Inventory-Grounded Enquiries",
+  "Custom / Multiple Agents",
 ];
 
 const TEAM_SIZES = [
@@ -39,9 +39,9 @@ const TEAM_SIZES = [
 ];
 
 const PROMISES = [
-  { icon: IconClock, label: "Response within 4 hours", sub: "On business days. We review every submission personally." },
-  { icon: IconGlobe, label: "14-day free pilot", sub: "Live agent on real enquiries, no commitment required." },
-  { icon: IconChart, label: "Full performance report", sub: "You keep every lead, booking, and call recording." },
+  { icon: IconClock, label: "Response within 4 hours", sub: "On business days. A real person on our team reviews every request." },
+  { icon: IconGlobe, label: "14-day free pilot", sub: "Acre live on your real leads, in their own language, no commitment required." },
+  { icon: IconChart, label: "Full performance report", sub: "You keep every lead, viewing, and call recording from the pilot." },
 ];
 
 export default function ContactPage() {
@@ -225,9 +225,9 @@ export default function ContactPage() {
       <section className="ct-hero">
         <div className="c-wrap">
           <Reveal>
-            <p className="ct-hero-eyebrow">Get in touch</p>
-            <h1 className="ct-hero-h">Book your<br />discovery call</h1>
-            <p className="ct-hero-sub">Tell us what you're trying to solve. We'll map the right agent to your revenue gap and show you a working demo — before any commitment.</p>
+            <p className="ct-hero-eyebrow">Book a demo</p>
+            <h1 className="ct-hero-h">See Acre<br />on your leads</h1>
+            <p className="ct-hero-sub">Tell us about your business and where leads slip through. We&apos;ll show you Acre&apos;s AI agents engaging buyers in seconds, in their own language, grounded in your live inventory — then run a pilot before any commitment.</p>
           </Reveal>
         </div>
       </section>
@@ -248,12 +248,12 @@ export default function ContactPage() {
                   <div className="ct-success-icon">
                     <IconCheck size={18} />
                   </div>
-                  <h2 className="ct-success-h">We've got your request</h2>
+                  <h2 className="ct-success-h">We&apos;ve got your request</h2>
                   <p className="ct-success-body">
-                    Expect a message from us within 4 hours on business days. We review every submission ourselves — no automated replies.
+                    Expect a message from us within 4 hours on business days. A real person on the Acre team reads every request — no automated replies.
                   </p>
                   <p className="ct-success-body" style={{ marginTop: 0 }}>
-                    In the meantime, explore our <a href="/aitaas/solutions" style={{ color: "var(--c-copper)", textDecoration: "none" }}>full agent catalogue</a> or <a href="/aitaas/pricing" style={{ color: "var(--c-copper)", textDecoration: "none" }}>pricing options</a>.
+                    In the meantime, explore the <a href="/solutions" style={{ color: "var(--c-copper)", textDecoration: "none" }}>full Acre agent catalogue</a> or <a href="/pricing" style={{ color: "var(--c-copper)", textDecoration: "none" }}>pricing options</a>.
                   </p>
                 </motion.div>
               ) : (
@@ -268,10 +268,10 @@ export default function ContactPage() {
                       />
                     </div>
                     <div className="ct-field">
-                      <label className="ct-label" htmlFor="company">Company</label>
+                      <label className="ct-label" htmlFor="company">Business</label>
                       <input
                         id="company" name="company" type="text"
-                        className="ct-input" placeholder="Emaar Properties"
+                        className="ct-input" placeholder="Your UAE real estate business"
                         value={form.company} onChange={handleChange}
                       />
                     </div>
@@ -281,7 +281,7 @@ export default function ContactPage() {
                       <label className="ct-label" htmlFor="email">Work email</label>
                       <input
                         id="email" name="email" type="email"
-                        className="ct-input" placeholder="ahmed@yourcompany.com"
+                        className="ct-input" placeholder="ahmed@yourbusiness.com"
                         value={form.email} onChange={handleChange} required
                       />
                     </div>
@@ -296,7 +296,7 @@ export default function ContactPage() {
                   </div>
                   <div className="ct-form-row">
                     <div className="ct-field">
-                      <label className="ct-label" htmlFor="interest">Agent of interest</label>
+                      <label className="ct-label" htmlFor="interest">Acre agent of interest</label>
                       <select
                         id="interest" name="interest"
                         className="ct-select"
@@ -323,16 +323,16 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="ct-field">
-                    <label className="ct-label" htmlFor="message">What problem are you trying to solve?</label>
+                    <label className="ct-label" htmlFor="message">Where are leads slipping through?</label>
                     <textarea
                       id="message" name="message"
                       className="ct-textarea"
-                      placeholder="Describe the gap in your sales or operations process — the more specific, the better our recommendation."
+                      placeholder="Tell us about your lead volume, languages, response times, and where buyers go cold — the more specific, the sharper our recommendation."
                       value={form.message} onChange={handleChange}
                     />
                   </div>
                   <button type="submit" className="ct-submit" disabled={submitting}>
-                    {submitting ? "Sending..." : <>Send request <IconArrowRight size={13} /></>}
+                    {submitting ? "Sending..." : <>Book my Acre demo <IconArrowRight size={13} /></>}
                   </button>
                   {error && (
                     <p style={{ fontSize: 13, color: "var(--c-copper)", lineHeight: 1.6 }}>
@@ -374,7 +374,7 @@ export default function ContactPage() {
                 <div className="ct-sidebar-note">
                   <p className="ct-sidebar-note-label">How the pilot works</p>
                   <p className="ct-sidebar-note-body">
-                    We deploy a live agent on your real inbound enquiries for 14 days at no charge. You receive a full performance report at the end with call recordings, booking data, and a cost-per-lead breakdown. No commitment required to continue.
+                    We connect Acre to your live inventory and let its AI agents handle your real inbound leads for 14 days at no charge — engaging each buyer in seconds in their own language, qualifying them, booking viewings, and escalating hot buyers to your closers. You receive a full performance report at the end with call recordings, viewing-booking data, and a cost-per-lead breakdown. No commitment required to continue.
                   </p>
                 </div>
               </div>

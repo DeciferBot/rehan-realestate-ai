@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import {
   LayoutDashboard, Users, Building2, Phone, Calendar,
   FolderOpen, Settings, LogOut, Inbox, Bot, Layers,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/",              label: "Dashboard",     icon: LayoutDashboard },
+  { href: "/console",       label: "Dashboard",     icon: LayoutDashboard },
   { href: "/inbox",         label: "Conversations", icon: Inbox },
   { href: "/leads",         label: "Leads",         icon: Users },
   { href: "/properties",    label: "Properties",    icon: Building2 },
@@ -26,6 +27,13 @@ const agents = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function signOut() {
+    await getSupabaseBrowser().auth.signOut();
+    router.replace("/login");
+    router.refresh();
+  }
 
   return (
     <aside style={{
@@ -111,10 +119,15 @@ export default function Sidebar() {
           <Settings size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Settings</span>
         </Link>
-        <div className="nav-item" style={{ cursor: "pointer" }}>
+        <button
+          type="button"
+          onClick={signOut}
+          className="nav-item"
+          style={{ cursor: "pointer", width: "100%", background: "none", border: "none", textAlign: "left", font: "inherit", color: "inherit" }}
+        >
           <LogOut size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Sign out</span>
-        </div>
+        </button>
 
         <div style={{
           display: "flex", alignItems: "center", gap: 10,

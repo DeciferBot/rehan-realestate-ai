@@ -8,9 +8,9 @@ import { usePathname } from "next/navigation";
 const E: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const LINKS = [
-  { href: "/aitaas/solutions", label: "Agents" },
-  { href: "/aitaas/pricing",   label: "Pricing" },
-  { href: "/aitaas/contact",   label: "Contact" },
+  { href: "/solutions", label: "Agents" },
+  { href: "/pricing",   label: "Pricing" },
+  { href: "/contact",   label: "Contact" },
 ];
 
 export default function AitaasNav() {
@@ -135,8 +135,8 @@ export default function AitaasNav() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: E, delay: 0.05 }}
       >
-        <Link href="/aitaas" className="cn-logo">
-          AITaaS
+        <Link href="/" className="cn-logo">
+          Acre
         </Link>
 
         <ul className="cn-links">
@@ -148,7 +148,7 @@ export default function AitaasNav() {
             </li>
           ))}
         </ul>
-        <Link href="/aitaas/contact" className="cn-cta">Book a Demo</Link>
+        <Link href="/contact" className="cn-cta">Book a Demo</Link>
 
         <button
           className={`cn-burger${open ? " open" : ""}`}
@@ -183,7 +183,7 @@ export default function AitaasNav() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.32, ease: E, delay: 0.22 }}
             >
-              <Link href="/aitaas/contact" className="cn-overlay-cta">Book a Demo</Link>
+              <Link href="/contact" className="cn-overlay-cta">Book a Demo</Link>
             </motion.div>
           </motion.div>
         )}

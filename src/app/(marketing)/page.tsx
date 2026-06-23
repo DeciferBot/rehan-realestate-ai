@@ -43,15 +43,15 @@ function ImgWithFallback({
 }
 
 const AGENTS = [
-  { name: "Property Sales Agent", vertical: "Real Estate", proof: "Speaks Arabic, English, Russian, Hindi, and Mandarin" },
-  { name: "Revenue Recovery Agent", vertical: "Finance", proof: "Chases overdue invoices politely, relentlessly, in four languages" },
-  { name: "Healthcare Booking Agent", vertical: "Clinics", proof: "Fills the diary while reception is closed" },
-  { name: "Cart Recovery Agent", vertical: "E-commerce", proof: "Wins back abandoned carts over WhatsApp" },
-  { name: "Admissions Agent", vertical: "Education", proof: "Turns programme enquiries into campus tours" },
-  { name: "Social Media Executive", vertical: "Marketing", proof: "Replies to every DM and comment, around the clock" },
+  { name: "Lead Response Agent", vertical: "Inbound", proof: "Answers every Meta, portal, and WhatsApp lead in seconds — Arabic, English, Hindi, Russian, Mandarin" },
+  { name: "Qualification Agent", vertical: "Discovery", proof: "Pins down budget, timeline, financing, and area before a closer ever picks up" },
+  { name: "Viewing Coordinator", vertical: "Scheduling", proof: "Books viewings straight onto your team's live calendar" },
+  { name: "Inventory Specialist", vertical: "Listings", proof: "Quotes real units, sizes, prices, and payment plans from live availability" },
+  { name: "Developer Lead Agent", vertical: "Off-plan", proof: "Works Arada launch lists — Akala, W Residences, Inaura, Masaar" },
+  { name: "Escalation Agent", vertical: "Handover", proof: "Routes hot buyers to human closers with a full dossier" },
 ];
 
-const INDUSTRIES = ["Real Estate", "Healthcare", "Retail", "Education", "Finance", "Automotive", "Enterprise"];
+const INDUSTRIES = ["Off-plan Sales", "Secondary Market", "Leasing", "Developer Launches", "Property Management", "Holiday Homes", "Commercial"];
 
 const INTEGRATIONS = [
   "WhatsApp", "Salesforce", "Google Calendar", "HubSpot",
@@ -62,45 +62,45 @@ const PILOT_STEPS = [
   {
     day: "Day 0",
     name: "Discovery",
-    body: "A 30-minute call. We map your sales process, scripts, inventory sources, and where leads currently fall through.",
+    body: "A 30-minute call. We map your lead sources, qualification criteria, escalation rules, and where buyers currently slip away.",
   },
   {
     day: "Days 1–3",
     name: "Build",
-    body: "Your agent is configured on your listings, calendar, and CRM. You hear the voice and approve every script before it speaks to a customer.",
+    body: "We ingest your live inventory and developer availability PDFs, then configure each agent's persona, languages, and rules. You approve every script before it speaks to a lead.",
   },
   {
     day: "Days 4–14",
     name: "Live",
-    body: "The agent answers your real enquiries. Every recording and transcript reaches you as it happens, so nothing runs unseen.",
+    body: "The agents answer your real leads across voice, WhatsApp, and email. Every conversation streams into the command center as it happens, so nothing runs unseen.",
   },
   {
     day: "Day 14",
     name: "Decision",
-    body: "You get the full report: every call, booking, and outcome. Keep all of it whether you continue or not.",
+    body: "You get the full report: every lead engaged, viewing booked, and buyer escalated. Keep all of it whether you continue or not.",
   },
 ];
 
 const FAQS = [
   {
-    q: "What happens when a caller asks something the agent can't answer?",
-    a: "It escalates to your team with the full transcript and context attached, and the lead is flagged in your CRM. The customer is never left at a dead end, and your staff never start a conversation blind.",
+    q: "What happens when a lead asks something the agent can't answer?",
+    a: "It escalates to a human closer with the full transcript, qualification dossier, and recommended units attached, and the lead is flagged in your command center. The buyer is never left at a dead end, and your closers never start a conversation blind.",
   },
   {
-    q: "Which languages does it actually speak?",
-    a: "Arabic and English are standard on every agent. Hindi, Urdu, Russian, French, Mandarin, and Tagalog are available per agent depending on your market. The Essential tier covers English plus one language, Professional covers three, and Enterprise covers all of them.",
+    q: "Which languages do the agents actually speak?",
+    a: "Arabic and English are standard on every agent. Hindi, Urdu, Russian, French, Mandarin, and Tagalog are available per agent depending on your market — and every reply lands in the lead's own language. The Essential tier covers English plus one language, Professional covers three, and Enterprise covers all of them.",
   },
   {
-    q: "Do we have to replace our CRM or phone system?",
-    a: "No. The agents connect to your existing stack from day one: WhatsApp, Salesforce, HubSpot, Zoho, Google Calendar, Property Finder, Bayut, Twilio, and Zapier for everything else.",
+    q: "How do the agents know our live inventory?",
+    a: "Acre ingests your developer availability PDFs automatically — Arada projects like Akala, W Residences, Inaura, and Masaar, plus your own listings. Agents quote real units, sizes, prices, payment plans, and handover dates, and stay current as availability changes.",
   },
   {
-    q: "Who owns the recordings, transcripts, and leads?",
-    a: "You do, unconditionally. Every lead, booking, recording, and transcript generated during the pilot or a paid plan belongs to you, including if you walk away on day 14.",
+    q: "Who owns the conversations, recordings, and leads?",
+    a: "You do, unconditionally. Every lead, viewing, recording, and transcript generated during the pilot or a paid plan belongs to you, including if you walk away on day 14.",
   },
   {
     q: "How long until we're live?",
-    a: "Fourteen days from contract to first call, and the free pilot follows the same timeline on your real enquiries. Most of that window is us configuring scripts and integrations to your approval, not you doing work.",
+    a: "Fourteen days from contract to first answered lead, and the free pilot follows the same timeline on your real enquiries. Most of that window is us ingesting your inventory and configuring agents to your approval, not you doing work.",
   },
   {
     q: "What does it cost to try?",
@@ -880,30 +880,31 @@ export default function AitaasHome() {
         <div className="hp-hero-inner">
           <div>
             <span className="hp-tag hp-rise" style={{ animationDelay: "0.05s" }}>
-              AI Workers for Business
+              AI Agents for UAE Real Estate
             </span>
             <h1 className="hp-h1">
               <span className="hp-line">
-                <span className="hp-line-inner" style={{ animationDelay: "0.12s" }}>Your next hire</span>
+                <span className="hp-line-inner" style={{ animationDelay: "0.12s" }}>Every lead answered</span>
               </span>
               <span className="hp-line">
-                <span className="hp-line-inner" style={{ animationDelay: "0.26s" }}>is an <em>AI agent.</em></span>
+                <span className="hp-line-inner" style={{ animationDelay: "0.26s" }}>in <em>seconds.</em></span>
               </span>
             </h1>
             <p className="hp-sub hp-rise" style={{ animationDelay: "0.44s" }}>
-              Voice and digital agents that call your leads in 60 seconds, book appointments
-              overnight, recover overdue payments, and follow up in 7 languages, around the clock.
+              Acre gives developers, brokers, and institutional landlords across the UAE a team of
+              AI agents that engage every lead the instant it arrives — across voice, WhatsApp, and
+              email, in the buyer&apos;s own language, grounded in your live inventory, 24/7.
             </p>
             <div className="hp-ctas hp-rise" style={{ animationDelay: "0.56s" }}>
-              <Link href="/aitaas/contact" className="c-btn">Book a live demo</Link>
-              <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
-                View all agents <IconArrowRight size={13} color="currentColor" />
+              <Link href="/contact" className="c-btn">Book a live demo</Link>
+              <Link href="/solutions" className="c-btn c-btn--ghost">
+                Meet the agents <IconArrowRight size={13} color="currentColor" />
               </Link>
             </div>
             <div className="hp-proof hp-rise" style={{ animationDelay: "0.7s" }}>
               {[
                 { num: <>60<em>s</em></>, label: "First response" },
-                { num: <>7</>, label: "Languages" },
+                { num: <>5<em>+</em></>, label: "Languages" },
                 { num: <>24<em>/7</em></>, label: "Always on" },
                 { num: <>14<em>d</em></>, label: "To go live" },
               ].map((p, i) => (
@@ -932,14 +933,14 @@ export default function AitaasHome() {
             <Reveal>
               <p className="hp-problem-kicker">The gap your competitors are closing</p>
               <h2 className="hp-problem-h">
-                Most businesses<br />respond in <em>hours.</em><br />
-                Deals close in minutes.
+                Most brokers<br />respond in <em>hours.</em><br />
+                Buyers move in minutes.
               </h2>
               <p className="hp-problem-body">
-                Every delayed callback, every missed call after hours, every
-                language barrier is a deal your competitor closes instead.
-                The businesses winning in the UAE today removed that constraint entirely.
-                They didn&apos;t hire more staff. They deployed agents.
+                Every delayed callback, every Meta lead left overnight, every
+                language barrier is a buyer your competitor closes instead.
+                The UAE real estate teams winning today removed that constraint entirely.
+                They didn&apos;t hire more agents. They deployed Acre.
               </p>
             </Reveal>
             <Reveal delay={0.12}>
@@ -952,7 +953,7 @@ export default function AitaasHome() {
                 <div className="hp-problem-photo-overlay" />
                 <div className="hp-problem-photo-stat">
                   <div className="hp-problem-stat-num">78%</div>
-                  <div className="hp-problem-stat-label">of buyers choose the vendor that responds first — industry lead-response research</div>
+                  <div className="hp-problem-stat-label">of buyers transact with the broker who responds first — industry lead-response research</div>
                 </div>
               </div>
             </Reveal>
@@ -970,18 +971,18 @@ export default function AitaasHome() {
                 The same agent,<br />on <em>WhatsApp.</em>
               </h2>
               <p className="hp-demo-body">
-                Not every lead picks up the phone. The agent meets them where they
-                already are: it answers portal enquiries over chat, sends brochures
-                and payment plans mid-conversation, and holds viewing slots on your
-                live calendar. Voice and chat share one memory, so a lead can start
-                on a call and finish on WhatsApp without repeating a word.
+                Not every buyer picks up the phone. The agent meets them where they
+                already are: it answers portal and Instagram enquiries over chat, quotes
+                real units and payment plans from live inventory, and holds viewing slots on
+                your team&apos;s calendar. Voice, WhatsApp, and email share one memory, so a
+                lead can start on a call and finish on WhatsApp without repeating a word.
               </p>
               <div className="hp-demo-facts">
                 {[
-                  "Answers portal and website enquiries instantly",
-                  "Delivers brochures and payment plans mid-conversation",
-                  "Books viewings on your live calendar",
-                  "Hands off to voice with full context when the lead prefers a call",
+                  "Answers portal, Instagram, and website enquiries instantly",
+                  "Quotes real units, prices, and payment plans from live inventory",
+                  "Books viewings on your team's calendar",
+                  "Escalates hot buyers to a human closer with a full dossier",
                 ].map((f) => (
                   <div key={f} className="hp-demo-fact">
                     <span className="hp-demo-fact-icon"><IconCheck size={14} /></span>
@@ -998,7 +999,7 @@ export default function AitaasHome() {
                     <div className="hp-phone-dot" style={{ background: "oklch(0.75 0.18 88)" }} />
                     <div className="hp-phone-dot" style={{ background: "oklch(0.65 0.2 145)" }} />
                   </div>
-                  <span style={{ fontSize: 11, color: "var(--c-muted)", marginLeft: 8, letterSpacing: "0.04em" }}>Property Sales Agent · WhatsApp</span>
+                  <span style={{ fontSize: 11, color: "var(--c-muted)", marginLeft: 8, letterSpacing: "0.04em" }}>Lead Response Agent · WhatsApp</span>
                   <div className="hp-phone-live">
                     <div className="hp-phone-live-dot" />
                     Live
@@ -1008,16 +1009,16 @@ export default function AitaasHome() {
                   <div className="hp-phone-avatar">AM</div>
                   <div className="hp-phone-caller">
                     <div className="hp-phone-caller-name">Ahmed Al Mansouri</div>
-                    <div className="hp-phone-caller-sub">+971 50 ··· ···· · Inbound from Property Finder</div>
+                    <div className="hp-phone-caller-sub">+971 50 ··· ···· · Inbound from Instagram ad</div>
                   </div>
                   <div className="hp-phone-timer">02:47</div>
                 </div>
                 <div className="hp-phone-chat">
                   {[
-                    { from: "lead", av: "AM", text: "Hi, I saw your listing for the villa in Dubai Hills. What's the starting price?" },
-                    { from: "agent", av: "AI", text: "Good afternoon, Ahmed! The Dubai Hills villas start at AED 4.2M. We have two 5-bedroom units available right now. Are you looking for immediate transfer or off-plan?" },
-                    { from: "lead", av: "AM", text: "Immediate. What does the payment plan look like?" },
-                    { from: "agent", av: "AI", text: "I'm sending the full brochure and payment schedule to your WhatsApp right now. I also have a Saturday viewing at 10am — shall I hold that slot for you?" },
+                    { from: "lead", av: "AM", text: "Saw your ad for Masaar. What's available in the townhouses?" },
+                    { from: "agent", av: "AI", text: "Hi Ahmed! In Masaar by Arada we have 3 and 4-bedroom townhouses from AED 2.9M, with a 60/40 payment plan and handover in Q4 2026. What budget and how many bedrooms are you after?" },
+                    { from: "lead", av: "AM", text: "Around 3M, 3 bedrooms. Cash buyer." },
+                    { from: "agent", av: "AI", text: "Perfect — I have two 3-bed units in your range right now. Sending the floor plans and payment plan to your WhatsApp. I also have a Saturday viewing at 10am — shall I hold that slot for you?" },
                   ].map((msg, i) => (
                     <div key={i} className={`hp-phone-msg${msg.from === "agent" ? " agent" : ""}`}>
                       <div className="hp-phone-msg-av">{msg.av}</div>
@@ -1026,9 +1027,9 @@ export default function AitaasHome() {
                   ))}
                 </div>
                 <div className="hp-phone-actions">
-                  <div className="hp-phone-action-chip">Brochure sent · WhatsApp</div>
+                  <div className="hp-phone-action-chip">Floor plans sent · WhatsApp</div>
                   <div className="hp-phone-action-chip">Viewing held · Saturday 10am</div>
-                  <div className="hp-phone-action-chip">CRM updated</div>
+                  <div className="hp-phone-action-chip">Qualified · escalated to closer</div>
                 </div>
               </div>
             </Reveal>
@@ -1042,21 +1043,21 @@ export default function AitaasHome() {
           <div className="hp-agents-hd">
             <Reveal>
               <h2 className="hp-agents-h">
-                Six agents, one for<br /><em>each gap in your pipeline.</em>
+                Six agents, one for<br /><em>every stage of the deal.</em>
               </h2>
             </Reveal>
-            <Link href="/aitaas/solutions" className="c-btn c-btn--ghost">
-              Full catalogue <IconArrowRight size={13} color="currentColor" />
+            <Link href="/solutions" className="c-btn c-btn--ghost">
+              Full roster <IconArrowRight size={13} color="currentColor" />
             </Link>
           </div>
           <div className="hp-agents-grid">
-            <Link href="/aitaas/solutions" className="hp-agent-card featured">
+            <Link href="/solutions" className="hp-agent-card featured">
               <div className="hp-agent-info">
                 <div className="hp-agent-vertical">{AGENTS[0].vertical}</div>
                 <h3 className="hp-agent-name">{AGENTS[0].name}</h3>
                 <p className="hp-agent-body">
-                  Calls every inbound lead within 60 seconds of enquiry — in their language.
-                  Qualifies budget and timeline, delivers matched property brochures to WhatsApp mid-call,
+                  Engages every inbound lead within 60 seconds — by voice, WhatsApp, or email, in their
+                  own language. Qualifies budget and timeline, quotes real units from live inventory,
                   and books the viewing before the conversation ends.
                 </p>
                 <p className="hp-agent-proof">{AGENTS[0].proof}</p>
@@ -1073,11 +1074,11 @@ export default function AitaasHome() {
                   style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.35) brightness(0.65)" }}
                 />
                 <div className="hp-agent-visual-overlay" />
-                <div className="hp-agent-visual-label">Real Estate · UAE</div>
+                <div className="hp-agent-visual-label">Dubai · UAE</div>
               </div>
             </Link>
             {AGENTS.slice(1).map((a) => (
-              <Link key={a.name} href="/aitaas/solutions" className="hp-agent-card">
+              <Link key={a.name} href="/solutions" className="hp-agent-card">
                 <div className="hp-agent-vertical">{a.vertical}</div>
                 <div className="hp-agent-name">{a.name}</div>
                 <div className="hp-agent-proof">{a.proof}</div>
@@ -1092,14 +1093,14 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <div className="hp-network-inner">
             <Reveal>
-              <p className="hp-network-kicker">Orchestration layer</p>
+              <p className="hp-network-kicker">The command center</p>
               <h2 className="hp-network-h">
-                Behind every call,<br /><em>an orchestrated team.</em>
+                Every conversation,<br /><em>one live inbox.</em>
               </h2>
               <p className="hp-network-body">
-                Every conversation triggers a network of specialised sub-agents running in parallel.
-                Calendar, documents, CRM, payments — all completed before the customer hangs up.
-                No handoffs. No delays.
+                Your team watches every AI conversation across voice, WhatsApp, and email in a single
+                inbox — with live recommended units and mortgage math beside each lead. Take over any
+                conversation by hand the moment you want to. Nothing runs unseen.
               </p>
             </Reveal>
             <Reveal delay={0.12}>
@@ -1116,25 +1117,25 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <Reveal>
             <h2 className="hp-how-h">
-              From enquiry<br /><em>to booked meeting.</em>
+              From new lead<br /><em>to ready buyer.</em>
             </h2>
           </Reveal>
           <div className="hp-steps">
             {[
               {
-                num: "01", label: "Lead connects",
-                name: "Instant response",
-                body: "A voice or chat agent picks up within 60 seconds of enquiry — 24/7, in the lead's language. Human-quality voice, on-brand from the first word.",
+                num: "01", label: "Lead arrives",
+                name: "Instant engagement",
+                body: "The moment a lead lands — Meta ad, inbound call, WhatsApp, or developer list — an agent responds within 60 seconds, 24/7, in the buyer's language. Human-quality voice, on-brand from the first word.",
               },
               {
-                num: "02", label: "Orchestrator routes",
-                name: "Parallel tasks fire",
-                body: "Our orchestration layer decomposes the conversation into parallel tasks — calendar, documents, CRM, payment links — and dispatches them simultaneously.",
+                num: "02", label: "Agent qualifies",
+                name: "Grounded conversation",
+                body: "Every reply is grounded in your live inventory — real units, sizes, prices, payment plans, handover dates. The agent qualifies budget, intent, timeline, financing, area, and family as it goes.",
               },
               {
-                num: "03", label: "Actions complete",
-                name: "Everything delivered",
-                body: "Booking confirmed, brochure sent, lead scored, CRM updated — all before the call ends. Your team wakes up to qualified leads with full context.",
+                num: "03", label: "Buyer escalates",
+                name: "Closer takes over",
+                body: "Viewing booked, units recommended, mortgage math run — then the hot buyer is escalated to a human closer with a full dossier. Your closers only ever talk to ready buyers.",
               },
             ].map((s, i) => (
               <Reveal key={s.name} delay={i * 0.08} className="hp-step">
@@ -1153,13 +1154,13 @@ export default function AitaasHome() {
         <div className="c-wrap">
           <div className="hp-ind-header">
             <Reveal>
-              <h2 className="hp-ind-h">Built for</h2>
+              <h2 className="hp-ind-h">Built for every desk</h2>
             </Reveal>
           </div>
           <div className="hp-ind-list">
             {INDUSTRIES.map((ind, i) => (
               <Reveal key={ind} delay={i * 0.04}>
-                <Link href="/aitaas/solutions" className="hp-ind-row">
+                <Link href="/solutions" className="hp-ind-row">
                   <span className="hp-ind-name">{ind}</span>
                   <span className="hp-ind-arrow"><IconArrowRight size={22} color="currentColor" /></span>
                 </Link>
@@ -1189,13 +1190,13 @@ export default function AitaasHome() {
           <div className="hp-pricing-top">
             <Reveal>
               <h2 className="hp-pricing-h">
-                A fraction of a hire,<br /><em>from AED 2,500<br />a month.</em>
+                Less than one agent&apos;s desk,<br /><em>from AED 2,500<br />a month.</em>
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
               <p className="hp-pricing-sub">
                 Three monthly tiers, or a revenue-share model where you pay only on results.
-                No setup fees. A 14-day free pilot for every new customer.
+                No setup fees. A 14-day free pilot for every new business.
               </p>
             </Reveal>
           </div>
@@ -1203,15 +1204,15 @@ export default function AitaasHome() {
             {[
               {
                 name: "Essential", amount: "AED 2,500", cadence: "per month", featured: false,
-                features: ["1 AI agent product", "Up to 3 sub-agents", "English + 1 language", "WhatsApp + Calendar", "Monthly report"],
+                features: ["1 AI agent", "Voice + WhatsApp", "English + 1 language", "Live inventory ingestion", "Shared command center", "Monthly report"],
               },
               {
                 name: "Professional", amount: "AED 5,000", cadence: "per month", featured: true,
-                features: ["Up to 3 AI agents", "Full sub-agent library", "3 languages supported", "Full integration suite", "Weekly analytics", "Dedicated onboarding"],
+                features: ["Up to 3 AI agents", "Voice, WhatsApp + email", "3 languages supported", "Configurable qualification rules", "Full command center", "Weekly analytics", "Dedicated onboarding"],
               },
               {
                 name: "Enterprise", amount: "Custom", cadence: "", featured: false,
-                features: ["Unlimited agents", "All 7 languages", "Custom agent design", "Dedicated infrastructure", "SLA guarantee", "On-site onboarding"],
+                features: ["Unlimited agents", "All languages", "Custom personas per team", "Custom escalation rules", "Dedicated infrastructure", "SLA guarantee", "On-site onboarding"],
               },
             ].map((tier) => (
               <Reveal key={tier.name} className={`hp-price-col${tier.featured ? " featured" : ""}`}>
@@ -1227,7 +1228,7 @@ export default function AitaasHome() {
                     </div>
                   ))}
                 </div>
-                <Link href="/aitaas/contact" className={`c-btn${tier.featured ? "" : " c-btn--ghost"}`}>
+                <Link href="/contact" className={`c-btn${tier.featured ? "" : " c-btn--ghost"}`}>
                   Get started <IconArrowRight size={12} color="currentColor" />
                 </Link>
               </Reveal>
@@ -1247,7 +1248,7 @@ export default function AitaasHome() {
               </h2>
               <p className="hp-pilot-sub">
                 No commitment, no setup fee, and nothing runs without your approval.
-                Here is the entire process from first call to decision.
+                Here is the entire process from first lead to decision.
               </p>
             </div>
           </Reveal>
@@ -1302,12 +1303,12 @@ export default function AitaasHome() {
                 Prove it on<br /><em>your own leads.</em>
               </h2>
               <p className="hp-cta-sub">
-                We deploy a live agent on your real enquiries for 14 days at no charge.
-                You keep every lead, booking, and call recording — regardless of what you decide.
+                We deploy live Acre agents on your real enquiries for 14 days at no charge.
+                You keep every lead, viewing, and recording — regardless of what you decide.
               </p>
               <div className="hp-cta-btns">
-                <Link href="/aitaas/contact" className="c-btn">Apply for the pilot</Link>
-                <Link href="/aitaas/pricing" className="c-btn c-btn--ghost">
+                <Link href="/contact" className="c-btn">Apply for the pilot</Link>
+                <Link href="/pricing" className="c-btn c-btn--ghost">
                   View pricing <IconArrowRight size={13} color="currentColor" />
                 </Link>
               </div>

@@ -21,35 +21,35 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
 
 const TIERS = [
   {
-    name: "Essential",
+    name: "Boutique",
     price: "AED 2,500",
     cadence: "/ month",
-    desc: "One agent. Full platform. The right starting point for SMEs deploying their first automated worker.",
+    desc: "One AI agent answering every lead instantly. The right starting point for smaller UAE real estate teams building their first always-on sales force.",
     features: [
-      "1 AI agent product",
-      "Up to 3 sub-agents active",
+      "1 AI sales agent",
+      "Every lead called in 60 seconds",
       "English + 1 additional language",
-      "WhatsApp + Calendar integration",
-      "Basic CRM push",
-      "Monthly performance report",
+      "WhatsApp + email engagement",
+      "Live inventory grounding",
+      "Qualify, book viewings + escalate to closers",
       "Email support",
     ],
     cta: "Get started",
     featured: false,
   },
   {
-    name: "Professional",
+    name: "Business",
     price: "AED 5,000",
     cadence: "/ month",
-    desc: "Multiple agents, full language stack, and a dedicated onboarding engineer.",
+    desc: "Multiple agents working voice, WhatsApp, and email across your full pipeline, watched from one command center.",
     features: [
-      "Up to 3 AI agent products",
-      "Full sub-agent library access",
+      "Up to 3 AI sales agents",
+      "Multilingual voice + WhatsApp + email",
       "3 languages supported",
-      "WhatsApp, Calendar, Payment integrations",
-      "Advanced CRM integration",
-      "Weekly analytics report",
-      "Dedicated Slack channel",
+      "Live inventory grounding across listings",
+      "Single command-center inbox",
+      "Hot buyers escalated to human closers",
+      "Programmable agents per team",
       "Priority support",
     ],
     cta: "Get started",
@@ -59,12 +59,12 @@ const TIERS = [
     name: "Enterprise",
     price: "Custom",
     cadence: "",
-    desc: "Built for operations that need custom workflows, dedicated infrastructure, and compliance guarantees.",
+    desc: "Built for UAE real estate teams that need programmable agents per branch, dedicated infrastructure, and UAE compliance guarantees.",
     features: [
-      "Unlimited agent products",
-      "Custom agent design and training",
+      "Unlimited AI sales agents",
+      "Programmable agents per business + branch",
       "All 7 languages",
-      "Full integration suite — CRM, ERP, Payment, Portal",
+      "Full integration suite — CRM, portals, inventory, payment",
       "Dedicated infrastructure",
       "SLA uptime guarantee",
       "On-site onboarding",
@@ -76,32 +76,32 @@ const TIERS = [
 ];
 
 const REVENUE_SHARE = [
-  { model: "Property Sales", share: "2.5% of closed deal value" },
-  { model: "Revenue Recovery", share: "8–12% of recovered amount" },
-  { model: "Cart Recovery", share: "4–6% of recovered revenue" },
-  { model: "Admissions", share: "Fixed fee per enrolled student" },
+  { model: "Closed Property Sale", share: "2.5% of closed deal value" },
+  { model: "Off-Plan Booking", share: "1.5–2% of unit price" },
+  { model: "Qualified Viewing Booked", share: "Fixed fee per booked viewing" },
+  { model: "Revived Cold Lead", share: "4–6% of resulting commission" },
 ];
 
 const FAQS = [
   {
-    q: "How long does deployment take?",
-    a: "Most agents are live within 14 days. Custom integrations with proprietary CRMs or ERPs add 5–7 days. We deliver a working demo in the first 72 hours.",
+    q: "How long does it take to go live?",
+    a: "Most teams have Acre engaging leads within 14 days. Connecting your live inventory feed and proprietary CRM adds 5&ndash;7 days. We deliver a working demo on your real listings in the first 72 hours.",
   },
   {
-    q: "Do we need to replace our existing CRM?",
-    a: "No. Our agents push to and pull from your existing CRM via API. We support Salesforce, HubSpot, Zoho, Property Finder's suite, and custom systems.",
+    q: "Do we need to replace our existing CRM or portals?",
+    a: "No. Acre pushes to and pulls from your existing CRM and portals via API. We support Salesforce, HubSpot, Zoho, Property Finder, Bayut, and custom systems &mdash; grounded in your live inventory.",
   },
   {
-    q: "What happens if an agent can't answer a customer's question?",
-    a: "The agent escalates to a human on your team in real time and transfers the full conversation context, so your staff don't start from scratch.",
+    q: "What happens when a buyer is ready to close?",
+    a: "Acre qualifies the lead, books the viewing, and escalates hot buyers to a human closer in real time &mdash; transferring the full conversation context so your agents never start from scratch.",
   },
   {
-    q: "Are calls recorded and compliant?",
-    a: "Yes. All calls are recorded with consent notices delivered in the customer's language. Data is stored on UAE-based servers and fully PDPA-compliant.",
+    q: "Which languages and channels does Acre cover?",
+    a: "Acre engages every lead instantly across voice, WhatsApp, and email in the buyer&apos;s own language. All calls are recorded with consent, stored on UAE-based servers, and fully PDPA-compliant.",
   },
   {
-    q: "Can we trial before committing?",
-    a: "We offer a 14-day live pilot at no charge for qualifying businesses. You'll see real calls, real leads, real bookings — before signing anything.",
+    q: "Can we trial Acre before committing?",
+    a: "Yes. We run a 14-day live pilot at no charge for qualifying UAE real estate teams. You&apos;ll see real leads called, qualified, and booked &mdash; before signing anything.",
   },
 ];
 
@@ -293,7 +293,7 @@ export default function PricingPage() {
           <Reveal>
             <p className="pr-hero-eyebrow">Pricing</p>
             <h1 className="pr-hero-h">Transparent pricing.<br />No surprises.</h1>
-            <p className="pr-hero-sub">Flat monthly subscriptions for predictable budgets, or revenue share when you want zero upfront risk. Both options include the full platform.</p>
+            <p className="pr-hero-sub">Flat monthly subscriptions for predictable budgets, or revenue share when you want zero upfront risk. Every plan includes Acre&apos;s full AI sales force and command center.</p>
           </Reveal>
         </div>
       </section>
@@ -318,7 +318,7 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/aitaas/contact" className="pr-tier-cta">
+                  <Link href="/contact" className="pr-tier-cta">
                     {tier.cta} <IconArrowRight size={12} />
                   </Link>
                 </div>
@@ -334,8 +334,8 @@ export default function PricingPage() {
           <div className="pr-rev-inner">
             <Reveal>
               <h2 className="pr-rev-h">Prefer zero upfront risk?</h2>
-              <p className="pr-rev-body">For qualifying businesses, we offer a performance-aligned model: we deploy and run the agent, and take a percentage of the revenue directly attributable to it. No subscription. No risk until you see results.</p>
-              <Link href="/aitaas/contact" className="c-btn">
+              <p className="pr-rev-body">For qualifying UAE real estate teams, we offer a performance-aligned model: we deploy and run Acre&apos;s AI sales force, and take a percentage of the commission directly attributable to it. No subscription. No risk until deals close.</p>
+              <Link href="/contact" className="c-btn">
                 Discuss revenue share <IconArrowRight size={13} />
               </Link>
             </Reveal>
@@ -379,8 +379,8 @@ export default function PricingPage() {
         <div className="c-wrap">
           <Reveal>
             <h2 className="pr-cta-h">Start with a<br />14-day free pilot</h2>
-            <p className="pr-cta-sub">We deploy a live agent on your real enquiries, no commitment required. You keep the leads, bookings, and call recordings regardless of what you decide.</p>
-            <Link href="/aitaas/contact" className="c-btn">
+            <p className="pr-cta-sub">We deploy Acre on your real enquiries, grounded in your live inventory, no commitment required. You keep every lead, booked viewing, and call recording regardless of what you decide.</p>
+            <Link href="/contact" className="c-btn">
               Apply for the pilot <IconArrowRight size={13} />
             </Link>
           </Reveal>
