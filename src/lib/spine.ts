@@ -46,6 +46,7 @@ export type ConversationContact = {
   budget: string | null;
   investType: string | null;
   assignedLabel: string | null;
+  qualification: Record<string, unknown>;
 };
 
 export type ConversationListItem = {
@@ -78,6 +79,7 @@ function mapContact(c: Record<string, unknown>): ConversationContact {
     budget: (c.budget as string) ?? null,
     investType: (c.invest_type as string) ?? null,
     assignedLabel: (c.assigned_label as string) ?? null,
+    qualification: (c.qualification as Record<string, unknown>) ?? {},
   };
 }
 
@@ -169,7 +171,7 @@ export async function getConversationThread(
     .from("conversations")
     .select(
       "id,status,last_channel,contact_id," +
-        "contacts(id,full_name,flag,primary_language,status,source,budget,invest_type,assigned_label)"
+        "contacts(id,full_name,flag,primary_language,status,source,budget,invest_type,assigned_label,qualification)"
     )
     .eq("tenant_id", tenantId)
     .eq("id", conversationId)

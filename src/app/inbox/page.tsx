@@ -3,8 +3,9 @@ import { getConversations, getConversationThread } from "@/lib/spine";
 import { getContactDossier } from "@/lib/subagents";
 import Composer from "./Composer";
 import AgentRespondButton from "./AgentRespondButton";
+import QualifyButton from "./QualifyButton";
 import Link from "next/link";
-import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator } from "lucide-react";
+import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge } from "lucide-react";
 
 function aed(n: number): string {
   if (!n) return "—";
@@ -131,6 +132,7 @@ export default async function InboxPage({
                   <span className={`badge ${statusBadge[thread.contact.status] ?? "badge-muted"}`} style={{ marginLeft: "auto" }}>
                     {thread.contact.status}
                   </span>
+                  <QualifyButton conversationId={thread.id} />
                   <AgentRespondButton conversationId={thread.id} />
                 </div>
 
@@ -193,6 +195,13 @@ export default async function InboxPage({
                 Lead dossier
               </div>
 
+              {thread.contact.assignedLabel?.startsWith("Human:") && (
+                <div style={{ margin: 14, marginBottom: 0, padding: "8px 10px", borderRadius: 8, background: "var(--primary-dim)", border: "1px solid var(--primary-border)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <UserCog size={13} style={{ color: "var(--primary)" }} />
+                  <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 600 }}>Escalated · {thread.contact.assignedLabel.replace("Human: ", "")}</span>
+                </div>
+              )}
+
               <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
                   <User size={12} style={{ color: "var(--dim)" }} />
@@ -213,6 +222,32 @@ export default async function InboxPage({
                   ))}
                 </div>
               </div>
+
+              {(() => {
+                const q = thread.contact.qualification as Record<string, unknown>;
+                const labels: [string, string][] = [["budget", "Budget"], ["intent", "Intent"], ["timeline", "Timeline"], ["financing", "Financing"], ["preferred_area", "Area"], ["family", "Family"]];
+                const known = labels.filter(([k]) => {
+                  const v = q[k];
+                  return typeof v === "string" && v.trim() && v.toLowerCase() !== "unknown";
+                });
+                if (!known.length) return null;
+                return (
+                  <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                      <Gauge size={12} style={{ color: "var(--dim)" }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Qualification</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {known.map(([k, label]) => (
+                        <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                          <span style={{ fontSize: 12, color: "var(--dim)", flexShrink: 0 }}>{label}</span>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", textAlign: "right" }}>{String(q[k])}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
