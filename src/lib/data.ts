@@ -1,12 +1,12 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
+import { getActiveTenantId } from "./spine";
 
 /**
- * Server-side data access layer for the command center.
- *
- * Each fetcher reads from Supabase (via the service role) and maps DB
- * snake_case columns back to the camelCase field names the console pages
- * already render — so the UI is identical, just backed by real data.
+ * Server-side data access for the legacy console pages (Leads, Properties,
+ * Developers, Appointments). These now read the real multi-tenant spine
+ * (contacts / units+projects / bookings) and map to the camelCase shapes the
+ * existing pages already render — so the UI is unchanged, just real.
  */
 
 export type Lead = {
@@ -67,87 +67,196 @@ export type Developer = {
   lastSync: string;
 };
 
+function relativeTime(iso: string | null): string {
+  if (!iso) return "";
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return "";
+  const s = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hr ago`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "1 day ago" : `${d} days ago`;
+}
+
+function aed(n: number): string {
+  if (!n) return "AED 0";
+  if (n >= 1_000_000_000) return `AED ${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n >= 1_000_000) return `AED ${Math.round(n / 1_000_000)}M`;
+  return `AED ${Math.round(n / 1000)}K`;
+}
+
 export async function getLeads(): Promise<Lead[]> {
   const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
   const { data, error } = await sb
-    .from("leads")
-    .select("*")
+    .from("contacts")
+    .select("id,full_name,primary_language,flag,status,source,invest_type,budget,assigned_label,qualification,created_at")
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    phone: r.phone,
-    language: r.language,
-    flag: r.flag,
-    status: r.status,
-    propertyInterest: r.property_interest,
-    investType: r.invest_type,
-    source: r.source,
-    assignedAgent: r.assigned_agent,
-    time: r.time_label,
-    budget: r.budget,
-  }));
+  const { data: ids } = await sb
+    .from("contact_identities")
+    .select("contact_id,value")
+    .eq("tenant_id", tenantId)
+    .eq("channel", "phone");
+  const phone = new Map<string, string>();
+  for (const r of (ids ?? []) as unknown as { contact_id: string; value: string }[]) {
+    if (!phone.has(r.contact_id)) phone.set(r.contact_id, r.value);
+  }
+
+  type Row = {
+    id: string; full_name: string; primary_language: string | null; flag: string | null;
+    status: string; source: string | null; invest_type: string | null; budget: string | null;
+    assigned_label: string | null; qualification: Record<string, unknown> | null; created_at: string;
+  };
+  return ((data ?? []) as unknown as Row[]).map((r) => {
+    const q = r.qualification ?? {};
+    const interest =
+      (q.preferred_area as string) || (q.property_interest as string) || (q.area as string) || "—";
+    return {
+      id: r.id,
+      name: r.full_name,
+      phone: phone.get(r.id) ?? "—",
+      language: r.primary_language ?? "—",
+      flag: r.flag ?? "🏳️",
+      status: r.status,
+      propertyInterest: interest,
+      investType: r.invest_type ?? "investment",
+      source: r.source ?? "—",
+      assignedAgent: r.assigned_label ?? "Unassigned",
+      time: relativeTime(r.created_at),
+      budget: r.budget ?? "—",
+    };
+  });
 }
 
 export async function getProperties(): Promise<Property[]> {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb.from("properties").select("*").order("id");
+  const tenantId = await getActiveTenantId();
+  const { data, error } = await sb
+    .from("units")
+    .select(
+      "id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
+        "projects(name,developer,location,completion,description)"
+    )
+    .eq("tenant_id", tenantId)
+    .order("price", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    developer: r.developer,
-    name: r.name,
-    location: r.location,
-    type: r.type,
-    bedrooms: r.bedrooms,
-    price: Number(r.price),
-    currency: r.currency,
-    roi: Number(r.roi),
-    rentalYield: Number(r.rental_yield),
-    image: r.image,
-    tags: r.tags ?? [],
-    completion: r.completion,
-    sqft: r.sqft,
-    description: r.description,
-    amenities: r.amenities ?? [],
-    floors: r.floors,
-  }));
+
+  type Row = {
+    id: string; type: string | null; bedrooms: number | null; price: number | null;
+    roi: number | null; rental_yield: number | null; sqft: number | null; floors: string | null;
+    amenities: string[] | null; tags: string[] | null; image: string | null;
+    projects: Record<string, unknown> | Record<string, unknown>[];
+  };
+  const fallbackImages = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
+  return ((data ?? []) as unknown as Row[]).map((r, i) => {
+    const p = (Array.isArray(r.projects) ? r.projects[0] : r.projects) as Record<string, unknown>;
+    return {
+      id: r.id,
+      developer: (p?.developer as string) ?? "—",
+      name: (p?.name as string) ?? "—",
+      location: (p?.location as string) ?? "—",
+      type: r.type ?? "Apartment",
+      bedrooms: r.bedrooms ?? 0,
+      price: Number(r.price ?? 0),
+      currency: "AED",
+      roi: Number(r.roi ?? 0),
+      rentalYield: Number(r.rental_yield ?? 0),
+      image: r.image || fallbackImages[i % fallbackImages.length],
+      tags: r.tags ?? ["sale"],
+      completion: (p?.completion as string) ?? "—",
+      sqft: r.sqft ?? 0,
+      description: (p?.description as string) ?? "",
+      amenities: r.amenities ?? [],
+      floors: r.floors ?? "",
+    };
+  });
 }
 
 export async function getAppointments(): Promise<Appointment[]> {
   const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
   const { data, error } = await sb
-    .from("appointments")
-    .select("*")
-    .order("date")
-    .order("time");
+    .from("bookings")
+    .select("id,type,scheduled_at,status,notes,contacts(full_name),members(name),units(projects(name))")
+    .eq("tenant_id", tenantId)
+    .order("scheduled_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    lead: r.lead,
-    type: r.type,
-    agent: r.agent,
-    date: r.date,
-    time: r.time,
-    property: r.property,
-    status: r.status,
-    notes: r.notes,
-  }));
+
+  type Row = {
+    id: string; type: string | null; scheduled_at: string | null; status: string; notes: string | null;
+    contacts: { full_name?: string } | { full_name?: string }[] | null;
+    members: { name?: string } | { name?: string }[] | null;
+    units: { projects?: { name?: string } | { name?: string }[] } | { projects?: { name?: string } | { name?: string }[] }[] | null;
+  };
+  const one = <T,>(v: T | T[] | null | undefined): T | undefined =>
+    Array.isArray(v) ? v[0] : (v ?? undefined);
+  return ((data ?? []) as unknown as Row[]).map((r) => {
+    const when = r.scheduled_at ? new Date(r.scheduled_at) : null;
+    const contact = one(r.contacts);
+    const member = one(r.members);
+    const unit = one(r.units);
+    const proj = one(unit?.projects);
+    return {
+      id: r.id,
+      lead: contact?.full_name ?? "—",
+      type: r.type ?? "video",
+      agent: member?.name ?? "AI Agent",
+      date: when ? when.toISOString().slice(0, 10) : "",
+      time: when ? when.toISOString().slice(11, 16) : "",
+      property: proj?.name ?? r.notes ?? "—",
+      status: r.status,
+      notes: r.notes ?? "",
+    };
+  });
 }
 
 export async function getDevelopers(): Promise<Developer[]> {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb.from("developers").select("*").order("id");
-  if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    logo: r.logo,
-    properties: r.properties,
-    activeListings: r.active_listings,
-    totalValue: r.total_value,
-    onedrive: r.onedrive,
-    lastSync: r.last_sync,
-  }));
+  const tenantId = await getActiveTenantId();
+  const { data: projects } = await sb
+    .from("projects")
+    .select("id,developer")
+    .eq("tenant_id", tenantId);
+  const { data: units } = await sb
+    .from("units")
+    .select("project_id,price,status")
+    .eq("tenant_id", tenantId);
+
+  type P = { id: string; developer: string };
+  type U = { project_id: string; price: number | null; status: string | null };
+  const projRows = (projects ?? []) as unknown as P[];
+  const unitRows = (units ?? []) as unknown as U[];
+  const projDev = new Map<string, string>();
+  projRows.forEach((p) => projDev.set(p.id, p.developer));
+
+  const byDev = new Map<string, { projects: Set<string>; active: number; total: number }>();
+  projRows.forEach((p) => {
+    if (!byDev.has(p.developer)) byDev.set(p.developer, { projects: new Set(), active: 0, total: 0 });
+    byDev.get(p.developer)!.projects.add(p.id);
+  });
+  unitRows.forEach((u) => {
+    const dev = projDev.get(u.project_id);
+    if (!dev) return;
+    const agg = byDev.get(dev)!;
+    if ((u.status ?? "available") === "available") agg.active += 1;
+    agg.total += Number(u.price ?? 0);
+  });
+
+  return [...byDev.entries()]
+    .sort((a, b) => b[1].total - a[1].total)
+    .map(([name, agg]) => ({
+      id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      name,
+      logo: name.charAt(0).toUpperCase(),
+      properties: agg.projects.size,
+      activeListings: agg.active,
+      totalValue: aed(agg.total),
+      onedrive: true,
+      lastSync: "synced",
+    }));
 }
