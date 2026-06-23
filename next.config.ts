@@ -6,13 +6,13 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         has: [{ type: "host", value: "simmerproperties.com" }],
-        destination: "/landing",
+        destination: "/aitaas",
         permanent: false,
       },
       {
         source: "/",
         has: [{ type: "host", value: "www.simmerproperties.com" }],
-        destination: "/landing",
+        destination: "/aitaas",
         permanent: false,
       },
     ];
