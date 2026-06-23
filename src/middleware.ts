@@ -9,6 +9,8 @@ import { NextResponse, type NextRequest } from "next/server";
  *   dashboard page and the browser-facing admin APIs require a Supabase session, else → /login.
  * - Webhook + marketing APIs (lead intake, waitlist) stay public — they are
  *   hit by external systems and carry their own verification.
+ * - The acre.* host is the command-center front door: its root "/" goes to the
+ *   app (login when signed out, console when signed in), not the marketing site.
  */
 
 // Gated dashboard pages.
@@ -66,6 +68,14 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host")?.split(":")[0] ?? "";
+  const isAcreHost = host === "acre.simmerproperties.com" || host.startsWith("acre.");
+
+  // On the acre command-center host, the root is the app — never marketing.
+  // Signed out → login page; signed in → console.
+  if (isAcreHost && pathname === "/") {
+    return NextResponse.redirect(new URL(user ? "/console" : "/login", request.url));
+  }
 
   // Already signed in and hitting /login → send to the command center.
   if (user && pathname === "/login") {
