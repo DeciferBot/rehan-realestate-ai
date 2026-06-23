@@ -67,7 +67,7 @@ export default function AitaasFooter() {
             <div>
               <div className="cf-brand">Acre</div>
               <p className="cf-blurb">
-                AI sales agents for real estate brokerages across the UAE and GCC. They call, WhatsApp, and email every lead in their language, qualify, book viewings, and hand hot buyers to your closers.
+                AI sales agents for real estate developers, brokers, and institutional landlords across the UAE and GCC. They call, WhatsApp, and email every lead in their language, qualify, book viewings, and hand hot buyers to your closers.
               </p>
             </div>
             <div>
