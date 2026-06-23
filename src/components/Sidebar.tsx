@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
+import { useSidebar } from "@/components/sidebar-context";
 import {
   LayoutDashboard, Users, Building2, Phone, Calendar,
   FolderOpen, Settings, LogOut, Inbox, Bot, Layers,
@@ -28,15 +29,17 @@ const agents = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { open, setOpen } = useSidebar();
 
   async function signOut() {
+    setOpen(false);
     await getSupabaseBrowser().auth.signOut();
     router.replace("/login");
     router.refresh();
   }
 
   return (
-    <aside style={{
+    <aside className={`app-sidebar${open ? " open" : ""}`} style={{
       position: "fixed",
       left: 0, top: 0,
       width: "var(--sidebar-w)",
@@ -105,7 +108,7 @@ export default function Sidebar() {
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
-            <Link key={href} href={href} className={`nav-item${active ? " active" : ""}`}>
+            <Link key={href} href={href} onClick={() => setOpen(false)} className={`nav-item${active ? " active" : ""}`}>
               <Icon size={15} strokeWidth={active ? 2 : 1.5} style={{ flexShrink: 0 }} />
               <span>{label}</span>
             </Link>

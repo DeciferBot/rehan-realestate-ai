@@ -25,11 +25,11 @@
   --muted:          oklch(0.82 0.005 55);
   --dim:            oklch(0.60 0.005 55);
 
-  /* Primary: crimson — live/active states, primary CTAs */
-  --primary:        oklch(0.58 0.185 13);
-  --primary-hover:  oklch(0.52 0.178 13);
-  --primary-dim:    oklch(0.58 0.185 13 / 0.13);
-  --primary-border: oklch(0.58 0.185 13 / 0.32);
+  /* Primary: copper — matches marketing brand (--c-copper, hue 34) */
+  --primary:        oklch(0.62 0.16 34);
+  --primary-hover:  oklch(0.56 0.155 34);
+  --primary-dim:    oklch(0.62 0.16 34 / 0.13);
+  --primary-border: oklch(0.62 0.16 34 / 0.32);
 
   /* Accent: amber — financial, pipeline */
   --accent:         oklch(0.77 0.088 52);
@@ -79,11 +79,11 @@ main {
   --muted:          oklch(0.44 0.012 55);
   --dim:            oklch(0.63 0.014 55);
 
-  /* Primary: crimson — deeper for light mode contrast */
-  --primary:        oklch(0.50 0.200 13);
-  --primary-hover:  oklch(0.44 0.192 13);
-  --primary-dim:    oklch(0.50 0.200 13 / 0.09);
-  --primary-border: oklch(0.50 0.200 13 / 0.25);
+  /* Primary: copper — deeper for light mode, matches marketing brand */
+  --primary:        oklch(0.55 0.16 34);
+  --primary-hover:  oklch(0.49 0.155 34);
+  --primary-dim:    oklch(0.55 0.16 34 / 0.09);
+  --primary-border: oklch(0.55 0.16 34 / 0.25);
 
   /* Accent: amber — deeper for light mode */
   --accent:         oklch(0.50 0.140 52);
@@ -137,9 +137,9 @@ html, body {
 }
 
 @keyframes ring-pulse {
-  0%   { box-shadow: 0 0 0 0   oklch(0.58 0.185 13 / 0.5); }
-  70%  { box-shadow: 0 0 0 8px oklch(0.58 0.185 13 / 0); }
-  100% { box-shadow: 0 0 0 0   oklch(0.58 0.185 13 / 0); }
+  0%   { box-shadow: 0 0 0 0   oklch(0.58 0.16 34 / 0.5); }
+  70%  { box-shadow: 0 0 0 8px oklch(0.58 0.16 34 / 0); }
+  100% { box-shadow: 0 0 0 0   oklch(0.58 0.16 34 / 0); }
 }
 
 @keyframes ring-pulse-green {
@@ -288,7 +288,7 @@ html, body {
 .btn-ghost:hover        { background: var(--surface-3); color: var(--ink); }
 
 .btn-outline-primary         { background: var(--primary-dim); color: var(--primary); border-color: var(--primary-border); }
-.btn-outline-primary:hover   { background: oklch(0.58 0.185 13 / 0.20); }
+.btn-outline-primary:hover   { background: oklch(0.58 0.16 34 / 0.20); }
 
 .btn-outline-success         { background: var(--success-dim); color: var(--success); border-color: var(--success-border); }
 .btn-outline-warning         { background: var(--warning-dim); color: var(--warning); border-color: var(--warning-border); }
@@ -356,7 +356,7 @@ html, body {
 
 .search-input:focus {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px oklch(0.58 0.185 13 / 0.07);
+  box-shadow: 0 0 0 3px oklch(0.58 0.16 34 / 0.07);
 }
 
 /* Filter pills */
@@ -477,3 +477,54 @@ html, body {
 
 .call-ring       { animation: ring-pulse 2s ease-out infinite; }
 .call-ring-green { animation: ring-pulse-green 2s ease-out infinite; }
+
+/* ─────────────────────────────────────────────────
+   RESPONSIVE APP SHELL
+   Desktop: fixed sidebar rail + offset content.
+   Mobile (<=900px): sidebar becomes an off-canvas drawer
+   toggled by the header menu button, content goes full-width.
+───────────────────────────────────────────────── */
+
+.app-main {
+  margin-left: var(--sidebar-w);
+  min-height: 100dvh;
+}
+
+/* Menu button + overlay only matter on mobile */
+.menu-btn { display: none; }
+.app-overlay { display: none; }
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: none;
+  }
+  .app-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+  }
+  .app-main {
+    margin-left: 0;
+  }
+  .app-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 39;
+    animation: fade-in 0.2s ease both;
+  }
+  .menu-btn {
+    display: inline-flex;
+  }
+  .header-pad {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Hide the header search on small phones to keep controls on one line */
+@media (max-width: 560px) {
+  .header-search { display: none !important; }
+}

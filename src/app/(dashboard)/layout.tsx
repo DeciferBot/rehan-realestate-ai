@@ -1,12 +1,5 @@
-import Sidebar from "@/components/Sidebar";
+import DashboardShell from "@/components/DashboardShell";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Sidebar />
-      <main style={{ marginLeft: "var(--sidebar-w)", minHeight: "100dvh" }}>
-        {children}
-      </main>
-    </>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }

@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, Menu } from "lucide-react";
+import { useSidebar } from "@/components/sidebar-context";
 
 export default function Header({ title, subtitle }: { title: string; subtitle?: string }) {
   const [query, setQuery] = useState("");
+  const { setOpen } = useSidebar();
 
   return (
-    <header style={{
+    <header className="header-pad" style={{
       position: "sticky",
       top: 0,
       zIndex: 30,
@@ -17,37 +19,63 @@ export default function Header({ title, subtitle }: { title: string; subtitle?: 
       alignItems: "center",
       justifyContent: "space-between",
       padding: "0 28px",
+      gap: 12,
     }}>
 
-      {/* Title */}
-      <div>
-        <h1 style={{
-          fontSize: 15,
-          fontWeight: 600,
-          color: "var(--ink)",
-          lineHeight: 1,
-          letterSpacing: "-0.01em",
-          fontFamily: "var(--font-sans)",
-        }}>
-          {title}
-        </h1>
-        {subtitle && (
-          <p style={{
-            fontSize: 11,
-            color: "var(--dim)",
-            marginTop: 3,
+      {/* Title + mobile menu */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+        <button
+          className="menu-btn"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          style={{
+            width: 34, height: 34,
+            borderRadius: 8,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            alignItems: "center", justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--muted)",
+            flexShrink: 0,
+          }}
+        >
+          <Menu size={17} strokeWidth={1.75} />
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--ink)",
+            lineHeight: 1,
+            letterSpacing: "-0.01em",
             fontFamily: "var(--font-sans)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}>
-            {subtitle}
-          </p>
-        )}
+            {title}
+          </h1>
+          {subtitle && (
+            <p style={{
+              fontSize: 11,
+              color: "var(--dim)",
+              marginTop: 3,
+              fontFamily: "var(--font-sans)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Right controls */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 
         {/* Search */}
-        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <div className="header-search" style={{ position: "relative", display: "flex", alignItems: "center" }}>
           <Search
             size={12}
             style={{
