@@ -214,5 +214,25 @@ export async function generateAgentReply(
     payload: { model: cfg.model || MODEL },
   });
 
+  // Real delivery: if this conversation is on email, actually send the reply.
+  if (channel === "email") {
+    const { data: idn } = await sb
+      .from("contact_identities")
+      .select("value")
+      .eq("tenant_id", tenantId)
+      .eq("contact_id", cvRow.contact_id)
+      .eq("channel", "email")
+      .limit(1)
+      .maybeSingle();
+    const to = (idn as { value?: string } | null)?.value;
+    if (to) {
+      const sent = await sendEmail({ to, subject: threadSubject(contact.full_name, (count ?? 0) > 0), text });
+      await sb
+        .from("messages")
+        .update({ meta: { model: cfg.model || MODEL, author: "ai", email: sent } })
+        .eq("id", (inserted as { id: string }).id);
+    }
+  }
+
   return { text, messageId: (inserted as { id: string }).id };
 }

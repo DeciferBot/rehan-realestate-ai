@@ -69,9 +69,9 @@ export default async function Dashboard() {
               <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Conversion pipeline</span>
               <span style={{ fontSize: 11, color: "var(--dim)" }}>All time</span>
             </div>
-            <div style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
+            <div style={{ display: "flex", alignItems: "stretch", gap: 4, overflowX: "auto", paddingBottom: 2 }}>
               {s.funnel.map((step, i) => (
-                <div key={step.label} style={{ display: "flex", alignItems: "center", flex: i === 0 ? 1.5 : 1 }}>
+                <div key={step.label} style={{ display: "flex", alignItems: "center", flex: i === 0 ? 1.5 : 1, minWidth: i === 0 ? 116 : 92 }}>
                   <div style={{ flex: 1, padding: "14px 14px 12px", background: `color-mix(in oklch, var(--surface-2) ${Math.round((1 - i * 0.17) * 100)}%, var(--bg))`, borderRadius: 8, border: "1px solid var(--border)", position: "relative", overflow: "hidden" }}>
                     {i === s.funnel.length - 1 && step.count > 0 && (
                       <div style={{ position: "absolute", inset: 0, background: "var(--success-dim)", borderRadius: 8 }} />
