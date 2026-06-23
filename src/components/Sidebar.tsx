@@ -3,11 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Building2, Phone, Calendar,
-  FolderOpen, Settings, LogOut,
+  FolderOpen, Settings, LogOut, Inbox,
 } from "lucide-react";
 
 const navItems = [
   { href: "/",              label: "Dashboard",     icon: LayoutDashboard },
+  { href: "/inbox",         label: "Conversations", icon: Inbox },
   { href: "/leads",         label: "Leads",         icon: Users },
   { href: "/properties",    label: "Properties",    icon: Building2 },
   { href: "/agent-console", label: "Agent Console", icon: Phone },
