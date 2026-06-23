@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
+import { sendEmail, threadSubject } from "./email";
 
 /**
  * Server-side access to the multi-tenant platform spine
@@ -277,4 +278,18 @@ export async function postHumanMessage(
     type: "human_reply",
     payload: { channel: ch },
   });
+
+  // Real delivery for operator take-over over email.
+  if (ch === "email") {
+    const { data: idn } = await sb
+      .from("contact_identities")
+      .select("value")
+      .eq("tenant_id", tenantId)
+      .eq("contact_id", cv.contact_id)
+      .eq("channel", "email")
+      .limit(1)
+      .maybeSingle();
+    const to = (idn as { value?: string } | null)?.value;
+    if (to) await sendEmail({ to, subject: threadSubject("", true), text: body });
+  }
 }

@@ -2,6 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
+import { sendEmail, threadSubject } from "./email";
 
 /**
  * The agent runtime — the brain of the command center.

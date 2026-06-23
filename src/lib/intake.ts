@@ -132,3 +132,45 @@ export async function intakeLead(input: IntakeInput): Promise<IntakeResult> {
   }
   return result;
 }
+
+/**
+ * Inbound email → conversation. Resolves (or creates) the contact, appends the
+ * lead's inbound message, then has the agent reply (which sends a real email).
+ */
+export async function handleInboundEmail(input: {
+  fromEmail: string;
+  fromName?: string;
+  text: string;
+}): Promise<{ contactId: string; conversationId: string; created: boolean; agentReply: string }> {
+  const { contactId, conversationId, created } = await intakeLead({
+    name: input.fromName?.trim() || input.fromEmail,
+    email: input.fromEmail,
+    channel: "email",
+    source: "Email",
+    autoEngage: false,
+  });
+
+  const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
+  const { count } = await sb
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("conversation_id", conversationId);
+  const now = new Date().toISOString();
+  await sb.from("messages").insert({
+    tenant_id: tenantId,
+    conversation_id: conversationId,
+    contact_id: contactId,
+    channel: "email",
+    direction: "inbound",
+    role: "contact",
+    body: input.text,
+    seq: (count ?? 0) + 1,
+    meta: { author: "lead" },
+    created_at: now,
+  });
+  await sb.from("conversations").update({ last_channel: "email", last_message_at: now }).eq("id", conversationId);
+
+  const { text } = await generateAgentReply(conversationId);
+  return { contactId, conversationId, created, agentReply: text };
+}
