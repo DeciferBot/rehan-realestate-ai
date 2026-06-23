@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Building2, Phone, Calendar,
-  FolderOpen, Settings, LogOut, Inbox, Bot,
+  FolderOpen, Settings, LogOut, Inbox, Bot, Layers,
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/agent-console", label: "Agent Console", icon: Phone },
   { href: "/appointments",  label: "Appointments",  icon: Calendar },
   { href: "/developers",    label: "Developers",    icon: FolderOpen },
+  { href: "/settings/inventory", label: "Inventory", icon: Layers },
   { href: "/settings/agent", label: "Agent Setup",  icon: Bot },
 ];
 

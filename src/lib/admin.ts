@@ -122,4 +122,55 @@ export async function updateAgentConfig(patch: AgentConfigPatch): Promise<void> 
   if (error) throw error;
 }
 
+export type InventoryProject = {
+  id: string;
+  name: string;
+  developer: string;
+  location: string;
+  completion: string;
+  units: number;
+  bedsMin: number;
+  bedsMax: number;
+  priceMin: number;
+  priceMax: number;
+};
+
+export async function getInventoryProjects(): Promise<InventoryProject[]> {
+  const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
+  const { data: projects } = await sb
+    .from("projects")
+    .select("id,name,developer,location,completion")
+    .eq("tenant_id", tenantId)
+    .order("developer")
+    .order("name");
+  const { data: units } = await sb
+    .from("units")
+    .select("project_id,bedrooms,price")
+    .eq("tenant_id", tenantId);
+
+  type P = { id: string; name: string; developer: string; location: string; completion: string };
+  type U = { project_id: string; bedrooms: number; price: number };
+  const projRows = (projects ?? []) as unknown as P[];
+  const unitRows = (units ?? []) as unknown as U[];
+
+  return projRows.map((p) => {
+    const us = unitRows.filter((u) => u.project_id === p.id);
+    const beds = us.map((u) => u.bedrooms).filter((n) => typeof n === "number");
+    const prices = us.map((u) => Number(u.price)).filter((n) => !Number.isNaN(n));
+    return {
+      id: p.id,
+      name: p.name,
+      developer: p.developer,
+      location: p.location,
+      completion: p.completion,
+      units: us.length,
+      bedsMin: beds.length ? Math.min(...beds) : 0,
+      bedsMax: beds.length ? Math.max(...beds) : 0,
+      priceMin: prices.length ? Math.min(...prices) : 0,
+      priceMax: prices.length ? Math.max(...prices) : 0,
+    };
+  });
+}
+
 export { ACTIVE_TENANT_SLUG };
