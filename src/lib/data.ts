@@ -45,7 +45,8 @@ export type Property = {
   description: string;
   amenities: string[];
   floors: string;
-  unitCount: number; // how many available units share this listing (same project/type/beds/sqft/price)
+  unitCount: number; // how many available units share this floorplan (same project/type/beds/sqft)
+  priceFrom: boolean; // true when units in the group have differing prices → show "From AED …"
 };
 
 export type Appointment = {
@@ -191,21 +192,29 @@ function rowToProperty(r: UnitRow, fallbackImage: string): Property {
     amenities: r.amenities ?? [],
     floors: r.floors ?? "",
     unitCount: 1,
+    priceFrom: false,
   };
 }
 
-// Collapse units that are the same listing (same project/type/beds/sqft/price)
-// into one card carrying an availability count, so identical plots don't render
-// as a wall of duplicate cards. Insertion order (price asc) is preserved.
+// Collapse units of the same floorplan (same project/type/beds/sqft) into one
+// listing card carrying an availability count, so near-identical plots — which
+// often differ only by a few thousand AED (different floor/plot) and render as
+// the same rounded "AED 2.0M" — don't appear as duplicate cards. The cheapest
+// unit represents the group; if prices differ the card shows "From AED …".
+// Input is price-ascending, so the first unit seen per group is the cheapest.
 function groupListings(props: Property[]): Property[] {
-  const groups = new Map<string, Property>();
+  const groups = new Map<string, { rep: Property; prices: Set<number> }>();
   for (const p of props) {
-    const key = `${p.name}|${p.type}|${p.bedrooms}|${p.sqft}|${p.price}`;
-    const existing = groups.get(key);
-    if (existing) existing.unitCount += 1;
-    else groups.set(key, { ...p });
+    const key = `${p.name}|${p.type}|${p.bedrooms}|${p.sqft}`;
+    const g = groups.get(key);
+    if (g) {
+      g.rep.unitCount += 1;
+      g.prices.add(p.price);
+    } else {
+      groups.set(key, { rep: { ...p }, prices: new Set([p.price]) });
+    }
   }
-  return [...groups.values()];
+  return [...groups.values()].map(({ rep, prices }) => ({ ...rep, priceFrom: prices.size > 1 }));
 }
 
 export async function getProperties(): Promise<Property[]> {

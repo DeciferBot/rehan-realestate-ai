@@ -102,7 +102,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
                   </Row>
                   <Stack gap={1}>
                     <Text mono weight="bold" style={{ fontSize: "var(--text-2xl)", color: "white", lineHeight: 1 }}>
-                      AED {(p.price / 1_000_000).toFixed(1)}M
+                      {p.priceFrom ? "From " : ""}AED {(p.price / 1_000_000).toFixed(1)}M
                     </Text>
                     <Text size="xs" style={{ color: "rgba(255,255,255,0.55)" }}>
                       {p.completion !== "Ready" ? `Ready: ${p.completion}` : "✓ Ready to move"}
