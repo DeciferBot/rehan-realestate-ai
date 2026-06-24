@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send, CornerUpLeft } from "lucide-react";
+import { Row, Text, Textarea, Button } from "@/ui";
 
 export default function Composer({
   conversationId,
@@ -37,16 +38,16 @@ export default function Composer({
   }
 
   return (
-    <div style={{ borderTop: "1px solid var(--border)", padding: "12px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-        <CornerUpLeft size={11} style={{ color: "var(--dim)" }} />
-        <span style={{ fontSize: 11, color: "var(--dim)" }}>
+    <div className="u-composer">
+      <Row gap={2}>
+        <CornerUpLeft size={11} className="u-tone-dim" />
+        <Text size="xs" tone="dim">
           Human take-over{channel ? ` · replying over ${channel}` : ""}
-        </span>
-      </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-        <textarea
-          className="search-input"
+        </Text>
+      </Row>
+      <Row gap={3} align="flex-end">
+        <Textarea
+          className="u-grow"
           value={body}
           onChange={(e) => setBody(e.target.value)}
           onKeyDown={(e) => {
@@ -54,19 +55,12 @@ export default function Composer({
           }}
           placeholder="Type a reply… (⌘↵ to send)"
           rows={2}
-          style={{ flex: 1, resize: "none", paddingTop: 8, paddingBottom: 8, lineHeight: 1.4 }}
         />
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={send}
-          disabled={sending || !body.trim()}
-          style={{ justifyContent: "center", opacity: sending || !body.trim() ? 0.6 : 1 }}
-        >
-          <Send size={13} />
+        <Button variant="primary" size="sm" loading={sending} disabled={!body.trim()} onClick={send} icon={<Send size={13} />}>
           {sending ? "Sending" : "Send"}
-        </button>
-      </div>
-      {error && <div style={{ fontSize: 11, color: "var(--primary)", marginTop: 6 }}>{error}</div>}
+        </Button>
+      </Row>
+      {error && <Text size="xs" tone="primary">{error}</Text>}
     </div>
   );
 }

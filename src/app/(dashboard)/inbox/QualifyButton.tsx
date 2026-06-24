@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Gauge } from "lucide-react";
+import { Row, Button, Text } from "@/ui";
 
 export default function QualifyButton({ conversationId }: { conversationId: string }) {
   const router = useRouter();
@@ -32,22 +33,11 @@ export default function QualifyButton({ conversationId }: { conversationId: stri
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      {error && <span style={{ fontSize: 11, color: "var(--primary)" }}>{error}</span>}
-      <button
-        className="btn btn-sm"
-        onClick={run}
-        disabled={running}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 6,
-          padding: "6px 12px", borderRadius: 7,
-          background: "var(--surface-2)", border: "1px solid var(--border)",
-          color: "var(--muted)", fontWeight: 500, opacity: running ? 0.6 : 1,
-        }}
-      >
-        <Gauge size={13} />
+    <Row gap={2}>
+      {error && <Text size="xs" tone="primary">{error}</Text>}
+      <Button variant="subtle" size="sm" loading={running} onClick={run} icon={<Gauge size={13} />}>
         {running ? "Assessing…" : "Assess"}
-      </button>
-    </div>
+      </Button>
+    </Row>
   );
 }

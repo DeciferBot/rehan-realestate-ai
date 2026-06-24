@@ -55,6 +55,71 @@
   /* Layout */
   --sidebar-w: 256px;
   --header-h:  56px;
+
+  /* Spacing scale — 4px base. Use instead of inline magic numbers. */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 28px;
+  --space-12: 36px;
+  --space-16: 48px;
+
+  /* Type scale — fixed rem (product UI), 1.18 ratio. */
+  --text-2xs: 0.625rem;   /* 10px */
+  --text-xs:  0.6875rem;  /* 11px */
+  --text-sm:  0.75rem;    /* 12px */
+  --text-base:0.8125rem;  /* 13px — default body */
+  --text-md:  0.875rem;   /* 14px */
+  --text-lg:  0.9375rem;  /* 15px */
+  --text-xl:  1.1875rem;  /* 19px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --leading-tight:  1.1;
+  --leading-snug:   1.35;
+  --leading-normal: 1.5;
+  --weight-normal:  400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  /* Radii */
+  --radius-xs:   4px;
+  --radius-sm:   7px;
+  --radius-md:   10px;
+  --radius-lg:   12px;
+  --radius-pill: 999px;
+
+  /* Shadows — restrained; never paired with a 1px border on the same element. */
+  --shadow-sm:  0 1px 2px oklch(0 0 0 / 0.20);
+  --shadow-md:  0 6px 20px oklch(0 0 0 / 0.30);
+  --shadow-pop: 0 10px 36px oklch(0 0 0 / 0.44);
+
+  /* Motion — strong custom curves (Emil), product durations (<300ms). */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-instant: 100ms;
+  --dur-fast:    150ms;
+  --dur-base:    200ms;
+  --dur-slow:    280ms;
+
+  /* Z-index scale — semantic, never arbitrary 999. */
+  --z-base:     1;
+  --z-overlay:  39;
+  --z-drawer:   40;
+  --z-sticky:   30;
+  --z-dropdown: 60;
+  --z-modal:    80;
+  --z-toast:    100;
+  --z-tooltip:  120;
+
+  /* Focus ring */
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary-border);
 }
 
 /* ─────────────────────────────────────────────────
