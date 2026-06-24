@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
 import { whatsappShareUrl } from "@/lib/share";
 import { MapPin, Bed, Square, TrendingUp, Send, Search } from "lucide-react";
-import { Stack, Row, Text, Card, Badge, Button, Input, Chip } from "@/ui";
+import { Stack, Row, Text, Card, Badge, Button, Input, Select } from "@/ui";
 
 const devBadgeTone: Record<string, "info" | "success" | "purple" | "accent" | "warning"> = {
   "Emaar Properties": "info",
@@ -25,25 +25,41 @@ const areaBg: Record<string, string> = {
   valley:   "oklch(0.23 0.028 148)",
 };
 
+const PRICE_BANDS: { value: string; label: string; test: (n: number) => boolean }[] = [
+  { value: "0-2",  label: "Under AED 2M", test: n => n < 2_000_000 },
+  { value: "2-5",  label: "AED 2–5M",     test: n => n >= 2_000_000 && n < 5_000_000 },
+  { value: "5-10", label: "AED 5–10M",    test: n => n >= 5_000_000 && n < 10_000_000 },
+  { value: "10+",  label: "AED 10M+",     test: n => n >= 10_000_000 },
+];
+
 export default function PropertiesClient({ properties }: { properties: Property[] }) {
   const router = useRouter();
-  const [devFilter,  setDevFilter]  = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [search,     setSearch]     = useState("");
+  const [devFilter,       setDevFilter]       = useState("All");
+  const [communityFilter, setCommunityFilter] = useState("All");
+  const [typeFilter,      setTypeFilter]      = useState("All");
+  const [bedsFilter,      setBedsFilter]      = useState("All");
+  const [priceFilter,     setPriceFilter]     = useState("All");
+  const [search,          setSearch]          = useState("");
 
   function shareOnWhatsApp(p: Property) {
     const url = `${window.location.origin}/properties/${p.id}`;
     window.open(whatsappShareUrl(p, url), "_blank", "noopener,noreferrer");
   }
 
-  const developers = ["All", ...Array.from(new Set(properties.map(p => p.developer)))];
-  const types = ["All", "Apartment", "Villa", "Townhouse"];
+  // Filter options derived from the live inventory so they never go stale.
+  const developers  = Array.from(new Set(properties.map(p => p.developer))).sort();
+  const communities = Array.from(new Set(properties.map(p => p.location))).sort();
+  const types       = Array.from(new Set(properties.map(p => p.type))).sort();
+  const bedOptions  = Array.from(new Set(properties.map(p => p.bedrooms))).sort((a, b) => a - b);
 
+  const q = search.trim().toLowerCase();
   const filtered = properties.filter(p =>
-    (devFilter  === "All" || p.developer === devFilter) &&
-    (typeFilter === "All" || p.type      === typeFilter) &&
-    (p.name.toLowerCase().includes(search.toLowerCase()) ||
-     p.location.toLowerCase().includes(search.toLowerCase()))
+    (devFilter       === "All" || p.developer === devFilter) &&
+    (communityFilter === "All" || p.location  === communityFilter) &&
+    (typeFilter      === "All" || p.type      === typeFilter) &&
+    (bedsFilter      === "All" || p.bedrooms  === Number(bedsFilter)) &&
+    (priceFilter     === "All" || !!PRICE_BANDS.find(b => b.value === priceFilter)?.test(p.price)) &&
+    (q === "" || p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q))
   );
 
   return (
@@ -52,7 +68,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
       <Stack gap={8} style={{ padding: "var(--space-9) var(--space-10)" }}>
 
         {/* Filters */}
-        <Row gap={4} wrap>
+        <Row gap={3} wrap align="center">
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <Search size={12} style={{ position: "absolute", left: "var(--space-4)", color: "var(--dim)", pointerEvents: "none" }} />
             <Input
@@ -65,19 +81,32 @@ export default function PropertiesClient({ properties }: { properties: Property[
 
           <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
 
-          <Row gap={2} wrap>
-            {developers.map(d => (
-              <Chip key={d} on={devFilter === d} onClick={() => setDevFilter(d)}>{d}</Chip>
-            ))}
-          </Row>
+          {developers.length > 1 && (
+            <Select value={devFilter} onChange={e => setDevFilter(e.target.value)} aria-label="Developer">
+              <option value="All">All developers</option>
+              {developers.map(d => <option key={d} value={d}>{d}</option>)}
+            </Select>
+          )}
 
-          <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
+          <Select value={communityFilter} onChange={e => setCommunityFilter(e.target.value)} aria-label="Community">
+            <option value="All">All communities</option>
+            {communities.map(c => <option key={c} value={c}>{c}</option>)}
+          </Select>
 
-          <Row gap={2}>
-            {types.map(t => (
-              <Chip key={t} on={typeFilter === t} onClick={() => setTypeFilter(t)}>{t}</Chip>
-            ))}
-          </Row>
+          <Select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} aria-label="Property type">
+            <option value="All">Any type</option>
+            {types.map(t => <option key={t} value={t}>{t}</option>)}
+          </Select>
+
+          <Select value={bedsFilter} onChange={e => setBedsFilter(e.target.value)} aria-label="Bedrooms">
+            <option value="All">Any beds</option>
+            {bedOptions.map(b => <option key={b} value={b}>{b} BR</option>)}
+          </Select>
+
+          <Select value={priceFilter} onChange={e => setPriceFilter(e.target.value)} aria-label="Price">
+            <option value="All">Any price</option>
+            {PRICE_BANDS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+          </Select>
         </Row>
 
         {/* Grid */}
