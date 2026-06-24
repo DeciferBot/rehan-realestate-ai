@@ -3,6 +3,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AgentConfig, TenantInfo } from "@/lib/admin";
 import { Bot, Save, Check, Globe, Phone, MessageSquare, Mail, X, Plus, Building2, Users, Layers } from "lucide-react";
+import {
+  Stack, Row, Text, Heading, Card, CardHeader, CardBody,
+  Badge, StatusDot, Field, Input, Textarea, Select, Chip, Button, IconButton,
+} from "@/ui";
 
 const LANG_OPTIONS = ["Arabic", "English", "Hindi", "Russian", "Mandarin", "Urdu", "French", "Spanish"];
 const MODEL_OPTIONS = [
@@ -16,24 +20,6 @@ const CHANNELS = [
   { key: "email", label: "Email", icon: <Mail size={13} /> },
 ];
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 6,
-        padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer",
-        background: active ? "var(--primary-dim)" : "var(--surface-2)",
-        border: `1px solid ${active ? "var(--primary-border)" : "var(--border)"}`,
-        color: active ? "var(--primary)" : "var(--muted)",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
 function TagInput({ tags, setTags, placeholder }: { tags: string[]; setTags: (t: string[]) => void; placeholder: string }) {
   const [val, setVal] = useState("");
   const add = () => {
@@ -42,40 +28,26 @@ function TagInput({ tags, setTags, placeholder }: { tags: string[]; setTags: (t:
     setVal("");
   };
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+    <Row gap={3} wrap align="center">
       {tags.map((t) => (
-        <span key={t} style={{
-          display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 9px", borderRadius: 7,
-          background: "var(--surface-2)", border: "1px solid var(--border)", fontSize: 12, color: "var(--ink)",
-        }}>
-          {t}
-          <X size={11} style={{ cursor: "pointer", color: "var(--dim)" }} onClick={() => setTags(tags.filter((x) => x !== t))} />
-        </span>
+        <Chip key={t} on>
+          <Text size="xs">{t}</Text>
+          <IconButton label={`Remove ${t}`} onClick={() => setTags(tags.filter((x) => x !== t))}>
+            <X size={11} />
+          </IconButton>
+        </Chip>
       ))}
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-        <input
-          className="search-input"
+      <Row gap={2} align="center">
+        <Input
           value={val}
           onChange={(e) => setVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); } }}
           placeholder={placeholder}
-          style={{ width: 150, padding: "6px 10px" }}
+          style={{ width: "10rem" }}
         />
-        <button type="button" className="btn btn-ghost btn-sm" onClick={add}><Plus size={12} /></button>
-      </span>
-    </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{label}</div>
-        {hint && <div style={{ fontSize: 11, color: "var(--dim)", marginTop: 2 }}>{hint}</div>}
-      </div>
-      {children}
-    </div>
+        <Button variant="ghost" size="sm" onClick={add} icon={<Plus size={12} />} />
+      </Row>
+    </Row>
   );
 }
 
@@ -116,102 +88,118 @@ export default function AgentConfigClient({ config, tenant }: { config: AgentCon
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "9px 12px", fontSize: 13, color: "var(--ink)",
-    background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 8,
-  };
+  const stats = [
+    { icon: <Users size={13} />, n: tenant.contacts, l: "leads" },
+    { icon: <Building2 size={13} />, n: tenant.projects, l: "projects" },
+    { icon: <Layers size={13} />, n: tenant.units, l: "units" },
+  ];
 
   return (
-    <div style={{ padding: "24px 28px", maxWidth: 760 }}>
+    <Stack gap={8} style={{ padding: "var(--space-9) var(--space-9)", maxWidth: "47.5rem" }}>
       {/* Tenant card */}
-      <div className="panel-lg" style={{ padding: 18, marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{
-          width: 44, height: 44, borderRadius: 10, background: "var(--primary)",
-          display: "flex", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0,
-        }}>
-          <Bot size={22} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{tenant.name}</div>
-          <div style={{ fontSize: 12, color: "var(--dim)" }}>Tenant · {tenant.slug}</div>
-        </div>
-        <div style={{ display: "flex", gap: 18 }}>
-          {[
-            { icon: <Users size={13} />, n: tenant.contacts, l: "leads" },
-            { icon: <Building2 size={13} />, n: tenant.projects, l: "projects" },
-            { icon: <Layers size={13} />, n: tenant.units, l: "units" },
-          ].map((s) => (
-            <div key={s.l} style={{ textAlign: "center" }}>
-              <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{s.n}</div>
-              <div style={{ fontSize: 10, color: "var(--dim)", display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>{s.icon}{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="panel-lg" style={{ padding: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Agent configuration</div>
-          <button type="button" onClick={() => setActive(!active)}
-            className={`badge ${active ? "badge-success" : "badge-muted"}`}
-            style={{ cursor: "pointer", padding: "4px 10px" }}>
-            {active ? "● Active" : "○ Inactive"}
-          </button>
-        </div>
-
-        <Field label="Agent name">
-          <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
-
-        <Field label="Model" hint="Which Claude model powers this tenant's agent.">
-          <select style={inputStyle} value={model} onChange={(e) => setModel(e.target.value)}>
-            {MODEL_OPTIONS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-          </select>
-        </Field>
-
-        <Field label="Languages" hint="The agent replies in the lead's language.">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {LANG_OPTIONS.map((l) => (
-              <Chip key={l} active={languages.includes(l)} onClick={() => toggle(languages, setLanguages, l)}>
-                <Globe size={12} />{l}
-              </Chip>
-            ))}
+      <Card pad>
+        <Row gap={7} align="center">
+          <div
+            style={{
+              width: "2.75rem", height: "2.75rem", borderRadius: "var(--radius-4)", background: "var(--primary)",
+              display: "flex", alignItems: "center", justifyContent: "center", color: "white", flexShrink: 0,
+            }}
+          >
+            <Bot size={22} />
           </div>
-        </Field>
-
-        <Field label="Channels" hint="Where this agent engages leads. Each is a pluggable adapter.">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {CHANNELS.map((c) => (
-              <Chip key={c.key} active={channels.includes(c.key)} onClick={() => toggle(channels, setChannels, c.key)}>
-                {c.icon}{c.label}{c.note && <span style={{ fontSize: 10, opacity: 0.7 }}>· {c.note}</span>}
-              </Chip>
+          <Stack gap={1} className="u-grow">
+            <Text size="lg" weight="semibold">{tenant.name}</Text>
+            <Text size="xs" tone="dim">Tenant · {tenant.slug}</Text>
+          </Stack>
+          <Row gap={8}>
+            {stats.map((s) => (
+              <Stack key={s.l} gap={1} style={{ alignItems: "center", textAlign: "center" }}>
+                <Text size="lg" weight="bold" mono>{s.n}</Text>
+                <Row gap={1} align="center">{s.icon}<Text size="2xs" tone="dim">{s.l}</Text></Row>
+              </Stack>
             ))}
-          </div>
-        </Field>
+          </Row>
+        </Row>
+      </Card>
 
-        <Field label="Persona" hint="One line on how the agent should come across.">
-          <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 56, lineHeight: 1.5 }} value={persona} onChange={(e) => setPersona(e.target.value)} />
-        </Field>
+      <Card>
+        <CardHeader>
+          <Row between align="center">
+            <Heading size="md" as="h2">Agent configuration</Heading>
+            <button
+              type="button"
+              onClick={() => setActive(!active)}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+            >
+              <Badge tone={active ? "success" : "neutral"}>
+                <StatusDot state={active ? "live" : "idle"} />
+                {active ? "Active" : "Inactive"}
+              </Badge>
+            </button>
+          </Row>
+        </CardHeader>
+        <CardBody>
+          <Stack gap={8}>
+            <Field label="Agent name">
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </Field>
 
-        <Field label="System prompt" hint="The core instructions the agent follows on every turn.">
-          <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 130, lineHeight: 1.5, fontFamily: "var(--font-mono, monospace)", fontSize: 12.5 }} value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} />
-        </Field>
+            <Field label="Model" hint="Which Claude model powers this tenant's agent.">
+              <Select value={model} onChange={(e) => setModel(e.target.value)}>
+                {MODEL_OPTIONS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+              </Select>
+            </Field>
 
-        <Field label="Qualification — capture" hint="What the agent works to learn from every lead.">
-          <TagInput tags={capture} setTags={setCapture} placeholder="add field…" />
-        </Field>
+            <Field label="Languages" hint="The agent replies in the lead's language.">
+              <Row gap={4} wrap>
+                {LANG_OPTIONS.map((l) => (
+                  <Chip key={l} on={languages.includes(l)} onClick={() => toggle(languages, setLanguages, l)}>
+                    <Globe size={12} />{l}
+                  </Chip>
+                ))}
+              </Row>
+            </Field>
 
-        <Field label="Escalation rules" hint="When the agent hands the lead to a human closer.">
-          <TagInput tags={escalateWhen} setTags={setEscalateWhen} placeholder="add condition…" />
-        </Field>
+            <Field label="Channels" hint="Where this agent engages leads. Each is a pluggable adapter.">
+              <Row gap={4} wrap>
+                {CHANNELS.map((c) => (
+                  <Chip key={c.key} on={channels.includes(c.key)} onClick={() => toggle(channels, setChannels, c.key)}>
+                    {c.icon}{c.label}{c.note && <Text size="2xs" tone="dim">· {c.note}</Text>}
+                  </Chip>
+                ))}
+              </Row>
+            </Field>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
-          <button className="btn btn-primary" onClick={save} disabled={saving} style={{ opacity: saving ? 0.6 : 1 }}>
-            {saved ? <Check size={14} /> : <Save size={14} />}{saved ? "Saved" : saving ? "Saving…" : "Save changes"}
-          </button>
-          {error && <span style={{ fontSize: 12, color: "var(--primary)" }}>{error}</span>}
-        </div>
-      </div>
-    </div>
+            <Field label="Persona" hint="One line on how the agent should come across.">
+              <Textarea value={persona} onChange={(e) => setPersona(e.target.value)} />
+            </Field>
+
+            <Field label="System prompt" hint="The core instructions the agent follows on every turn.">
+              <Textarea
+                className="u-text--mono"
+                style={{ minHeight: "8rem" }}
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+              />
+            </Field>
+
+            <Field label="Qualification — capture" hint="What the agent works to learn from every lead.">
+              <TagInput tags={capture} setTags={setCapture} placeholder="add field…" />
+            </Field>
+
+            <Field label="Escalation rules" hint="When the agent hands the lead to a human closer.">
+              <TagInput tags={escalateWhen} setTags={setEscalateWhen} placeholder="add condition…" />
+            </Field>
+
+            <Row gap={6} align="center">
+              <Button variant="primary" onClick={save} loading={saving} icon={saved ? <Check size={14} /> : <Save size={14} />}>
+                {saved ? "Saved" : saving ? "Saving…" : "Save changes"}
+              </Button>
+              {error && <Text size="xs" tone="primary">{error}</Text>}
+            </Row>
+          </Stack>
+        </CardBody>
+      </Card>
+    </Stack>
   );
 }

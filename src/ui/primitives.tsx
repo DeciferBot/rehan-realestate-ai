@@ -5,8 +5,16 @@ type Gap = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type Div = React.HTMLAttributes<HTMLDivElement>;
 
 /* ── Layout ── */
-export function Stack({ gap, className, children, ...rest }: { gap?: Gap } & Div) {
-  return <div className={cx("u-stack", gap && `u-gap-${gap}`, className)} {...rest}>{children}</div>;
+export function Stack({
+  gap, align, between, end, wrap, grow, className, children, style, ...rest
+}: { gap?: Gap; align?: CSSProperties["alignItems"]; between?: boolean; end?: boolean; wrap?: boolean; grow?: boolean } & Div) {
+  return (
+    <div
+      className={cx("u-stack", gap && `u-gap-${gap}`, between && "u-row--between", end && "u-row--end", wrap && "u-row--wrap", grow && "u-grow", className)}
+      style={align ? { alignItems: align, ...style } : style}
+      {...rest}
+    >{children}</div>
+  );
 }
 export function Row({
   gap, wrap, between, end, grow, align, className, children, style, ...rest

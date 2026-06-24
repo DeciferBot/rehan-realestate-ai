@@ -6,13 +6,18 @@ import {
   FolderOpen, RefreshCw, Plus, CheckCircle2, AlertCircle,
   Upload, Building2, TrendingUp, MapPin, Bed, Square,
 } from "lucide-react";
+import {
+  Stack, Row, Text, Card, Badge, Button, EmptyState, cx,
+} from "@/ui";
 
-const devBadgeClass: Record<string, string> = {
-  "Emaar Properties": "badge-info",
-  "Nakheel":          "badge-success",
-  "DAMAC Properties": "badge-purple",
-  "Sobha Realty":     "badge-accent",
-  "Meraas":           "badge-warning",
+type BadgeTone = "neutral" | "primary" | "accent" | "success" | "warning" | "info" | "purple";
+
+const devBadgeTone: Record<string, BadgeTone> = {
+  "Emaar Properties": "info",
+  "Nakheel":          "success",
+  "DAMAC Properties": "purple",
+  "Sobha Realty":     "accent",
+  "Meraas":           "warning",
 };
 
 const folders = ["Floor Plans", "Brochures", "Payment Plans", "Legal Documents", "Media Assets"];
@@ -29,222 +34,241 @@ export default function DevelopersClient({ developers, properties }: { developer
   return (
     <div>
       <Header title="Developer Portal" subtitle="Manage multi-developer portfolios & OneDrive sync" />
-      <div style={{ padding: "24px 28px" }}>
+      <div style={{ padding: "var(--space-9) var(--space-10)" }}>
 
         {/* OneDrive banner */}
-        <div className="panel" style={{
-          marginBottom: 20,
-          padding: "14px 18px",
-          background: "var(--info-dim)",
-          border: "1px solid oklch(0.42 0.130 245 / 0.28)",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          flexWrap: "wrap", gap: 12,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-              background: "var(--info-dim)", border: "1px solid oklch(0.42 0.130 245 / 0.28)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+        <Card
+          className="u-row--between u-row--wrap"
+          style={{
+            marginBottom: "var(--space-8)",
+            padding: "var(--space-6) var(--space-7)",
+            background: "var(--info-dim)",
+            borderColor: "oklch(0.42 0.130 245 / 0.28)",
+            gap: "var(--space-6)",
+          }}
+        >
+          <Row gap={6}>
+            <div
+              className="u-row"
+              style={{
+                width: "36px", height: "36px", borderRadius: "var(--radius-sm)", flexShrink: 0,
+                background: "var(--info-dim)", border: "1px solid oklch(0.42 0.130 245 / 0.28)",
+                justifyContent: "center",
+              }}
+            >
               <FolderOpen size={16} style={{ color: "var(--info)" }} />
             </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>OneDrive Integration Active</div>
-              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
-                4 of 5 developers synced · Last sync: 10 minutes ago
-              </div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-ghost btn-sm">
-              <RefreshCw size={13} />Sync all
-            </button>
-            <button className="btn btn-primary btn-sm">
-              <Plus size={13} />Add developer
-            </button>
-          </div>
-        </div>
+            <Stack gap={1}>
+              <Text size="sm" weight="semibold">OneDrive Integration Active</Text>
+              <Text size="xs" tone="muted">4 of 5 developers synced · Last sync: 10 minutes ago</Text>
+            </Stack>
+          </Row>
+          <Row gap={3}>
+            <Button variant="ghost" size="sm" icon={<RefreshCw size={13} />}>Sync all</Button>
+            <Button variant="primary" size="sm" icon={<Plus size={13} />}>Add developer</Button>
+          </Row>
+        </Card>
 
-        <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "var(--space-8)" }}>
 
           {/* Developer list */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6, letterSpacing: "0.03em" }}>
+          <Stack gap={3}>
+            <Text
+              size="xs" weight="semibold" tone="muted"
+              style={{ marginBottom: "var(--space-3)", letterSpacing: "0.03em" }}
+            >
               DEVELOPERS
-            </div>
+            </Text>
             {developers.map(dev => {
               const isActive = activeDev === dev.id;
-              const badgeCls = devBadgeClass[dev.name] || "badge-muted";
+              const tone = devBadgeTone[dev.name] || "neutral";
               return (
                 <button
                   key={dev.id}
                   onClick={() => setActiveDev(dev.id)}
+                  className="u-card"
                   style={{
                     display: "block", width: "100%", textAlign: "left",
-                    padding: "12px 14px", borderRadius: 10,
+                    padding: "var(--space-6) var(--space-6)",
                     background: isActive ? "var(--primary-dim)" : "var(--surface)",
-                    border: `1px solid ${isActive ? "var(--primary-border)" : "var(--border)"}`,
-                    cursor: "pointer", transition: "border-color 0.15s",
+                    borderColor: isActive ? "var(--primary-border)" : "var(--border)",
+                    cursor: "pointer",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <span className={`badge ${badgeCls}`} style={{ fontSize: 9, padding: "2px 5px" }}>
-                      {dev.logo}
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {dev.name}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
+                  <Row gap={3} style={{ marginBottom: "var(--space-4)" }}>
+                    <Badge tone={tone}>{dev.logo}</Badge>
+                    <Text size="sm" weight="medium" truncate className="u-grow">{dev.name}</Text>
+                  </Row>
+                  <Row gap={2} style={{ marginBottom: "var(--space-3)" }}>
                     {dev.onedrive ? (
-                      <><CheckCircle2 size={10} style={{ color: "var(--success)" }} /><span style={{ fontSize: 10, color: "var(--success)" }}>Synced</span></>
+                      <>
+                        <CheckCircle2 size={10} style={{ color: "var(--success)" }} />
+                        <Text size="2xs" tone="success">Synced</Text>
+                      </>
                     ) : (
-                      <><AlertCircle size={10} style={{ color: "var(--warning)" }} /><span style={{ fontSize: 10, color: "var(--warning)" }}>Manual</span></>
+                      <>
+                        <AlertCircle size={10} style={{ color: "var(--warning)" }} />
+                        <Text size="2xs" style={{ color: "var(--warning)" }}>Manual</Text>
+                      </>
                     )}
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{dev.activeListings} active</span>
-                    <span className="mono" style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)" }}>{dev.totalValue}</span>
-                  </div>
+                  </Row>
+                  <Row between>
+                    <Text size="xs" tone="muted">{dev.activeListings} active</Text>
+                    <Text size="xs" weight="semibold" tone="accent" mono>{dev.totalValue}</Text>
+                  </Row>
                 </button>
               );
             })}
-          </div>
+          </Stack>
 
           {/* Detail panel */}
           {selectedDev && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <Stack gap={7}>
 
               {/* Header */}
-              <div className="panel-lg" style={{ padding: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 10,
-                      background: "var(--surface-2)", border: "1px solid var(--border)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 18,
-                    }}>
+              <Card style={{ padding: "var(--space-8)" }}>
+                <Row between wrap gap={6} style={{ marginBottom: "var(--space-8)" }}>
+                  <Row gap={6}>
+                    <div
+                      className="u-row"
+                      style={{
+                        width: "44px", height: "44px", borderRadius: "var(--radius-md)",
+                        background: "var(--surface-2)", border: "1px solid var(--border)",
+                        justifyContent: "center", fontSize: "var(--text-lg)",
+                      }}
+                    >
                       {selectedDev.logo}
                     </div>
-                    <div>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)" }}>{selectedDev.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                        {selectedDev.properties} properties · {selectedDev.totalValue}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn btn-ghost btn-sm"><Upload size={13} />Upload brochure</button>
-                    <button className="btn btn-ghost btn-sm"><RefreshCw size={13} />Sync now</button>
-                    <button className="btn btn-primary btn-sm"><Plus size={13} />Add property</button>
-                  </div>
-                </div>
+                    <Stack gap={1}>
+                      <Text size="md" weight="semibold">{selectedDev.name}</Text>
+                      <Text size="xs" tone="muted">{selectedDev.properties} properties · {selectedDev.totalValue}</Text>
+                    </Stack>
+                  </Row>
+                  <Row gap={3}>
+                    <Button variant="ghost" size="sm" icon={<Upload size={13} />}>Upload brochure</Button>
+                    <Button variant="ghost" size="sm" icon={<RefreshCw size={13} />}>Sync now</Button>
+                    <Button variant="primary" size="sm" icon={<Plus size={13} />}>Add property</Button>
+                  </Row>
+                </Row>
 
                 {/* Stats row */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
-                  {[
-                    { label: "Total listings",  value: String(selectedDev.properties),    cls: "var(--ink)"    },
-                    { label: "Active listings", value: String(selectedDev.activeListings), cls: "var(--success)" },
-                    { label: "Portfolio value", value: selectedDev.totalValue,             cls: "var(--accent)"  },
-                    { label: "Last synced",     value: selectedDev.lastSync,               cls: "var(--muted)"   },
-                  ].map(({ label, value, cls }) => (
-                    <div key={label} style={{
-                      padding: "12px 14px", borderRadius: 8, textAlign: "center",
-                      background: "var(--surface-2)", border: "1px solid var(--border)",
-                    }}>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: cls, lineHeight: 1 }}>{value}</div>
-                      <div style={{ fontSize: 10, color: "var(--dim)", marginTop: 5 }}>{label}</div>
-                    </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
+                  {([
+                    { label: "Total listings",  value: String(selectedDev.properties),    tone: "ink"     as const },
+                    { label: "Active listings", value: String(selectedDev.activeListings), tone: "success" as const },
+                    { label: "Portfolio value", value: selectedDev.totalValue,             tone: "accent"  as const },
+                    { label: "Last synced",     value: selectedDev.lastSync,               tone: "muted"   as const },
+                  ]).map(({ label, value, tone }) => (
+                    <Stack
+                      key={label}
+                      gap={3}
+                      style={{
+                        padding: "var(--space-6) var(--space-6)", borderRadius: "var(--radius-sm)",
+                        textAlign: "center", alignItems: "center",
+                        background: "var(--surface-2)", border: "1px solid var(--border)",
+                      }}
+                    >
+                      <Text size="md" weight="bold" tone={tone} mono style={{ lineHeight: 1 }}>{value}</Text>
+                      <Text size="2xs" tone="dim">{label}</Text>
+                    </Stack>
                   ))}
                 </div>
 
                 {/* OneDrive folder tree */}
-                <div style={{ padding: "14px 16px", borderRadius: 8, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <Stack
+                  gap={3}
+                  style={{
+                    padding: "var(--space-6) var(--space-7)", borderRadius: "var(--radius-sm)",
+                    background: "var(--surface-2)", border: "1px solid var(--border)",
+                  }}
+                >
+                  <Row gap={3}>
                     <FolderOpen size={13} style={{ color: "var(--info)" }} />
-                    <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)" }}>
-                      OneDrive / Rehan RE / {selectedDev.name}
-                    </span>
-                  </div>
+                    <Text size="xs" weight="medium">OneDrive / Rehan RE / {selectedDev.name}</Text>
+                  </Row>
                   {folders.map((folder, i) => (
-                    <div key={folder} style={{
-                      display: "flex", alignItems: "center", gap: 8,
-                      padding: "7px 8px 7px 20px",
-                      borderLeft: "1px solid var(--border)",
-                      fontSize: 12, color: "var(--muted)", cursor: "pointer",
-                    }}>
+                    <Row
+                      key={folder}
+                      gap={3}
+                      style={{
+                        padding: "var(--space-3) var(--space-4) var(--space-3) var(--space-8)",
+                        borderLeft: "1px solid var(--border)", cursor: "pointer",
+                      }}
+                    >
                       <FolderOpen size={11} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                      <span style={{ flex: 1 }}>{folder}</span>
-                      <span className="mono" style={{ fontSize: 10, color: "var(--dim)" }}>{folderCounts[i]} files</span>
-                    </div>
+                      <Text size="xs" tone="muted" className="u-grow">{folder}</Text>
+                      <Text size="2xs" tone="dim" mono>{folderCounts[i]} files</Text>
+                    </Row>
                   ))}
-                </div>
-              </div>
+                </Stack>
+              </Card>
 
               {/* Properties grid */}
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <Row gap={3} style={{ marginBottom: "var(--space-7)" }}>
                   <Building2 size={14} style={{ color: "var(--dim)" }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
-                    Properties
-                  </span>
-                  <span className="badge badge-muted">{devProperties.length} listed</span>
-                </div>
+                  <Text size="sm" weight="semibold">Properties</Text>
+                  <Badge>{devProperties.length} listed</Badge>
+                </Row>
 
                 {devProperties.length > 0 ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "var(--space-5)" }}>
                     {devProperties.map((p) => (
-                      <div key={p.id} className="panel" style={{ padding: "14px 16px", display: "flex", gap: 14 }}>
-                        <div style={{
-                          width: 56, height: 56, borderRadius: 8, flexShrink: 0,
-                          background: "var(--surface-2)", border: "1px solid var(--border)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "var(--dim)",
-                        }}>
+                      <Card key={p.id} style={{ padding: "var(--space-6) var(--space-7)", display: "flex", gap: "var(--space-7)" }}>
+                        <div
+                          className="u-row"
+                          style={{
+                            width: "56px", height: "56px", borderRadius: "var(--radius-sm)", flexShrink: 0,
+                            background: "var(--surface-2)", border: "1px solid var(--border)",
+                            justifyContent: "center", color: "var(--dim)",
+                          }}
+                        >
                           <Building2 size={20} />
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 3 }}>{p.name}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)", marginBottom: 8 }}>
-                            <MapPin size={10} />{p.location}
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)" }}>
-                              <Bed size={10} />{p.bedrooms} BR
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)" }}>
-                              <Square size={10} />{p.sqft.toLocaleString()} sqft
-                            </span>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+                        <Stack gap={2} className="u-grow">
+                          <Text size="sm" weight="semibold">{p.name}</Text>
+                          <Row gap={2}>
+                            <MapPin size={10} style={{ color: "var(--muted)" }} />
+                            <Text size="xs" tone="muted">{p.location}</Text>
+                          </Row>
+                          <Row gap={6}>
+                            <Row gap={2}>
+                              <Bed size={10} style={{ color: "var(--muted)" }} />
+                              <Text size="xs" tone="muted">{p.bedrooms} BR</Text>
+                            </Row>
+                            <Row gap={2}>
+                              <Square size={10} style={{ color: "var(--muted)" }} />
+                              <Text size="xs" tone="muted">{p.sqft.toLocaleString()} sqft</Text>
+                            </Row>
+                          </Row>
+                          <Row gap={5}>
+                            <Text size="base" weight="bold" tone="accent" mono>
                               AED {(p.price / 1_000_000).toFixed(1)}M
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--success)" }}>
-                              <TrendingUp size={10} />{p.roi}% ROI
-                            </span>
-                            <span style={{ fontSize: 11, color: "var(--dim)" }}>{p.completion}</span>
-                          </div>
-                          <div style={{ display: "flex", gap: 5, marginTop: 8 }}>
+                            </Text>
+                            <Row gap={1}>
+                              <TrendingUp size={10} style={{ color: "var(--success)" }} />
+                              <Text size="xs" tone="success">{p.roi}% ROI</Text>
+                            </Row>
+                            <Text size="xs" tone="dim">{p.completion}</Text>
+                          </Row>
+                          <Row gap={3} style={{ marginTop: "var(--space-2)" }}>
                             {p.tags.map(t => (
-                              <span key={t} className={`badge ${t === "sale" ? "badge-success" : "badge-info"}`}>{t}</span>
+                              <Badge key={t} tone={t === "sale" ? "success" : "info"}>{t}</Badge>
                             ))}
-                          </div>
-                        </div>
-                      </div>
+                          </Row>
+                        </Stack>
+                      </Card>
                     ))}
                   </div>
                 ) : (
-                  <div className="panel" style={{ padding: 32, textAlign: "center" }}>
-                    <FolderOpen size={28} style={{ color: "var(--dim)", margin: "0 auto 10px" }} />
-                    <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                  <Card>
+                    <EmptyState icon={<FolderOpen size={28} />} title="No properties listed">
                       No properties listed for this developer. Upload from OneDrive or add manually.
-                    </div>
-                  </div>
+                    </EmptyState>
+                  </Card>
                 )}
               </div>
-            </div>
+            </Stack>
           )}
         </div>
       </div>

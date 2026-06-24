@@ -6,14 +6,17 @@ import {
   Phone, Filter, Search, Download, Plus,
   TrendingUp, Home, MessageSquare, CalendarPlus, UserCheck,
 } from "lucide-react";
+import {
+  Stack, Row, Text, Card, Badge, StatusDot, Button, Input, Chip,
+} from "@/ui";
 
-const statusConfig: Record<string, { label: string; cls: string }> = {
-  new:       { label: "New",       cls: "badge-accent"  },
-  calling:   { label: "Calling",   cls: "badge-primary" },
-  called:    { label: "Called",    cls: "badge-info"    },
-  qualified: { label: "Qualified", cls: "badge-purple"  },
-  appointed: { label: "Appointed", cls: "badge-warning" },
-  closed:    { label: "Closed",    cls: "badge-success" },
+const statusConfig: Record<string, { label: string; tone: "neutral" | "primary" | "accent" | "success" | "warning" | "info" | "purple" }> = {
+  new:       { label: "New",       tone: "accent"  },
+  calling:   { label: "Calling",   tone: "primary" },
+  called:    { label: "Called",    tone: "info"    },
+  qualified: { label: "Qualified", tone: "purple"  },
+  appointed: { label: "Appointed", tone: "warning" },
+  closed:    { label: "Closed",    tone: "success" },
 };
 
 export default function LeadsClient({ leads }: { leads: Lead[] }) {
@@ -30,37 +33,36 @@ export default function LeadsClient({ leads }: { leads: Lead[] }) {
   return (
     <div>
       <Header title="Lead Management" subtitle="Incoming leads from Meta & Instagram advertising" />
-      <div style={{ padding: "24px 28px" }}>
+      <Stack gap={5} style={{ padding: "var(--space-9) 28px" }}>
 
         {/* Toolbar */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20, alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <Row gap={3} wrap between align="center">
+          <Row gap={2} wrap>
             {["all", "new", "calling", "called", "qualified", "appointed", "closed"].map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={`filter-pill${filter === f ? " active" : ""}`}>
+              <Chip key={f} on={filter === f} onClick={() => setFilter(f)}>
                 {f === "all" ? "All leads" : statusConfig[f]?.label || f}
-              </button>
+              </Chip>
             ))}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          </Row>
+          <Row gap={3}>
+            <Row align="center" style={{ position: "relative" }}>
               <Search size={12} style={{ position: "absolute", left: 10, color: "var(--dim)", pointerEvents: "none" }} />
-              <input
-                className="search-input"
+              <Input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search leads..."
-                style={{ paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7, width: 180 }}
+                style={{ paddingLeft: 30, width: 180 }}
               />
-            </div>
-            <button className="btn btn-outline-primary btn-sm"><Plus size={13} />New lead</button>
-            <button className="btn btn-ghost btn-sm"><Download size={13} /></button>
-          </div>
-        </div>
+            </Row>
+            <Button variant="outline" size="sm" icon={<Plus size={13} />}>New lead</Button>
+            <Button variant="ghost" size="sm" icon={<Download size={13} />} />
+          </Row>
+        </Row>
 
-        <div style={{ display: "flex", gap: 20 }}>
+        <Row gap={5} align="flex-start">
 
           {/* Table */}
-          <div className="panel-lg" style={{ flex: 1, overflow: "hidden" }}>
+          <Card flush className="panel-lg" style={{ flex: 1, overflow: "hidden" }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -76,88 +78,80 @@ export default function LeadsClient({ leads }: { leads: Lead[] }) {
                   return (
                     <tr key={lead.id} onClick={() => setSelected(isActive ? null : lead.id)} className={isActive ? "selected" : ""}>
                       <td>
-                        <div style={{ fontWeight: 500, fontSize: 13, color: "var(--ink)" }}>{lead.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--dim)", marginTop: 2 }}>{lead.time}</div>
+                        <Text size="sm" weight="medium" tone="ink" as="div">{lead.name}</Text>
+                        <Text size="xs" tone="dim" as="div">{lead.time}</Text>
                       </td>
-                      <td style={{ color: "var(--muted)" }}>{lead.phone}</td>
-                      <td style={{ color: "var(--muted)" }}>{lead.language}</td>
+                      <td><Text size="sm" tone="muted">{lead.phone}</Text></td>
+                      <td><Text size="sm" tone="muted">{lead.language}</Text></td>
                       <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          {lead.status === "calling" && <span className="live-dot live-dot-red" />}
-                          <span className={`badge ${sc.cls}`}>{sc.label}</span>
-                        </div>
+                        <Row gap={2} align="center">
+                          {lead.status === "calling" && <StatusDot state="live" />}
+                          <Badge tone={sc.tone}>{sc.label}</Badge>
+                        </Row>
                       </td>
-                      <td style={{ color: "var(--muted)", maxWidth: 140 }}>
-                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {lead.propertyInterest}
-                        </div>
+                      <td style={{ maxWidth: 140 }}>
+                        <Text size="sm" tone="muted" truncate as="div">{lead.propertyInterest}</Text>
                       </td>
                       <td>
-                        <span className={`badge ${lead.investType === "investment" ? "badge-purple" : "badge-info"}`}
-                          style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <Badge tone={lead.investType === "investment" ? "purple" : "info"}>
                           {lead.investType === "investment"
                             ? <><TrendingUp size={10} />Invest</>
                             : <><Home size={10} />Live-in</>}
-                        </span>
+                        </Badge>
                       </td>
-                      <td style={{ color: "var(--muted)" }}>{lead.assignedAgent}</td>
+                      <td><Text size="sm" tone="muted">{lead.assignedAgent}</Text></td>
                       <td>
-                        <span className="mono" style={{ fontWeight: 600, color: "var(--accent)" }}>{lead.budget}</span>
+                        <Text mono tone="accent" weight="semibold">{lead.budget}</Text>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          </div>
+          </Card>
 
           {/* Detail panel */}
           {selectedLead && (
-            <div className="panel-lg slide-in-right" style={{ width: 272, flexShrink: 0, padding: 18 }}>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 3 }}>{selectedLead.name}</div>
-                <div style={{ fontSize: 11, color: "var(--dim)" }}>{selectedLead.id} · {selectedLead.source}</div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                {[
-                  { label: "Phone",    value: selectedLead.phone },
-                  { label: "Language", value: selectedLead.language },
-                  { label: "Budget",   value: selectedLead.budget, accent: true },
-                  { label: "Interest", value: selectedLead.propertyInterest },
-                  { label: "Type",     value: selectedLead.investType === "investment" ? "Investment" : "Live-in" },
-                  { label: "Agent",    value: selectedLead.assignedAgent },
-                ].map(({ label, value, accent }) => (
-                  <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <span style={{ fontSize: 12, color: "var(--dim)" }}>{label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: accent ? "var(--accent)" : "var(--ink)", textAlign: "right" }}>{value}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <button className="btn btn-primary btn-sm" style={{ justifyContent: "center" }}>
-                  <Phone size={13} />Initiate AI call
-                </button>
-                <button className="btn btn-ghost btn-sm" style={{ justifyContent: "center" }}>
-                  <MessageSquare size={13} />Send WhatsApp
-                </button>
-                <button className="btn btn-ghost btn-sm" style={{ justifyContent: "center" }}>
-                  <CalendarPlus size={13} />Book appointment
-                </button>
-                <button className="btn btn-ghost btn-sm" style={{ justifyContent: "center" }}>
-                  <UserCheck size={13} />Escalate to human
-                </button>
-              </div>
-            </div>
+            <Card pad className="panel-lg slide-in-right" style={{ width: 272, flexShrink: 0 }}>
+              <Stack gap={5}>
+                <Stack gap={1}>
+                  <Text size="lg" weight="semibold" tone="ink" as="div">{selectedLead.name}</Text>
+                  <Text size="xs" tone="dim" as="div">{selectedLead.id} · {selectedLead.source}</Text>
+                </Stack>
+                <Stack gap={3}>
+                  {[
+                    { label: "Phone",    value: selectedLead.phone },
+                    { label: "Language", value: selectedLead.language },
+                    { label: "Budget",   value: selectedLead.budget, accent: true },
+                    { label: "Interest", value: selectedLead.propertyInterest },
+                    { label: "Type",     value: selectedLead.investType === "investment" ? "Investment" : "Live-in" },
+                    { label: "Agent",    value: selectedLead.assignedAgent },
+                  ].map(({ label, value, accent }) => (
+                    <Row key={label} gap={3} between>
+                      <Text size="xs" tone="dim">{label}</Text>
+                      <Text size="xs" weight="medium" tone={accent ? "accent" : "ink"} style={{ textAlign: "right" }}>{value}</Text>
+                    </Row>
+                  ))}
+                </Stack>
+                <Stack gap={2}>
+                  <Button variant="primary" size="sm" block icon={<Phone size={13} />}>Initiate AI call</Button>
+                  <Button variant="ghost" size="sm" block icon={<MessageSquare size={13} />}>Send WhatsApp</Button>
+                  <Button variant="ghost" size="sm" block icon={<CalendarPlus size={13} />}>Book appointment</Button>
+                  <Button variant="ghost" size="sm" block icon={<UserCheck size={13} />}>Escalate to human</Button>
+                </Stack>
+              </Stack>
+            </Card>
           )}
-        </div>
+        </Row>
 
-        <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: "var(--dim)" }}>Showing {filtered.length} of {leads.length} leads</span>
-          <span style={{ fontSize: 12, color: "var(--dim)", display: "flex", alignItems: "center", gap: 6 }}>
-            <Filter size={11} />Click any row to view details
-          </span>
-        </div>
-      </div>
+        <Row between align="center">
+          <Text size="xs" tone="dim">Showing {filtered.length} of {leads.length} leads</Text>
+          <Row gap={2} align="center">
+            <Filter size={11} className="u-tone-dim" />
+            <Text size="xs" tone="dim">Click any row to view details</Text>
+          </Row>
+        </Row>
+      </Stack>
     </div>
   );
 }

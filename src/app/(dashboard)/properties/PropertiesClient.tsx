@@ -3,13 +3,14 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
 import { MapPin, Bed, Square, TrendingUp, Send, Search } from "lucide-react";
+import { Stack, Row, Text, Card, Badge, Button, Input, Chip } from "@/ui";
 
-const devBadgeClass: Record<string, string> = {
-  "Emaar Properties": "badge-info",
-  "Nakheel":          "badge-success",
-  "DAMAC Properties": "badge-purple",
-  "Sobha Realty":     "badge-accent",
-  "Meraas":           "badge-warning",
+const devBadgeTone: Record<string, "info" | "success" | "purple" | "accent" | "warning"> = {
+  "Emaar Properties": "info",
+  "Nakheel":          "success",
+  "DAMAC Properties": "purple",
+  "Sobha Realty":     "accent",
+  "Meraas":           "warning",
 };
 
 // Muted image placeholder colors per area
@@ -40,149 +41,126 @@ export default function PropertiesClient({ properties }: { properties: Property[
   return (
     <div>
       <Header title="Property Listings" subtitle="Multi-developer portfolio — sale & rental inventory" />
-      <div style={{ padding: "24px 28px" }}>
+      <Stack gap={8} style={{ padding: "var(--space-9) var(--space-10)" }}>
 
         {/* Filters */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24, alignItems: "center" }}>
+        <Row gap={4} wrap>
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <Search size={12} style={{ position: "absolute", left: 10, color: "var(--dim)", pointerEvents: "none" }} />
-            <input
-              className="search-input"
+            <Search size={12} style={{ position: "absolute", left: "var(--space-4)", color: "var(--dim)", pointerEvents: "none" }} />
+            <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search properties..."
-              style={{ paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7, width: 200 }}
+              placeholder="Search properties…"
+              style={{ paddingLeft: "var(--space-10)", width: "200px" }}
             />
           </div>
 
-          <div style={{ width: 1, height: 24, background: "var(--border)" }} />
+          <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
 
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <Row gap={2} wrap>
             {developers.map(d => (
-              <button key={d} onClick={() => setDevFilter(d)} className={`filter-pill${devFilter === d ? " active" : ""}`}>
-                {d}
-              </button>
+              <Chip key={d} on={devFilter === d} onClick={() => setDevFilter(d)}>{d}</Chip>
             ))}
-          </div>
+          </Row>
 
-          <div style={{ width: 1, height: 24, background: "var(--border)" }} />
+          <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
 
-          <div style={{ display: "flex", gap: 6 }}>
+          <Row gap={2}>
             {types.map(t => (
-              <button key={t} onClick={() => setTypeFilter(t)} className={`filter-pill${typeFilter === t ? " active" : ""}`}>
-                {t}
-              </button>
+              <Chip key={t} on={typeFilter === t} onClick={() => setTypeFilter(t)}>{t}</Chip>
             ))}
-          </div>
-        </div>
+          </Row>
+        </Row>
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--space-8)" }}>
           {filtered.map((p) => {
             const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
-            const badgeCls = devBadgeClass[p.developer] || "badge-muted";
+            const badgeTone = devBadgeTone[p.developer];
             return (
-              <div key={p.id} className="property-card">
+              <Card key={p.id} flush>
 
                 {/* Image placeholder */}
-                <div style={{
-                  height: 156,
-                  background: bgColor,
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  padding: "14px 14px 12px",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <span className={`badge ${badgeCls}`}>{p.developer}</span>
-                    <div style={{ display: "flex", gap: 5 }}>
-                      {p.tags.includes("sale") && (
-                        <span className="badge badge-success">Sale</span>
-                      )}
-                      {p.tags.includes("rent") && (
-                        <span className="badge badge-info">Rent</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: "white", lineHeight: 1 }}>
+                <Stack between style={{ height: "156px", background: bgColor, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
+                  <Row between align="flex-start">
+                    <Badge tone={badgeTone}>{p.developer}</Badge>
+                    <Row gap={1}>
+                      {p.tags.includes("sale") && <Badge tone="success">Sale</Badge>}
+                      {p.tags.includes("rent") && <Badge tone="info">Rent</Badge>}
+                    </Row>
+                  </Row>
+                  <Stack gap={1}>
+                    <Text mono weight="bold" style={{ fontSize: "var(--text-2xl)", color: "white", lineHeight: 1 }}>
                       AED {(p.price / 1_000_000).toFixed(1)}M
-                    </div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
+                    </Text>
+                    <Text size="xs" style={{ color: "rgba(255,255,255,0.55)" }}>
                       {p.completion !== "Ready" ? `Ready: ${p.completion}` : "✓ Ready to move"}
-                    </div>
-                  </div>
-                </div>
+                    </Text>
+                  </Stack>
+                </Stack>
 
                 {/* Content */}
-                <div style={{ padding: "14px 16px 16px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{p.name}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 12 }}>
-                    <MapPin size={11} style={{ color: "var(--dim)" }} />
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>{p.location}</span>
-                  </div>
+                <Stack gap={5} style={{ padding: "var(--space-6) var(--space-7) var(--space-7)" }}>
+                  <Stack gap={2}>
+                    <Text size="md" weight="semibold" tone="ink">{p.name}</Text>
+                    <Row gap={2}>
+                      <MapPin size={11} style={{ color: "var(--dim)" }} />
+                      <Text size="sm" tone="muted">{p.location}</Text>
+                    </Row>
+                  </Stack>
 
-                  <div style={{ display: "flex", gap: 14, marginBottom: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--muted)" }}>
-                      <Bed size={12} />{p.bedrooms} BR
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--muted)" }}>
-                      <Square size={12} />{p.sqft.toLocaleString()} sqft
-                    </div>
-                  </div>
+                  <Row gap={6}>
+                    <Row gap={2}>
+                      <Bed size={12} style={{ color: "var(--muted)" }} />
+                      <Text size="sm" tone="muted">{p.bedrooms} BR</Text>
+                    </Row>
+                    <Row gap={2}>
+                      <Square size={12} style={{ color: "var(--muted)" }} />
+                      <Text size="sm" tone="muted">{p.sqft.toLocaleString()} sqft</Text>
+                    </Row>
+                  </Row>
 
                   {/* Stats row */}
-                  <div style={{
-                    display: "flex",
-                    gap: 0,
-                    padding: "10px 12px",
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    marginBottom: 12,
-                  }}>
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 3 }}>
+                  <Row style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "var(--space-4) var(--space-5)" }}>
+                    <Stack gap={1} align="center" style={{ flex: 1 }}>
+                      <Row gap={1}>
                         <TrendingUp size={10} style={{ color: "var(--accent)" }} />
-                        <span style={{ fontSize: 10, color: "var(--dim)" }}>ROI</span>
-                      </div>
-                      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>{p.roi}%</div>
-                    </div>
-                    <div style={{ width: 1, background: "var(--border)" }} />
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, color: "var(--dim)", marginBottom: 3 }}>Yield</div>
-                      <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: "var(--success)" }}>{p.rentalYield}%</div>
-                    </div>
-                    <div style={{ width: 1, background: "var(--border)" }} />
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, color: "var(--dim)", marginBottom: 3 }}>Floors</div>
-                      <div style={{ fontSize: 12, color: "var(--muted)" }}>{p.floors}</div>
-                    </div>
-                  </div>
+                        <Text size="2xs" tone="dim">ROI</Text>
+                      </Row>
+                      <Text size="md" mono weight="bold" tone="accent">{p.roi}%</Text>
+                    </Stack>
+                    <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
+                    <Stack gap={1} align="center" style={{ flex: 1 }}>
+                      <Text size="2xs" tone="dim">Yield</Text>
+                      <Text size="md" mono weight="bold" tone="success">{p.rentalYield}%</Text>
+                    </Stack>
+                    <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
+                    <Stack gap={1} align="center" style={{ flex: 1 }}>
+                      <Text size="2xs" tone="dim">Floors</Text>
+                      <Text size="sm" tone="muted">{p.floors}</Text>
+                    </Stack>
+                  </Row>
 
-                  <p style={{ fontSize: 12, color: "var(--dim)", lineHeight: 1.5, marginBottom: 12 }}>
+                  <Text size="sm" tone="dim" style={{ lineHeight: "var(--leading-normal)" }}>
                     {p.description}
-                  </p>
+                  </Text>
 
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: "center" }}>
+                  <Row gap={3}>
+                    <Button variant="primary" size="sm" block style={{ flex: 1 }}>
                       View details
-                    </button>
-                    <button className="btn btn-outline-success btn-sm">
-                      <Send size={11} />WA
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    </Button>
+                    <Button size="sm" icon={<Send size={11} />}>WA</Button>
+                  </Row>
+                </Stack>
+              </Card>
             );
           })}
         </div>
 
-        <div style={{ marginTop: 16, fontSize: 12, color: "var(--dim)" }}>
+        <Text size="sm" tone="dim">
           {filtered.length} of {properties.length} properties
-        </div>
-      </div>
+        </Text>
+      </Stack>
     </div>
   );
 }
