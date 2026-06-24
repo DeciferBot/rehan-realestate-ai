@@ -118,7 +118,7 @@ export default function InboxView({
           <Card flush className="inbox-thread" style={{ display: "flex", flexDirection: "column" }}>
             {thread ? (
               <>
-                <CardHeader>
+                <CardHeader className="inbox-thread-head">
                   <Link href="/inbox" className="inbox-back" style={{ alignItems: "center", color: "var(--muted)", textDecoration: "none", marginRight: 2 }} aria-label="Back to conversations"><ChevronLeft size={18} /></Link>
                   <Text size="xl">{thread.contact.flag}</Text>
                   <Stack gap={1}>
@@ -133,8 +133,10 @@ export default function InboxView({
                   <Badge tone={statusTone[thread.contact.status] ?? "neutral"} style={{ marginLeft: "auto" }}>
                     {thread.contact.status}
                   </Badge>
-                  <QualifyButton conversationId={thread.id} />
-                  <AgentRespondButton conversationId={thread.id} />
+                  <Row gap={2} className="inbox-thread-actions">
+                    <QualifyButton conversationId={thread.id} />
+                    <AgentRespondButton conversationId={thread.id} />
+                  </Row>
                 </CardHeader>
 
                 <Stack gap={5} style={{ flex: 1, overflowY: "auto", padding: "var(--space-7)" }}>
