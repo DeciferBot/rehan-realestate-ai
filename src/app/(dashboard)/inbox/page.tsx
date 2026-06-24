@@ -6,23 +6,26 @@ import AgentRespondButton from "./AgentRespondButton";
 import QualifyButton from "./QualifyButton";
 import Link from "next/link";
 import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge, ChevronLeft } from "lucide-react";
+import { Card, CardHeader, Row, Stack, Text, Badge, StatusDot } from "@/ui";
 
 function aed(n: number): string {
   if (!n) return "—";
   if (n >= 1_000_000) return `AED ${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 2)}M`;
   return `AED ${Math.round(n / 1000)}K`;
 }
-const fitBadge: Record<string, string> = { "at-budget": "badge-success", stretch: "badge-warning", below: "badge-info" };
+
+type BadgeTone = "neutral" | "primary" | "accent" | "success" | "warning" | "info" | "purple";
+const fitTone: Record<string, BadgeTone> = { "at-budget": "success", stretch: "warning", below: "info" };
 
 export const dynamic = "force-dynamic";
 
-const statusBadge: Record<string, string> = {
-  calling: "badge-primary",
-  new: "badge-accent",
-  called: "badge-info",
-  qualified: "badge-purple",
-  appointed: "badge-warning",
-  closed: "badge-success",
+const statusTone: Record<string, BadgeTone> = {
+  calling: "primary",
+  new: "accent",
+  called: "info",
+  qualified: "purple",
+  appointed: "warning",
+  closed: "success",
 };
 
 const channelIcon: Record<string, React.ReactNode> = {
@@ -65,12 +68,12 @@ export default async function InboxPage({
         <div className={`inbox-grid${c ? " has-thread" : ""}`} style={{ display: "grid", gridTemplateColumns: thread ? "300px 1fr 300px" : "340px 1fr", gap: 16, height: "calc(100dvh - 150px)" }}>
 
           {/* Conversation list */}
-          <div className="panel-lg inbox-list" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
-              <InboxIcon size={13} style={{ color: "var(--dim)" }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Inbox</span>
-              <span className="badge badge-muted" style={{ marginLeft: "auto" }}>{conversations.length}</span>
-            </div>
+          <Card flush className="inbox-list" style={{ display: "flex", flexDirection: "column" }}>
+            <CardHeader>
+              <InboxIcon size={13} className="u-tone-dim" />
+              <Text size="base" weight="semibold">Inbox</Text>
+              <Badge style={{ marginLeft: "auto" }}>{conversations.length}</Badge>
+            </CardHeader>
             <div style={{ overflowY: "auto", flex: 1 }}>
               {conversations.map((cv) => {
                 const active = cv.id === selectedId;
@@ -79,136 +82,134 @@ export default async function InboxPage({
                     key={cv.id}
                     href={`/inbox?c=${cv.id}`}
                     style={{
-                      display: "block", padding: "12px 16px",
+                      display: "block", padding: "var(--space-5) var(--space-7)",
                       borderBottom: "1px solid var(--border)",
                       borderLeft: `2px solid ${active ? "var(--primary)" : "transparent"}`,
                       background: active ? "var(--surface-2)" : "transparent",
                       textDecoration: "none",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
-                      <span style={{ fontSize: 14 }}>{cv.contact.flag}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {cv.contact.fullName}
-                      </span>
-                      {cv.contact.status === "calling" && <span className="live-dot live-dot-red" />}
-                      <span className={`badge ${statusBadge[cv.contact.status] ?? "badge-muted"}`}>{cv.contact.status}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 5 }}>
+                    <Row gap={2} align="center" style={{ marginBottom: "var(--space-1)" }}>
+                      <Text size="md">{cv.contact.flag}</Text>
+                      <Text size="base" weight="semibold" truncate grow>{cv.contact.fullName}</Text>
+                      {cv.contact.status === "calling" && <StatusDot state="live" />}
+                      <Badge tone={statusTone[cv.contact.status] ?? "neutral"}>{cv.contact.status}</Badge>
+                    </Row>
+                    <Text size="sm" tone="muted" truncate as="div" style={{ marginBottom: "var(--space-2)" }}>
                       {cv.snippetRole && cv.snippetRole !== "contact" ? "↩ " : ""}{cv.snippet}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "var(--dim)" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    </Text>
+                    <Row gap={3} align="center">
+                      <Row gap={1} align="center" style={{ display: "inline-flex" }}>
                         {channelIcon[cv.lastChannel ?? ""] ?? <Globe size={11} />}
-                        {cv.lastChannel ?? "—"}
-                      </span>
-                      <span>·</span>
-                      <span>{cv.messageCount} msgs</span>
-                      {cv.contact.budget && <span style={{ marginLeft: "auto", color: "var(--accent)", fontWeight: 600 }} className="mono">{cv.contact.budget}</span>}
-                    </div>
+                        <Text size="2xs" tone="dim">{cv.lastChannel ?? "—"}</Text>
+                      </Row>
+                      <Text size="2xs" tone="dim">·</Text>
+                      <Text size="2xs" tone="dim">{cv.messageCount} msgs</Text>
+                      {cv.contact.budget && <Text size="2xs" weight="semibold" tone="accent" mono style={{ marginLeft: "auto" }}>{cv.contact.budget}</Text>}
+                    </Row>
                   </Link>
                 );
               })}
               {conversations.length === 0 && (
-                <div style={{ padding: 24, fontSize: 13, color: "var(--dim)", textAlign: "center" }}>No conversations yet.</div>
+                <Text size="base" tone="dim" as="div" style={{ padding: "var(--space-9)", textAlign: "center" }}>No conversations yet.</Text>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Thread */}
-          <div className="panel-lg inbox-thread" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <Card flush className="inbox-thread" style={{ display: "flex", flexDirection: "column" }}>
             {thread ? (
               <>
-                <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+                <CardHeader>
                   <Link href="/inbox" className="inbox-back" style={{ alignItems: "center", color: "var(--muted)", textDecoration: "none", marginRight: 2 }} aria-label="Back to conversations"><ChevronLeft size={18} /></Link>
-                  <span style={{ fontSize: 18 }}>{thread.contact.flag}</span>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{thread.contact.fullName}</div>
-                    <div style={{ fontSize: 11, color: "var(--dim)", display: "flex", alignItems: "center", gap: 6 }}>
-                      <Globe size={10} />{thread.contact.language}
-                      {thread.contact.source && <><span>·</span>{thread.contact.source}</>}
-                      {thread.contact.assignedLabel && <><span>·</span>{thread.contact.assignedLabel}</>}
-                    </div>
-                  </div>
-                  <span className={`badge ${statusBadge[thread.contact.status] ?? "badge-muted"}`} style={{ marginLeft: "auto" }}>
+                  <Text size="xl">{thread.contact.flag}</Text>
+                  <Stack gap={1}>
+                    <Text size="md" weight="semibold">{thread.contact.fullName}</Text>
+                    <Row gap={2} align="center">
+                      <Globe size={10} className="u-tone-dim" />
+                      <Text size="xs" tone="dim">{thread.contact.language}</Text>
+                      {thread.contact.source && <><Text size="xs" tone="dim">·</Text><Text size="xs" tone="dim">{thread.contact.source}</Text></>}
+                      {thread.contact.assignedLabel && <><Text size="xs" tone="dim">·</Text><Text size="xs" tone="dim">{thread.contact.assignedLabel}</Text></>}
+                    </Row>
+                  </Stack>
+                  <Badge tone={statusTone[thread.contact.status] ?? "neutral"} style={{ marginLeft: "auto" }}>
                     {thread.contact.status}
-                  </span>
+                  </Badge>
                   <QualifyButton conversationId={thread.id} />
                   <AgentRespondButton conversationId={thread.id} />
-                </div>
+                </CardHeader>
 
-                <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
+                <Stack gap={5} style={{ flex: 1, overflowY: "auto", padding: "var(--space-7)" }}>
                   {thread.messages.map((m) => {
                     const fromContact = m.role === "contact";
                     const isArabic = m.lang === "Arabic";
                     return (
-                      <div key={m.id} style={{ display: "flex", justifyContent: fromContact ? "flex-start" : "flex-end" }}>
-                        <div style={{ maxWidth: "76%" }}>
-                          <div style={{
-                            fontSize: 10, color: "var(--dim)", marginBottom: 4,
-                            display: "flex", gap: 6, alignItems: "center",
-                            flexDirection: fromContact ? "row" : "row-reverse",
-                          }}>
+                      <Row key={m.id} style={{ justifyContent: fromContact ? "flex-start" : "flex-end" }}>
+                        <Stack gap={1} style={{ maxWidth: "76%" }}>
+                          <Row gap={2} align="center" style={{ flexDirection: fromContact ? "row" : "row-reverse" }}>
                             {roleIcon(m.role)}
-                            <span>{roleLabel(m.role, thread.contact.fullName)}</span>
-                            <span>·</span>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                              {channelIcon[m.channel] ?? null}{m.channel}
-                            </span>
-                            {m.ts && <><span>·</span><span className="mono">{m.ts}</span></>}
-                          </div>
-                          <div
+                            <Text size="2xs" tone="dim">{roleLabel(m.role, thread.contact.fullName)}</Text>
+                            <Text size="2xs" tone="dim">·</Text>
+                            <Row gap={1} align="center" style={{ display: "inline-flex" }}>
+                              {channelIcon[m.channel] ?? null}
+                              <Text size="2xs" tone="dim">{m.channel}</Text>
+                            </Row>
+                            {m.ts && <><Text size="2xs" tone="dim">·</Text><Text size="2xs" tone="dim" mono>{m.ts}</Text></>}
+                          </Row>
+                          <Text
+                            as="div"
+                            size="base"
                             dir={isArabic ? "rtl" : "ltr"}
                             style={{
                               padding: "10px 14px",
                               borderRadius: fromContact ? "4px 12px 12px 12px" : "12px 4px 12px 12px",
-                              fontSize: 13, lineHeight: 1.5, color: "var(--ink)",
+                              lineHeight: 1.5, color: "var(--ink)",
                               background: fromContact ? "var(--surface-2)" : "var(--primary-dim)",
                               border: `1px solid ${fromContact ? "var(--border)" : "var(--primary-border)"}`,
                             }}
                           >
                             {m.body}
-                          </div>
-                        </div>
-                      </div>
+                          </Text>
+                        </Stack>
+                      </Row>
                     );
                   })}
                   {thread.messages.length === 0 && (
-                    <div style={{ fontSize: 13, color: "var(--dim)", textAlign: "center", marginTop: 24 }}>
+                    <Text size="base" tone="dim" as="div" style={{ textAlign: "center", marginTop: "var(--space-9)" }}>
                       No messages yet — the agent hasn&apos;t engaged this contact.
-                    </div>
+                    </Text>
                   )}
-                </div>
+                </Stack>
 
                 <Composer conversationId={thread.id} channel={thread.lastChannel} />
               </>
             ) : (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--dim)", fontSize: 13 }}>
-                Select a conversation
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Text size="base" tone="dim">Select a conversation</Text>
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Dossier — live sub-agent output */}
           {thread && dossier && (
-            <div className="panel-lg inbox-dossier" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
-              <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
-                Lead dossier
-              </div>
+            <Card flush className="inbox-dossier" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
+              <CardHeader>
+                <Text size="base" weight="semibold">Lead dossier</Text>
+              </CardHeader>
 
               {thread.contact.assignedLabel?.startsWith("Human:") && (
-                <div style={{ margin: 14, marginBottom: 0, padding: "8px 10px", borderRadius: 8, background: "var(--primary-dim)", border: "1px solid var(--primary-border)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <UserCog size={13} style={{ color: "var(--primary)" }} />
-                  <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 600 }}>Escalated · {thread.contact.assignedLabel.replace("Human: ", "")}</span>
-                </div>
+                <Row gap={3} align="center" style={{ margin: "var(--space-7)", marginBottom: 0, padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-md)", background: "var(--primary-dim)", border: "1px solid var(--primary-border)" }}>
+                  <UserCog size={13} className="u-tone-primary" />
+                  <Text size="sm" weight="semibold" tone="primary">Escalated · {thread.contact.assignedLabel.replace("Human: ", "")}</Text>
+                </Row>
               )}
 
-              <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                  <User size={12} style={{ color: "var(--dim)" }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Profile</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <Stack gap={4} style={{ padding: "var(--space-7)", borderBottom: "1px solid var(--border)" }}>
+                <Row gap={2} align="center">
+                  <User size={12} className="u-tone-dim" />
+                  <Text size="sm" weight="semibold">Profile</Text>
+                </Row>
+                <Stack gap={2}>
                   {[
                     { label: "Language", value: thread.contact.language ?? "—" },
                     { label: "Status", value: thread.contact.status },
@@ -216,13 +217,13 @@ export default async function InboxPage({
                     { label: "Intent", value: thread.contact.investType === "investment" ? "Investment" : thread.contact.investType === "live-in" ? "Live-in" : "—" },
                     { label: "Source", value: thread.contact.source ?? "—" },
                   ].map(({ label, value, accent }) => (
-                    <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                      <span style={{ fontSize: 12, color: "var(--dim)" }}>{label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: accent ? "var(--accent)" : "var(--ink)", textAlign: "right" }}>{value}</span>
-                    </div>
+                    <Row key={label} between gap={3}>
+                      <Text size="sm" tone="dim">{label}</Text>
+                      <Text size="sm" weight="medium" tone={accent ? "accent" : "ink"} style={{ textAlign: "right" }}>{value}</Text>
+                    </Row>
                   ))}
-                </div>
-              </div>
+                </Stack>
+              </Stack>
 
               {(() => {
                 const q = thread.contact.qualification as Record<string, unknown>;
@@ -233,56 +234,56 @@ export default async function InboxPage({
                 });
                 if (!known.length) return null;
                 return (
-                  <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                      <Gauge size={12} style={{ color: "var(--dim)" }} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Qualification</span>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  <Stack gap={4} style={{ padding: "var(--space-7)", borderBottom: "1px solid var(--border)" }}>
+                    <Row gap={2} align="center">
+                      <Gauge size={12} className="u-tone-dim" />
+                      <Text size="sm" weight="semibold">Qualification</Text>
+                    </Row>
+                    <Stack gap={2}>
                       {known.map(([k, label]) => (
-                        <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                          <span style={{ fontSize: 12, color: "var(--dim)", flexShrink: 0 }}>{label}</span>
-                          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", textAlign: "right" }}>{String(q[k])}</span>
-                        </div>
+                        <Row key={k} between gap={4}>
+                          <Text size="sm" tone="dim" style={{ flexShrink: 0 }}>{label}</Text>
+                          <Text size="sm" weight="medium" style={{ textAlign: "right" }}>{String(q[k])}</Text>
+                        </Row>
                       ))}
-                    </div>
-                  </div>
+                    </Stack>
+                  </Stack>
                 );
               })()}
 
-              <div style={{ padding: 14, borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                  <Building2 size={12} style={{ color: "var(--dim)" }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Best matches</span>
-                  <span className="live-dot live-dot-green" style={{ marginLeft: "auto" }} />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <Stack gap={4} style={{ padding: "var(--space-7)", borderBottom: "1px solid var(--border)" }}>
+                <Row gap={2} align="center">
+                  <Building2 size={12} className="u-tone-dim" />
+                  <Text size="sm" weight="semibold">Best matches</Text>
+                  <StatusDot state="online" style={{ marginLeft: "auto" }} />
+                </Row>
+                <Stack gap={2}>
                   {dossier.recommendations.map((r) => (
-                    <div key={r.id} style={{ padding: "9px 10px", borderRadius: 8, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.project}</span>
-                        <span className={`badge ${fitBadge[r.fit] ?? "badge-muted"}`} style={{ flexShrink: 0 }}>{r.fit === "at-budget" ? "fits" : r.fit}</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10, color: "var(--dim)" }}>
-                        <span>{r.bedrooms}BR · {r.location}</span>
-                        <span className="mono" style={{ fontWeight: 600, color: "var(--accent)" }}>{aed(r.price)}</span>
-                      </div>
-                    </div>
+                    <Stack key={r.id} gap={1} style={{ padding: "9px 10px", borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                      <Row between align="center" gap={2}>
+                        <Text size="sm" weight="medium" truncate>{r.project}</Text>
+                        <Badge tone={fitTone[r.fit] ?? "neutral"} style={{ flexShrink: 0 }}>{r.fit === "at-budget" ? "fits" : r.fit}</Badge>
+                      </Row>
+                      <Row between align="center">
+                        <Text size="2xs" tone="dim">{r.bedrooms}BR · {r.location}</Text>
+                        <Text size="2xs" weight="semibold" tone="accent" mono>{aed(r.price)}</Text>
+                      </Row>
+                    </Stack>
                   ))}
                   {dossier.recommendations.length === 0 && (
-                    <div style={{ fontSize: 11, color: "var(--dim)" }}>No matching inventory.</div>
+                    <Text size="xs" tone="dim">No matching inventory.</Text>
                   )}
-                </div>
-              </div>
+                </Stack>
+              </Stack>
 
               {dossier.mortgage && (
-                <div style={{ padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                    <Calculator size={12} style={{ color: "var(--dim)" }} />
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Mortgage</span>
-                    <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--dim)" }}>on top match</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <Stack gap={4} style={{ padding: "var(--space-7)" }}>
+                  <Row gap={2} align="center">
+                    <Calculator size={12} className="u-tone-dim" />
+                    <Text size="sm" weight="semibold">Mortgage</Text>
+                    <Text size="2xs" tone="dim" style={{ marginLeft: "auto" }}>on top match</Text>
+                  </Row>
+                  <Stack gap={2}>
                     {[
                       { label: "Property value", value: aed(dossier.mortgage.value) },
                       { label: "Down payment (20%)", value: aed(dossier.mortgage.downPayment) },
@@ -290,19 +291,19 @@ export default async function InboxPage({
                       { label: "Rate (est.)", value: `${dossier.mortgage.ratePct}% p.a.` },
                       { label: "Term", value: `${dossier.mortgage.years} years` },
                     ].map(({ label, value }) => (
-                      <div key={label} style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 12, color: "var(--dim)" }}>{label}</span>
-                        <span style={{ fontSize: 12, color: "var(--ink)" }}>{value}</span>
-                      </div>
+                      <Row key={label} between>
+                        <Text size="sm" tone="dim">{label}</Text>
+                        <Text size="sm">{value}</Text>
+                      </Row>
                     ))}
-                    <div style={{ paddingTop: 8, marginTop: 2, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>Monthly</span>
-                      <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>AED {dossier.mortgage.monthly.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
+                    <Row between style={{ paddingTop: "var(--space-3)", marginTop: 2, borderTop: "1px solid var(--border)" }}>
+                      <Text size="base" weight="medium">Monthly</Text>
+                      <Text size="md" weight="bold" tone="accent" mono>AED {dossier.mortgage.monthly.toLocaleString()}</Text>
+                    </Row>
+                  </Stack>
+                </Stack>
               )}
-            </div>
+            </Card>
           )}
         </div>
       </div>

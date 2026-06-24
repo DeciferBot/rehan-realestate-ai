@@ -34,12 +34,13 @@ type Weight = "medium" | "semibold" | "bold";
 type Tone = "ink" | "muted" | "dim" | "primary" | "accent" | "success";
 type TextProps = {
   as?: "span" | "p" | "div" | "label";
-  size?: Size; weight?: Weight; tone?: Tone; mono?: boolean; truncate?: boolean;
-  className?: string; children?: ReactNode; htmlFor?: string; style?: CSSProperties;
+  size?: Size; weight?: Weight; tone?: Tone; mono?: boolean; truncate?: boolean; grow?: boolean;
+  className?: string; children?: ReactNode; htmlFor?: string; style?: CSSProperties; title?: string;
+  dir?: "rtl" | "ltr" | "auto";
 };
-export function Text({ as: Tag = "span", size = "base", weight, tone, mono, truncate, className, children, ...rest }: TextProps) {
+export function Text({ as: Tag = "span", size = "base", weight, tone, mono, truncate, grow, className, children, ...rest }: TextProps) {
   return (
-    <Tag className={cx("u-text", `u-${size}`, weight && `u-w-${weight}`, tone && `u-tone-${tone}`, mono && "u-text--mono", truncate && "u-truncate", className)} {...rest}>
+    <Tag className={cx("u-text", `u-${size}`, weight && `u-w-${weight}`, tone && `u-tone-${tone}`, mono && "u-text--mono", truncate && "u-truncate", grow && "u-grow", className)} {...rest}>
       {children}
     </Tag>
   );
@@ -66,8 +67,8 @@ export function Badge({ tone = "neutral", className, children, ...rest }: { tone
 }
 
 /* ── Status dot ── */
-export function StatusDot({ state = "idle", className }: { state?: "live" | "online" | "idle"; className?: string }) {
-  return <span className={cx("u-dot", state === "live" && "u-dot--live", state === "online" && "u-dot--online", className)} />;
+export function StatusDot({ state = "idle", className, ...rest }: { state?: "live" | "online" | "idle" } & React.HTMLAttributes<HTMLSpanElement>) {
+  return <span className={cx("u-dot", state === "live" && "u-dot--live", state === "online" && "u-dot--online", className)} {...rest} />;
 }
 
 /* ── Empty state ── */
