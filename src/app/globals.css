@@ -10,43 +10,43 @@
 ───────────────────────────────────────────────── */
 
 :root {
-  /* Canvas */
-  --bg:             oklch(0.09 0.000 0);
-  --surface:        oklch(0.135 0.005 10);
-  --surface-2:      oklch(0.185 0.005 10);
-  --surface-3:      oklch(0.235 0.005 10);
+  /* Canvas — cool slate, near-black */
+  --bg:             oklch(0.165 0.010 250);
+  --surface:        oklch(0.205 0.011 250);
+  --surface-2:      oklch(0.255 0.012 250);
+  --surface-3:      oklch(0.310 0.013 250);
 
   /* Borders */
-  --border:         oklch(0.225 0.004 10);
-  --border-strong:  oklch(0.320 0.006 10);
+  --border:         oklch(0.290 0.011 250);
+  --border-strong:  oklch(0.390 0.013 250);
 
-  /* Typography */
-  --ink:            oklch(0.95 0.005 55);
-  --muted:          oklch(0.82 0.005 55);
-  --dim:            oklch(0.60 0.005 55);
+  /* Typography — cool slate, near-neutral */
+  --ink:            oklch(0.965 0.004 250);
+  --muted:          oklch(0.800 0.007 250);
+  --dim:            oklch(0.620 0.009 250);
 
-  /* Primary: copper — matches marketing brand (--c-copper, hue 34) */
-  --primary:        oklch(0.62 0.16 34);
-  --primary-hover:  oklch(0.56 0.155 34);
-  --primary-dim:    oklch(0.62 0.16 34 / 0.13);
-  --primary-border: oklch(0.62 0.16 34 / 0.32);
+  /* Primary: emerald — the action / live signal */
+  --primary:        oklch(0.60 0.110 163);
+  --primary-hover:  oklch(0.66 0.115 163);
+  --primary-dim:    oklch(0.60 0.110 163 / 0.15);
+  --primary-border: oklch(0.60 0.110 163 / 0.34);
 
-  /* Accent: amber — financial, pipeline */
-  --accent:         oklch(0.77 0.088 52);
-  --accent-dim:     oklch(0.77 0.088 52 / 0.13);
-  --accent-border:  oklch(0.77 0.088 52 / 0.32);
+  /* Accent: muted brass — financial / pipeline values */
+  --accent:         oklch(0.78 0.058 80);
+  --accent-dim:     oklch(0.78 0.058 80 / 0.15);
+  --accent-border:  oklch(0.78 0.058 80 / 0.30);
 
-  /* Semantic */
-  --success:        oklch(0.68 0.150 148);
-  --success-dim:    oklch(0.68 0.150 148 / 0.13);
-  --success-border: oklch(0.68 0.150 148 / 0.35);
-  --warning:        oklch(0.73 0.130 75);
-  --warning-dim:    oklch(0.73 0.130 75 / 0.13);
-  --warning-border: oklch(0.73 0.130 75 / 0.35);
-  --info:           oklch(0.66 0.125 245);
-  --info-dim:       oklch(0.66 0.125 245 / 0.13);
-  --purple:         oklch(0.65 0.155 295);
-  --purple-dim:     oklch(0.65 0.155 295 / 0.13);
+  /* Semantic — muted (low chroma, never candy) */
+  --success:        oklch(0.68 0.095 163);
+  --success-dim:    oklch(0.68 0.095 163 / 0.15);
+  --success-border: oklch(0.68 0.095 163 / 0.32);
+  --warning:        oklch(0.76 0.080 75);
+  --warning-dim:    oklch(0.76 0.080 75 / 0.15);
+  --warning-border: oklch(0.76 0.080 75 / 0.32);
+  --info:           oklch(0.68 0.075 245);
+  --info-dim:       oklch(0.68 0.075 245 / 0.15);
+  --purple:         oklch(0.66 0.082 290);
+  --purple-dim:     oklch(0.66 0.082 290 / 0.15);
 
   /* Font stacks — loaded via next/font in layout.tsx */
   --font-sans: 'DM Sans', system-ui, sans-serif;
@@ -129,43 +129,43 @@
 ───────────────────────────────────────────────── */
 
 main {
-  /* Canvas — tinted toward hue 55 (brand warm); never chroma 0 */
-  --bg:             oklch(1.000 0.000 0);
+  /* Canvas — soft cool off-white slate */
+  --bg:             oklch(0.985 0.002 250);
   --surface:        oklch(1.000 0.000 0);
-  --surface-2:      oklch(0.975 0.003 55);
-  --surface-3:      oklch(0.950 0.004 55);
+  --surface-2:      oklch(0.970 0.003 250);
+  --surface-3:      oklch(0.945 0.004 250);
 
-  /* Borders — warm tint, never pure grey */
-  --border:         oklch(0.882 0.004 55);
-  --border-strong:  oklch(0.790 0.006 55);
+  /* Borders */
+  --border:         oklch(0.908 0.004 250);
+  --border-strong:  oklch(0.820 0.006 250);
 
-  /* Typography — all tinted toward hue 55, no achromatic neutrals */
-  --ink:            oklch(0.155 0.008 55);
-  --muted:          oklch(0.44 0.012 55);
-  --dim:            oklch(0.63 0.014 55);
+  /* Typography — cool slate, near-neutral */
+  --ink:            oklch(0.235 0.012 255);
+  --muted:          oklch(0.470 0.012 255);
+  --dim:            oklch(0.610 0.012 255);
 
-  /* Primary: copper — deeper for light mode, matches marketing brand */
-  --primary:        oklch(0.55 0.16 34);
-  --primary-hover:  oklch(0.49 0.155 34);
-  --primary-dim:    oklch(0.55 0.16 34 / 0.09);
-  --primary-border: oklch(0.55 0.16 34 / 0.25);
+  /* Primary: emerald — deeper for white content (AA on white) */
+  --primary:        oklch(0.48 0.125 163);
+  --primary-hover:  oklch(0.43 0.120 163);
+  --primary-dim:    oklch(0.48 0.125 163 / 0.10);
+  --primary-border: oklch(0.48 0.125 163 / 0.26);
 
-  /* Accent: amber — deeper for light mode */
-  --accent:         oklch(0.50 0.140 52);
-  --accent-dim:     oklch(0.50 0.140 52 / 0.09);
-  --accent-border:  oklch(0.50 0.140 52 / 0.25);
+  /* Accent: muted bronze — financial / pipeline values */
+  --accent:         oklch(0.51 0.068 72);
+  --accent-dim:     oklch(0.51 0.068 72 / 0.10);
+  --accent-border:  oklch(0.51 0.068 72 / 0.26);
 
-  /* Semantic */
-  --success:        oklch(0.42 0.145 148);
-  --success-dim:    oklch(0.42 0.145 148 / 0.09);
-  --success-border: oklch(0.42 0.145 148 / 0.28);
-  --warning:        oklch(0.50 0.120 75);
-  --warning-dim:    oklch(0.50 0.120 75 / 0.09);
-  --warning-border: oklch(0.50 0.120 75 / 0.28);
-  --info:           oklch(0.42 0.130 245);
-  --info-dim:       oklch(0.42 0.130 245 / 0.09);
-  --purple:         oklch(0.44 0.155 295);
-  --purple-dim:     oklch(0.44 0.155 295 / 0.09);
+  /* Semantic — muted, deeper for light mode */
+  --success:        oklch(0.46 0.105 163);
+  --success-dim:    oklch(0.46 0.105 163 / 0.10);
+  --success-border: oklch(0.46 0.105 163 / 0.28);
+  --warning:        oklch(0.52 0.085 70);
+  --warning-dim:    oklch(0.52 0.085 70 / 0.10);
+  --warning-border: oklch(0.52 0.085 70 / 0.28);
+  --info:           oklch(0.49 0.090 245);
+  --info-dim:       oklch(0.49 0.090 245 / 0.10);
+  --purple:         oklch(0.49 0.095 290);
+  --purple-dim:     oklch(0.49 0.095 290 / 0.10);
 
   background-color: var(--bg);
   color: var(--ink);
@@ -202,15 +202,15 @@ html, body {
 }
 
 @keyframes ring-pulse {
-  0%   { box-shadow: 0 0 0 0   oklch(0.58 0.16 34 / 0.5); }
-  70%  { box-shadow: 0 0 0 8px oklch(0.58 0.16 34 / 0); }
-  100% { box-shadow: 0 0 0 0   oklch(0.58 0.16 34 / 0); }
+  0%   { box-shadow: 0 0 0 0   oklch(0.60 0.110 163 / 0.5); }
+  70%  { box-shadow: 0 0 0 8px oklch(0.60 0.110 163 / 0); }
+  100% { box-shadow: 0 0 0 0   oklch(0.60 0.110 163 / 0); }
 }
 
 @keyframes ring-pulse-green {
-  0%   { box-shadow: 0 0 0 0   oklch(0.68 0.150 148 / 0.5); }
-  70%  { box-shadow: 0 0 0 8px oklch(0.68 0.150 148 / 0); }
-  100% { box-shadow: 0 0 0 0   oklch(0.68 0.150 148 / 0); }
+  0%   { box-shadow: 0 0 0 0   oklch(0.68 0.095 163 / 0.5); }
+  70%  { box-shadow: 0 0 0 8px oklch(0.68 0.095 163 / 0); }
+  100% { box-shadow: 0 0 0 0   oklch(0.68 0.095 163 / 0); }
 }
 
 @keyframes fade-in {
@@ -353,7 +353,7 @@ html, body {
 .btn-ghost:hover        { background: var(--surface-3); color: var(--ink); }
 
 .btn-outline-primary         { background: var(--primary-dim); color: var(--primary); border-color: var(--primary-border); }
-.btn-outline-primary:hover   { background: oklch(0.58 0.16 34 / 0.20); }
+.btn-outline-primary:hover   { background: color-mix(in oklch, var(--primary-dim) 55%, var(--primary)); }
 
 .btn-outline-success         { background: var(--success-dim); color: var(--success); border-color: var(--success-border); }
 .btn-outline-warning         { background: var(--warning-dim); color: var(--warning); border-color: var(--warning-border); }
@@ -420,8 +420,8 @@ html, body {
 .search-input::placeholder { color: var(--dim); }
 
 .search-input:focus {
-  border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px oklch(0.58 0.16 34 / 0.07);
+  border-color: var(--primary-border);
+  box-shadow: 0 0 0 3px var(--primary-dim);
 }
 
 /* Filter pills */

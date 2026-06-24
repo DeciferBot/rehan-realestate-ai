@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
-import { Loader2 } from "lucide-react";
+import { Stack, Row, Text, Heading, Field, Input, Button } from "@/ui";
 
 function LoginForm() {
   const router = useRouter();
@@ -32,128 +32,44 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontSize: 12, color: "var(--dim)", letterSpacing: "0.02em" }}>Email</span>
-        <input
-          type="email"
-          required
-          autoFocus
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-      </label>
-
-      <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontSize: 12, color: "var(--dim)", letterSpacing: "0.02em" }}>Password</span>
-        <input
-          type="password"
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-        />
-      </label>
-
-      {error && (
-        <div style={{ fontSize: 13, color: "var(--danger, #e5484d)", lineHeight: 1.4 }}>{error}</div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        style={{
-          marginTop: 4,
-          height: 42,
-          borderRadius: 9,
-          border: "none",
-          background: "var(--primary)",
-          color: "white",
-          fontSize: 14,
-          fontWeight: 600,
-          letterSpacing: "-0.01em",
-          cursor: loading ? "default" : "pointer",
-          opacity: loading ? 0.7 : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-        }}
-      >
-        {loading && <Loader2 size={15} className="spin" />}
-        {loading ? "Signing in…" : "Sign in"}
-      </button>
+    <form onSubmit={onSubmit}>
+      <Stack gap={6}>
+        <Field label="Email" htmlFor="email">
+          <Input id="email" type="email" required autoFocus autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </Field>
+        <Field label="Password" htmlFor="password">
+          <Input id="password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </Field>
+        {error && <Text size="base" tone="primary">{error}</Text>}
+        <Button type="submit" variant="primary" block loading={loading} style={{ marginTop: "var(--space-1)", height: 42 }}>
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
+      </Stack>
     </form>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  height: 42,
-  borderRadius: 9,
-  border: "1px solid var(--border)",
-  background: "var(--surface, oklch(0.16 0 0))",
-  color: "var(--ink)",
-  padding: "0 13px",
-  fontSize: 14,
-  outline: "none",
-  fontFamily: "var(--font-sans)",
-};
-
 export default function LoginPage() {
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        background: "oklch(0.105 0 0)",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: 360 }}>
-        {/* Brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 28 }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 9,
-              background: "var(--primary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 17,
-              fontWeight: 700,
-              color: "white",
-            }}
-          >
-            A
-          </div>
-          <div>
-            <div style={{ color: "var(--ink)", fontWeight: 600, fontSize: 18, letterSpacing: "-0.02em", lineHeight: 1 }}>
-              Acre
-            </div>
-            <div style={{ color: "var(--dim)", fontSize: 11, letterSpacing: "0.04em", marginTop: 3 }}>
-              Command center
-            </div>
-          </div>
-        </div>
+    <div className="login-screen">
+      <Stack gap={7} style={{ width: "100%", maxWidth: 360 }}>
+        <Row gap={3}>
+          <div className="topbar-avatar" style={{ width: 38, height: 38, fontSize: "var(--text-lg)" }}>A</div>
+          <Stack gap={1}>
+            <Text as="div" size="xl" weight="semibold" style={{ letterSpacing: "-0.02em" }}>Acre</Text>
+            <Text as="div" size="xs" tone="dim" style={{ letterSpacing: "0.04em" }}>Command center</Text>
+          </Stack>
+        </Row>
 
-        <h1 style={{ color: "var(--ink)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 4px" }}>
-          Sign in
-        </h1>
-        <p style={{ color: "var(--dim)", fontSize: 13, margin: "0 0 24px", lineHeight: 1.5 }}>
-          Access your leads, conversations, and AI agent.
-        </p>
+        <Stack gap={2}>
+          <Heading as="h1" size="2xl" style={{ letterSpacing: "-0.02em" }}>Sign in</Heading>
+          <Text as="p" size="base" tone="dim">Access your leads, conversations, and AI agent.</Text>
+        </Stack>
 
         <Suspense fallback={null}>
           <LoginForm />
         </Suspense>
-      </div>
+      </Stack>
     </div>
   );
 }

@@ -305,7 +305,7 @@ export default function AitaasHome() {
         }
         .hp-problem-photo-overlay {
           position: absolute; inset: 0;
-          background: linear-gradient(135deg, oklch(0.72 0.17 34 / 0.15) 0%, transparent 60%);
+          background: linear-gradient(135deg, oklch(0.64 0.115 163 / 0.15) 0%, transparent 60%);
         }
         .hp-problem-photo-stat {
           position: absolute; bottom: 0; left: 0; right: 0;
@@ -364,7 +364,7 @@ export default function AitaasHome() {
           border: 1px solid var(--c-border);
           border-radius: 0;
           overflow: hidden;
-          box-shadow: 0 32px 80px -20px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(0.72 0.17 34 / 0.12);
+          box-shadow: 0 32px 80px -20px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(0.64 0.115 163 / 0.12);
         }
         .hp-phone-topbar {
           padding: 14px 20px;
@@ -378,11 +378,11 @@ export default function AitaasHome() {
           margin-left: auto;
           display: flex; align-items: center; gap: 6px;
           font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
-          text-transform: uppercase; color: oklch(0.72 0.17 34);
+          text-transform: uppercase; color: oklch(0.64 0.115 163);
         }
         .hp-phone-live-dot {
           width: 6px; height: 6px; border-radius: 50%;
-          background: oklch(0.72 0.17 34);
+          background: oklch(0.64 0.115 163);
           animation: blink 1.6s ease-in-out infinite;
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -394,10 +394,10 @@ export default function AitaasHome() {
         }
         .hp-phone-avatar {
           width: 36px; height: 36px; border-radius: 50%;
-          background: oklch(0.72 0.17 34 / 0.2);
-          border: 1px solid oklch(0.72 0.17 34 / 0.4);
+          background: oklch(0.64 0.115 163 / 0.2);
+          border: 1px solid oklch(0.64 0.115 163 / 0.4);
           display: flex; align-items: center; justify-content: center;
-          font-size: 13px; font-weight: 700; color: oklch(0.72 0.17 34);
+          font-size: 13px; font-weight: 700; color: oklch(0.64 0.115 163);
           font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em;
           flex-shrink: 0;
         }
@@ -425,8 +425,8 @@ export default function AitaasHome() {
           margin-top: 2px;
         }
         .hp-phone-msg.agent .hp-phone-msg-av {
-          background: oklch(0.72 0.17 34 / 0.18);
-          color: oklch(0.72 0.17 34);
+          background: oklch(0.64 0.115 163 / 0.18);
+          color: oklch(0.64 0.115 163);
         }
         .hp-phone-bubble {
           font-size: 12.5px; line-height: 1.55; color: var(--c-ink-2);
@@ -435,9 +435,9 @@ export default function AitaasHome() {
           max-width: 78%;
         }
         .hp-phone-msg.agent .hp-phone-bubble {
-          background: oklch(0.72 0.17 34 / 0.12);
+          background: oklch(0.64 0.115 163 / 0.12);
           color: var(--c-ink);
-          border-left: 2px solid oklch(0.72 0.17 34 / 0.6);
+          border-left: 2px solid oklch(0.64 0.115 163 / 0.6);
         }
         .hp-phone-actions {
           border-top: 1px solid var(--c-border);
@@ -446,15 +446,15 @@ export default function AitaasHome() {
         }
         .hp-phone-action-chip {
           font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
-          text-transform: uppercase; color: oklch(0.72 0.17 34);
-          background: oklch(0.72 0.17 34 / 0.1);
+          text-transform: uppercase; color: oklch(0.64 0.115 163);
+          background: oklch(0.64 0.115 163 / 0.1);
           padding: 5px 12px;
           display: flex; align-items: center; gap: 5px;
-          border: 1px solid oklch(0.72 0.17 34 / 0.25);
+          border: 1px solid oklch(0.64 0.115 163 / 0.25);
         }
         .hp-phone-action-chip::before {
           content: ''; width: 5px; height: 5px; border-radius: 50%;
-          background: oklch(0.72 0.17 34);
+          background: oklch(0.64 0.115 163);
         }
         @media (max-width: 860px) {
           .hp-demo-inner { grid-template-columns: 1fr; }
@@ -504,7 +504,7 @@ export default function AitaasHome() {
         }
         .hp-agent-card.featured .hp-agent-visual-overlay {
           position: absolute; inset: 0;
-          background: linear-gradient(to top, oklch(0.08 0.008 260 / 0.9) 0%, transparent 50%);
+          background: linear-gradient(to top, oklch(0.175 0.012 255 / 0.9) 0%, transparent 50%);
         }
         .hp-agent-card.featured .hp-agent-visual-label {
           position: absolute; bottom: 16px; left: 20px;
@@ -799,7 +799,7 @@ export default function AitaasHome() {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
           font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
           color: var(--c-copper);
-          border: 1px solid oklch(0.72 0.17 34 / 0.35);
+          border: 1px solid oklch(0.64 0.115 163 / 0.35);
           padding: 5px 12px; margin-bottom: 18px;
         }
         .hp-pilot-step-name {

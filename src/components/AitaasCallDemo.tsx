@@ -195,8 +195,8 @@ export default function AitaasCallDemo() {
           animation: cd-pulse 1.8s ease-in-out infinite;
         }
         @keyframes cd-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.17 34 / 0.5); }
-          50%      { box-shadow: 0 0 0 6px oklch(0.72 0.17 34 / 0); }
+          0%, 100% { box-shadow: 0 0 0 0 oklch(0.64 0.115 163 / 0.5); }
+          50%      { box-shadow: 0 0 0 6px oklch(0.64 0.115 163 / 0); }
         }
         .cd-live-label {
           font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
@@ -264,8 +264,8 @@ export default function AitaasCallDemo() {
         }
         .cd-msg--agent {
           align-self: flex-start;
-          background: oklch(0.30 0.09 34 / 0.2);
-          border: 1px solid oklch(0.72 0.17 34 / 0.25);
+          background: oklch(0.33 0.075 163 / 0.2);
+          border: 1px solid oklch(0.64 0.115 163 / 0.25);
           color: var(--c-ink);
         }
         .cd-msg--lead {
@@ -306,8 +306,8 @@ export default function AitaasCallDemo() {
           align-self: center;
           display: inline-flex; align-items: center; gap: 8px;
           padding: 7px 14px;
-          border: 1px solid oklch(0.72 0.17 34 / 0.35);
-          background: oklch(0.72 0.17 34 / 0.07);
+          border: 1px solid oklch(0.64 0.115 163 / 0.35);
+          background: oklch(0.64 0.115 163 / 0.07);
           font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
           text-transform: uppercase; color: var(--c-copper);
           animation: cd-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;

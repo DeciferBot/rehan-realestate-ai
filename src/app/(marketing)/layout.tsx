@@ -31,16 +31,17 @@ export default function AitaasLayout({ children }: { children: React.ReactNode }
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Hanken+Grotesk:wght@300;400;500;600&display=swap');
 
         :root {
-          --c-bg:          oklch(0.05 0.008 260);
-          --c-surface:     oklch(0.08 0.008 260);
-          --c-surface2:    oklch(0.13 0.007 260);
-          --c-copper:      oklch(0.72 0.17 34);
-          --c-copper-dim:  oklch(0.30 0.09 34);
-          --c-copper-glow: oklch(0.72 0.17 34 / 0.13);
-          --c-ink:         oklch(0.96 0.003 80);
-          --c-ink-2:       oklch(0.72 0.006 80);
-          --c-muted:       oklch(0.46 0.005 80);
-          --c-border:      oklch(0.16 0.007 260);
+          /* Unified with the app: Slate & emerald. (--c-copper holds emerald now.) */
+          --c-bg:          oklch(0.135 0.012 255);
+          --c-surface:     oklch(0.175 0.012 255);
+          --c-surface2:    oklch(0.235 0.013 255);
+          --c-copper:      oklch(0.64 0.115 163);
+          --c-copper-dim:  oklch(0.33 0.075 163);
+          --c-copper-glow: oklch(0.64 0.115 163 / 0.14);
+          --c-ink:         oklch(0.965 0.004 250);
+          --c-ink-2:       oklch(0.74 0.007 250);
+          --c-muted:       oklch(0.55 0.009 250);
+          --c-border:      oklch(0.275 0.012 255);
           --c-ease:        cubic-bezier(0.16, 1, 0.3, 1);
         }
 

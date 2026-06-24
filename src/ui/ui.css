@@ -177,7 +177,7 @@
 .app-sidebar {
   position: fixed; left: 0; top: 0; width: var(--sidebar-w); height: 100dvh;
   display: flex; flex-direction: column; z-index: var(--z-drawer);
-  background: oklch(0.105 0 0); border-right: 1px solid var(--border);
+  background: oklch(0.135 0.010 250); border-right: 1px solid var(--border);
 }
 .sidebar-head { padding: var(--space-8) var(--space-7) var(--space-7); border-bottom: 1px solid var(--border); }
 .sidebar-status { padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm);
@@ -185,6 +185,10 @@
 .sidebar-nav { flex: 1; padding: var(--space-4) var(--space-3); overflow-y: auto; }
 .sidebar-foot { padding: var(--space-3) var(--space-3) var(--space-5); border-top: 1px solid var(--border); }
 .sidebar-user { padding: var(--space-4) var(--space-5); margin-top: var(--space-2); border-top: 1px solid var(--border); }
+
+/* ── Login screen recipe ── */
+.login-screen { min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: var(--space-9); background: var(--bg); }
 
 /* ── Composer recipe ── */
 .u-composer { display: flex; flex-direction: column; gap: var(--space-4);

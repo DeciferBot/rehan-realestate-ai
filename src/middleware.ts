@@ -19,7 +19,6 @@ const APP_PAGE_PREFIXES = [
   "/inbox",
   "/leads",
   "/properties",
-  "/agent-console",
   "/appointments",
   "/developers",
   "/settings",

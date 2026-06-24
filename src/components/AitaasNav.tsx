@@ -38,15 +38,15 @@ export default function AitaasNav() {
           backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
           border-bottom: 1px solid oklch(0.18 0.009 260);
           transition: border-color 0.3s, background 0.3s;
-          box-shadow: 0 1px 0 0 oklch(0.72 0.17 34 / 0.25);
+          box-shadow: 0 1px 0 0 oklch(0.64 0.115 163 / 0.25);
         }
         .cn::before {
           content: ''; position: absolute; top: 0; left: 0; right: 0;
-          height: 2px; background: oklch(0.72 0.17 34);
+          height: 2px; background: oklch(0.64 0.115 163);
         }
         .cn.at-top {
           border-bottom-color: transparent;
-          background: oklch(0.05 0.008 260 / 0.85);
+          background: oklch(0.135 0.012 255 / 0.85);
         }
 
         .cn-logo {
@@ -70,13 +70,13 @@ export default function AitaasNav() {
         .cn-link.active { color: oklch(0.96 0.003 80); }
         .cn-link.active::after {
           content: ''; position: absolute; bottom: -1px; left: 14px;
-          right: 14px; height: 1px; background: oklch(0.72 0.17 34);
+          right: 14px; height: 1px; background: oklch(0.64 0.115 163);
         }
 
         .cn-cta {
           margin-left: 16px;
-          background: oklch(0.72 0.17 34);
-          color: oklch(0.05 0.008 260);
+          background: oklch(0.64 0.115 163);
+          color: oklch(0.135 0.012 255);
           font-family: 'Hanken Grotesk', sans-serif;
           font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
           text-transform: uppercase; padding: 8px 20px;
@@ -106,7 +106,7 @@ export default function AitaasNav() {
         /* ── mobile overlay ── */
         .cn-overlay {
           position: fixed; inset: 0; z-index: 190;
-          background: oklch(0.05 0.008 260 / 0.98);
+          background: oklch(0.135 0.012 255 / 0.98);
           backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
           display: flex; flex-direction: column;
           padding: 80px clamp(24px, 7vw, 56px) 40px;
@@ -119,10 +119,10 @@ export default function AitaasNav() {
           padding: 12px 0; border-bottom: 1px solid oklch(0.14 0.007 260);
           display: block; line-height: 1; transition: color 0.15s;
         }
-        .cn-overlay-link:hover { color: oklch(0.72 0.17 34); }
+        .cn-overlay-link:hover { color: oklch(0.64 0.115 163); }
         .cn-overlay-cta {
           margin-top: 40px; align-self: flex-start;
-          background: oklch(0.72 0.17 34); color: oklch(0.05 0.008 260);
+          background: oklch(0.64 0.115 163); color: oklch(0.135 0.012 255);
           font-family: 'Hanken Grotesk', sans-serif;
           font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
           text-transform: uppercase; padding: 14px 32px; text-decoration: none;

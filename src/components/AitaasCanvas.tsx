@@ -46,11 +46,11 @@ export default function AitaasCanvas({ className }: { className?: string }) {
 
     let W = 0, H = 0;
 
-    // ── copper palette ──────────────────────────────────
-    // oklch(0.72 0.17 34) → approximately #C26A3A / rgb(194,106,58)
-    const COPPER = { r: 194, g: 106, b: 58 };
-    const DIM    = { r: 80,  g: 40,  b: 20 };
-    const BG_R = 8, BG_G = 10, BG_B = 18; // dark ink bg tint
+    // ── emerald palette ─────────────────────────────────
+    // oklch(0.64 0.115 163) → approximately #34A876 / rgb(52,168,118)
+    const COPPER = { r: 52, g: 168, b: 118 };
+    const DIM    = { r: 22, g: 70,  b: 52 };
+    const BG_R = 18, BG_G = 22, BG_B = 28; // dark slate bg tint
 
     function rgba(c: { r: number; g: number; b: number }, a: number) {
       return `rgba(${c.r},${c.g},${c.b},${a})`;
