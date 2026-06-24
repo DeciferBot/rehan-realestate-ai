@@ -75,7 +75,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     switch (e.type) {
       case "lead_arrived": text = `New lead: ${who}${p.source ? ` · ${p.source}` : ""}`; type = "lead"; break;
       case "agent_reply": text = `Acre agent replied to ${who}`; type = "agent"; break;
-      case "qualified": text = `${who} qualified${p.status ? ` — ${p.status}` : ""}`; type = "agent"; break;
+      case "qualified": text = `${who} qualified${p.status ? ` · ${p.status}` : ""}`; type = "agent"; break;
       case "escalated": text = `Escalated ${who} → ${(p.assigned_member as string) || "closer"}`; type = "appointment"; break;
       case "human_reply": text = `Operator replied to ${who}`; type = "whatsapp"; break;
       default: text = `${e.type.replace(/_/g, " ")} · ${who}`; type = "lead";
