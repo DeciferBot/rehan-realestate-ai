@@ -26,6 +26,11 @@ function aed(n: number): string {
   return `AED ${Math.round(n / 1000)}K`;
 }
 
+export const metadata = {
+  title: "Console",
+  description: "Your real-time sales command center — leads, conversations, and appointments at a glance.",
+};
+
 export default async function Dashboard() {
   const s = await getDashboardSummary();
 
