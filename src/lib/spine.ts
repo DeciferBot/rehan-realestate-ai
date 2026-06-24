@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
-import { sendEmail, threadSubject } from "./email";
+import { sendEmail, threadSubject, resolveEmailCreds } from "./email";
 
 /**
  * Server-side access to the multi-tenant platform spine
@@ -290,6 +290,9 @@ export async function postHumanMessage(
       .limit(1)
       .maybeSingle();
     const to = (idn as { value?: string } | null)?.value;
-    if (to) await sendEmail({ to, subject: threadSubject("", true), text: body });
+    if (to) {
+      const ec = await resolveEmailCreds(tenantId);
+      await sendEmail({ to, subject: threadSubject("", true), text: body, apiKey: ec.apiKey, from: ec.from, replyTo: ec.replyTo });
+    }
   }
 }

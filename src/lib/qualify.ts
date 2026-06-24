@@ -2,7 +2,8 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
-import { sendEmail } from "./email";
+import { sendEmail, resolveEmailCreds } from "./email";
+import { getSecret } from "./integrations";
 
 const APP_URL = process.env.APP_URL || "https://simmerproperties.com";
 
@@ -50,10 +51,10 @@ export type QualifyResult = {
 };
 
 export async function qualifyConversation(conversationId: string): Promise<QualifyResult> {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error("Missing ANTHROPIC_API_KEY");
   const sb = getSupabaseAdmin();
   const tenantId = await getActiveTenantId();
+  const key = (await getSecret("anthropic", "api_key", tenantId)) || process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("Missing ANTHROPIC_API_KEY");
 
   const { data: cv, error: cvErr } = await sb
     .from("conversations")
@@ -183,7 +184,8 @@ export async function qualifyConversation(conversationId: string): Promise<Quali
       line("preferred_area", "Preferred area") +
       line("family", "Household") +
       `\nOpen the conversation:\n${APP_URL}/inbox?c=${conversationId}\n`;
-    const sent = await sendEmail({ to: assignedMemberEmail, subject: `Lead ready for you: ${leadName}`, text });
+    const ec = await resolveEmailCreds(tenantId);
+    const sent = await sendEmail({ to: assignedMemberEmail, subject: `Lead ready for you: ${leadName}`, text, apiKey: ec.apiKey, from: ec.from, replyTo: ec.replyTo });
     await sb.from("events").insert({
       tenant_id: tenantId,
       contact_id: cvRow.contact_id,

@@ -31,6 +31,7 @@ const APP_API_PREFIXES = [
   "/api/agent/respond",
   "/api/agent/qualify",
   "/api/ingest",
+  "/api/integrations",
 ];
 
 function isProtected(pathname: string): boolean {

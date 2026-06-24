@@ -2,8 +2,9 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
-import { sendEmail, threadSubject } from "./email";
+import { sendEmail, threadSubject, resolveEmailCreds } from "./email";
 import { checkGrounding, safeFallback, type InventoryFacts } from "./guardrail";
+import { getSecret } from "./integrations";
 
 /**
  * The agent runtime — the brain of the command center.
@@ -16,10 +17,10 @@ import { checkGrounding, safeFallback, type InventoryFacts } from "./guardrail";
 
 const MODEL = "claude-opus-4-8";
 
-function getAnthropic() {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error("Missing ANTHROPIC_API_KEY");
-  return new Anthropic({ apiKey: key });
+function getAnthropic(key?: string | null) {
+  const apiKey = key || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
+  return new Anthropic({ apiKey });
 }
 
 type AgentConfigRow = {
@@ -74,11 +75,11 @@ async function buildInventoryCatalog(tenantId: string): Promise<{ catalog: strin
 
 /** One model turn → trimmed reply text. */
 async function runModel(
+  client: Anthropic,
   model: string,
   system: string,
   lead: { role: "user" | "assistant"; content: string }[]
 ): Promise<string> {
-  const client = getAnthropic();
   const response = await client.messages.create({
     model,
     max_tokens: 1024,
@@ -196,7 +197,8 @@ export async function generateAgentReply(
   }
 
   const model = cfg.model || MODEL;
-  let text = await runModel(model, system, lead);
+  const client = getAnthropic(await getSecret("anthropic", "api_key", tenantId));
+  let text = await runModel(client, model, system, lead);
 
   // Grounding guardrail: never let a hallucinated price/project reach the lead.
   let grounding = checkGrounding(text, facts);
@@ -207,7 +209,7 @@ export async function generateAgentReply(
       system +
       `\n\nCORRECTION: a previous draft was rejected — ${grounding.blocking.join(" ")} ` +
       "Re-answer using ONLY the AVAILABLE INVENTORY. Never quote a price above the most expensive listed unit, and never name a project that isn't listed.";
-    text = await runModel(model, corrective, lead);
+    text = await runModel(client, model, corrective, lead);
     grounding = checkGrounding(text, facts);
     if (!grounding.ok) {
       // Still ungrounded after a correction → safe, honest fallback + human handoff.
@@ -278,7 +280,15 @@ export async function generateAgentReply(
       .maybeSingle();
     const to = (idn as { value?: string } | null)?.value;
     if (to) {
-      const sent = await sendEmail({ to, subject: threadSubject(contact.full_name, (count ?? 0) > 0), text });
+      const ec = await resolveEmailCreds(tenantId);
+      const sent = await sendEmail({
+        to,
+        subject: threadSubject(contact.full_name, (count ?? 0) > 0),
+        text,
+        apiKey: ec.apiKey,
+        from: ec.from,
+        replyTo: ec.replyTo,
+      });
       await sb
         .from("messages")
         .update({ meta: { model: cfg.model || MODEL, author: "ai", email: sent } })

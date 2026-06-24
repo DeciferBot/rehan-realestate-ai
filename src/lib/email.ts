@@ -1,28 +1,47 @@
 import "server-only";
+import { getIntegrationConfig } from "./integrations";
 
 /**
  * Email channel via Resend (simmerproperties.com is a verified sender).
  * The agent's outbound replies and operator take-overs are sent as real email;
  * inbound replies arrive at /api/webhooks/email and continue the conversation.
+ * Credentials resolve from the tenant's Integrations panel, falling back to env.
  */
 
 export const ACRE_FROM = "Acre · Simmer Properties <acre@simmerproperties.com>";
 export const ACRE_REPLY_TO = "acre@simmerproperties.com";
+
+/** Resolve Resend credentials: tenant Integrations panel → environment default. */
+export async function resolveEmailCreds(
+  tenantId?: string
+): Promise<{ apiKey?: string; from: string; replyTo: string }> {
+  const cfg = await getIntegrationConfig("resend", tenantId);
+  const from = cfg.from_email
+    ? `Acre · Simmer Properties <${cfg.from_email}>`
+    : ACRE_FROM;
+  return {
+    apiKey: cfg.api_key || process.env.RESEND_API_KEY,
+    from,
+    replyTo: cfg.reply_to || ACRE_REPLY_TO,
+  };
+}
 
 export async function sendEmail(opts: {
   to: string;
   subject: string;
   text: string;
   replyTo?: string;
+  apiKey?: string;
+  from?: string;
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
+  const key = opts.apiKey || process.env.RESEND_API_KEY;
   if (!key) return { ok: false, error: "no_resend_key" };
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: ACRE_FROM,
+        from: opts.from ?? ACRE_FROM,
         to: [opts.to],
         subject: opts.subject,
         text: opts.text,
