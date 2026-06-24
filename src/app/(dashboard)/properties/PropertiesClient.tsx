@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
+import { whatsappShareUrl } from "@/lib/share";
 import { MapPin, Bed, Square, TrendingUp, Send, Search } from "lucide-react";
 import { Stack, Row, Text, Card, Badge, Button, Input, Chip } from "@/ui";
 
@@ -24,9 +26,15 @@ const areaBg: Record<string, string> = {
 };
 
 export default function PropertiesClient({ properties }: { properties: Property[] }) {
+  const router = useRouter();
   const [devFilter,  setDevFilter]  = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [search,     setSearch]     = useState("");
+
+  function shareOnWhatsApp(p: Property) {
+    const url = `${window.location.origin}/properties/${p.id}`;
+    window.open(whatsappShareUrl(p, url), "_blank", "noopener,noreferrer");
+  }
 
   const developers = ["All", ...Array.from(new Set(properties.map(p => p.developer)))];
   const types = ["All", "Apartment", "Villa", "Townhouse"];
@@ -76,12 +84,15 @@ export default function PropertiesClient({ properties }: { properties: Property[
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--space-8)" }}>
           {filtered.map((p) => {
             const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
+            const headerBg = p.heroImage
+              ? `linear-gradient(180deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.78) 100%), url(${p.heroImage}) center/cover no-repeat`
+              : bgColor;
             const badgeTone = devBadgeTone[p.developer];
             return (
               <Card key={p.id} flush>
 
-                {/* Image placeholder */}
-                <Stack between style={{ height: "156px", background: bgColor, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
+                {/* Hero render (or colored fallback) */}
+                <Stack between style={{ height: "156px", background: headerBg, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
                   <Row between align="flex-start">
                     <Badge tone={badgeTone}>{p.developer}</Badge>
                     <Row gap={1}>
@@ -146,10 +157,10 @@ export default function PropertiesClient({ properties }: { properties: Property[
                   </Text>
 
                   <Row gap={3}>
-                    <Button variant="primary" size="sm" block style={{ flex: 1 }}>
+                    <Button variant="primary" size="sm" block style={{ flex: 1 }} onClick={() => router.push(`/properties/${p.id}`)}>
                       View details
                     </Button>
-                    <Button size="sm" icon={<Send size={11} />}>WA</Button>
+                    <Button size="sm" icon={<Send size={11} />} onClick={() => shareOnWhatsApp(p)}>WA</Button>
                   </Row>
                 </Stack>
               </Card>

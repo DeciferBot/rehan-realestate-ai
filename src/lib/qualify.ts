@@ -2,6 +2,9 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
+import { sendEmail } from "./email";
+
+const APP_URL = process.env.APP_URL || "https://simmerproperties.com";
 
 /**
  * Qualification + escalation — the back of the loop. Reads a conversation,
@@ -118,18 +121,20 @@ export async function qualifyConversation(conversationId: string): Promise<Quali
 
   let assignedMember: string | null = null;
   let assignedMemberId: string | null = null;
+  let assignedMemberEmail: string | null = null;
   let assignedLabel: string | undefined;
   if (parsed.escalate) {
     const { data: members } = await sb
       .from("members")
-      .select("id,name")
+      .select("id,name,email")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: true })
       .limit(1);
-    const m = (members ?? [])[0] as { id: string; name: string } | undefined;
+    const m = (members ?? [])[0] as { id: string; name: string; email: string | null } | undefined;
     if (m) {
       assignedMember = m.name;
       assignedMemberId = m.id;
+      assignedMemberEmail = m.email ?? null;
       assignedLabel = `Human: ${m.name}`;
     }
   }
@@ -159,6 +164,34 @@ export async function qualifyConversation(conversationId: string): Promise<Quali
     type: parsed.escalate ? "escalated" : "qualified",
     payload: { status: parsed.status, reason: parsed.reason, summary: parsed.summary, assigned_member: assignedMember },
   });
+
+  // Close the loop: actually notify the assigned closer so the handoff reaches a human.
+  if (parsed.escalate && assignedMemberEmail) {
+    const leadName = String(contact.full_name ?? "the lead");
+    const q = mergedQual as Record<string, string>;
+    const line = (k: string, label: string) => (q[k] && q[k] !== "unknown" ? `- ${label}: ${q[k]}\n` : "");
+    const text =
+      `Acre handed you a lead that's ready for a human.\n\n` +
+      `Lead: ${leadName}\n` +
+      `Why now: ${parsed.reason}\n` +
+      `Brief: ${parsed.summary}\n\n` +
+      `Qualification:\n` +
+      line("budget", "Budget") +
+      line("intent", "Intent") +
+      line("timeline", "Timeline") +
+      line("financing", "Financing") +
+      line("preferred_area", "Preferred area") +
+      line("family", "Household") +
+      `\nOpen the conversation:\n${APP_URL}/inbox?c=${conversationId}\n`;
+    const sent = await sendEmail({ to: assignedMemberEmail, subject: `Lead ready for you: ${leadName}`, text });
+    await sb.from("events").insert({
+      tenant_id: tenantId,
+      contact_id: cvRow.contact_id,
+      conversation_id: conversationId,
+      type: "closer_notified",
+      payload: { to: assignedMemberEmail, ok: sent.ok, error: sent.error ?? null },
+    });
+  }
 
   return {
     status: parsed.status,

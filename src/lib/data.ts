@@ -1,6 +1,8 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
+import { computeReturns, defaultInputs, round1 } from "./investment";
+import { heroForRef } from "./projectHero";
 
 /**
  * Server-side data access for the legacy console pages (Leads, Properties,
@@ -36,6 +38,7 @@ export type Property = {
   roi: number;
   rentalYield: number;
   image: string;
+  heroImage: string | null;
   tags: string[];
   completion: string;
   sqft: number;
@@ -133,48 +136,78 @@ export async function getLeads(): Promise<Lead[]> {
   });
 }
 
+type UnitRow = {
+  id: string; type: string | null; bedrooms: number | null; price: number | null;
+  roi: number | null; rental_yield: number | null; sqft: number | null; floors: string | null;
+  amenities: string[] | null; tags: string[] | null; image: string | null;
+  projects: Record<string, unknown> | Record<string, unknown>[];
+};
+
+const UNIT_SELECT =
+  "id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
+  "projects(ref,name,developer,location,completion,description)";
+
+const FALLBACK_IMAGES = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
+
+function rowToProperty(r: UnitRow, fallbackImage: string): Property {
+  const p = (Array.isArray(r.projects) ? r.projects[0] : r.projects) as Record<string, unknown>;
+  const image = r.image || fallbackImage;
+  const price = Number(r.price ?? 0);
+  const sqft = r.sqft ?? 0;
+  // No rent data in inventory → estimate yield/ROI from an area-adjusted benchmark,
+  // unless the unit carries explicit figures from the DB.
+  const est = computeReturns(defaultInputs({ price, sqft }));
+  const dbRoi = Number(r.roi ?? 0);
+  const dbYield = Number(r.rental_yield ?? 0);
+  return {
+    id: r.id,
+    developer: (p?.developer as string) ?? "—",
+    name: (p?.name as string) ?? "—",
+    location: (p?.location as string) ?? "—",
+    type: r.type ?? "Apartment",
+    bedrooms: r.bedrooms ?? 0,
+    price,
+    currency: "AED",
+    roi: dbRoi || round1(est.roiAnnualizedPct),
+    rentalYield: dbYield || round1(est.grossYieldPct),
+    image,
+    heroImage: heroForRef(p?.ref as string | undefined),
+    tags: r.tags ?? ["sale"],
+    completion: (p?.completion as string) ?? "—",
+    sqft,
+    description: (p?.description as string) ?? "",
+    amenities: r.amenities ?? [],
+    floors: r.floors ?? "",
+  };
+}
+
 export async function getProperties(): Promise<Property[]> {
   const sb = getSupabaseAdmin();
   const tenantId = await getActiveTenantId();
   const { data, error } = await sb
     .from("units")
-    .select(
-      "id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
-        "projects(name,developer,location,completion,description)"
-    )
+    .select(UNIT_SELECT)
     .eq("tenant_id", tenantId)
     .order("price", { ascending: true });
   if (error) throw error;
 
-  type Row = {
-    id: string; type: string | null; bedrooms: number | null; price: number | null;
-    roi: number | null; rental_yield: number | null; sqft: number | null; floors: string | null;
-    amenities: string[] | null; tags: string[] | null; image: string | null;
-    projects: Record<string, unknown> | Record<string, unknown>[];
-  };
-  const fallbackImages = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
-  return ((data ?? []) as unknown as Row[]).map((r, i) => {
-    const p = (Array.isArray(r.projects) ? r.projects[0] : r.projects) as Record<string, unknown>;
-    return {
-      id: r.id,
-      developer: (p?.developer as string) ?? "—",
-      name: (p?.name as string) ?? "—",
-      location: (p?.location as string) ?? "—",
-      type: r.type ?? "Apartment",
-      bedrooms: r.bedrooms ?? 0,
-      price: Number(r.price ?? 0),
-      currency: "AED",
-      roi: Number(r.roi ?? 0),
-      rentalYield: Number(r.rental_yield ?? 0),
-      image: r.image || fallbackImages[i % fallbackImages.length],
-      tags: r.tags ?? ["sale"],
-      completion: (p?.completion as string) ?? "—",
-      sqft: r.sqft ?? 0,
-      description: (p?.description as string) ?? "",
-      amenities: r.amenities ?? [],
-      floors: r.floors ?? "",
-    };
-  });
+  return ((data ?? []) as unknown as UnitRow[]).map((r, i) =>
+    rowToProperty(r, FALLBACK_IMAGES[i % FALLBACK_IMAGES.length])
+  );
+}
+
+export async function getPropertyById(id: string): Promise<Property | null> {
+  const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
+  const { data, error } = await sb
+    .from("units")
+    .select(UNIT_SELECT)
+    .eq("tenant_id", tenantId)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return rowToProperty(data as unknown as UnitRow, "downtown");
 }
 
 export async function getAppointments(): Promise<Appointment[]> {

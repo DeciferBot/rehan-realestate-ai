@@ -91,6 +91,16 @@
 .u-iconbtn:active { transform: scale(0.94); }
 .u-iconbtn:focus-visible { outline: none; box-shadow: var(--ring); }
 
+/* ── Jump-to nav link (label left, chevron nudges toward destination on hover) ── */
+.jump-link { justify-content: space-between; }
+.jump-link__chevron {
+  display: inline-flex; flex-shrink: 0; color: var(--dim);
+  transition: transform var(--dur-base) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .jump-link:hover .jump-link__chevron { transform: translateX(3px); color: currentColor; }
+}
+
 /* ── Badge ── */
 .u-badge {
   display: inline-flex; align-items: center; gap: var(--space-1);
@@ -215,4 +225,5 @@
   .u-btn:active, .u-iconbtn:active, .u-chip:active { transform: none; }
   .u-dot--live { animation: none; }
   .u-skeleton, .u-btn__spin { animation-duration: 0.01ms; }
+  .jump-link:hover .jump-link__chevron { transform: none; }
 }

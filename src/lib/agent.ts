@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
 import { sendEmail, threadSubject } from "./email";
+import { checkGrounding, safeFallback, type InventoryFacts } from "./guardrail";
 
 /**
  * The agent runtime — the brain of the command center.
@@ -32,7 +33,7 @@ type AgentConfigRow = {
   escalation_rules: Record<string, unknown> | null;
 };
 
-async function buildInventoryCatalog(tenantId: string): Promise<string> {
+async function buildInventoryCatalog(tenantId: string): Promise<{ catalog: string; facts: InventoryFacts }> {
   const sb = getSupabaseAdmin();
   const { data: projects } = await sb
     .from("projects")
@@ -50,17 +51,47 @@ async function buildInventoryCatalog(tenantId: string): Promise<string> {
   const unitRows = (units ?? []) as unknown as U[];
 
   const lines: string[] = [];
+  const prices: number[] = [];
   for (const p of projRows) {
     const us = unitRows.filter((u) => u.project_id === p.id);
     lines.push(`• ${p.name} — ${p.developer}, ${p.location}; handover ${p.completion}. ${p.description ?? ""}`);
     for (const u of us) {
       const view = (u.amenities ?? [])[0] ?? "";
+      prices.push(Number(u.price));
       lines.push(
         `    – ${u.bedrooms}BR ${u.type}, ${u.sqft} sqft, AED ${Number(u.price).toLocaleString()}${view ? ` (${view})` : ""}`
       );
     }
   }
-  return lines.join("\n");
+  const valid = prices.filter((n) => isFinite(n) && n > 0);
+  const facts: InventoryFacts = {
+    minPrice: valid.length ? Math.min(...valid) : 0,
+    maxPrice: valid.length ? Math.max(...valid) : 0,
+    projectNames: projRows.map((p) => p.name),
+  };
+  return { catalog: lines.join("\n"), facts };
+}
+
+/** One model turn → trimmed reply text. */
+async function runModel(
+  model: string,
+  system: string,
+  lead: { role: "user" | "assistant"; content: string }[]
+): Promise<string> {
+  const client = getAnthropic();
+  const response = await client.messages.create({
+    model,
+    max_tokens: 1024,
+    thinking: { type: "adaptive" },
+    output_config: { effort: "low" },
+    system,
+    messages: lead,
+  });
+  return response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
 }
 
 function buildSystemPrompt(
@@ -83,7 +114,7 @@ function buildSystemPrompt(
     "",
     `Lead on file: ${contact.full_name}, budget ${contact.budget ?? "unknown"}, intent ${contact.invest_type ?? "unknown"}, status ${contact.status}.`,
     "",
-    "Ground every property claim in this REAL available inventory — never invent units, prices, or projects. If nothing fits, say so honestly.",
+    "GROUNDING RULES (strict): Only mention projects, unit types, and prices that appear verbatim in AVAILABLE INVENTORY below. Never invent a project name. Never state a price that isn't listed, and never quote a price higher than the most expensive listed unit. If the lead wants something we don't have, say so honestly and offer the closest real option — do not guess. If you're unsure of an exact figure, say you'll confirm it rather than estimating.",
     "AVAILABLE INVENTORY:",
     inventory || "(no inventory loaded)",
   ]
@@ -139,7 +170,7 @@ export async function generateAgentReply(
   if (mErr) throw mErr;
   const history = (msgs ?? []) as unknown as { role: string; body: string; seq: number }[];
 
-  const inventory = await buildInventoryCatalog(tenantId);
+  const { catalog: inventory, facts } = await buildInventoryCatalog(tenantId);
   let system = buildSystemPrompt(cfg, inventory, contact);
 
   // Map conversation memory to Anthropic turns: lead = user, agent/human = assistant.
@@ -164,21 +195,25 @@ export async function generateAgentReply(
     lead.push({ role: "user", content: "(Continue the conversation — send your next message to the lead.)" });
   }
 
-  const client = getAnthropic();
-  const response = await client.messages.create({
-    model: cfg.model || MODEL,
-    max_tokens: 1024,
-    thinking: { type: "adaptive" },
-    output_config: { effort: "low" },
-    system,
-    messages: lead,
-  });
+  const model = cfg.model || MODEL;
+  let text = await runModel(model, system, lead);
 
-  const text = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
+  // Grounding guardrail: never let a hallucinated price/project reach the lead.
+  let grounding = checkGrounding(text, facts);
+  let guardrailFired = false;
+  if (!grounding.ok) {
+    guardrailFired = true;
+    const corrective =
+      system +
+      `\n\nCORRECTION: a previous draft was rejected — ${grounding.blocking.join(" ")} ` +
+      "Re-answer using ONLY the AVAILABLE INVENTORY. Never quote a price above the most expensive listed unit, and never name a project that isn't listed.";
+    text = await runModel(model, corrective, lead);
+    grounding = checkGrounding(text, facts);
+    if (!grounding.ok) {
+      // Still ungrounded after a correction → safe, honest fallback + human handoff.
+      text = safeFallback(contact.full_name.split(" ")[0] ?? "", contact.primary_language);
+    }
+  }
 
   const channel = cvRow.last_channel || "whatsapp";
   const now = new Date().toISOString();
@@ -212,8 +247,24 @@ export async function generateAgentReply(
     contact_id: cvRow.contact_id,
     conversation_id: conversationId,
     type: "agent_reply",
-    payload: { model: cfg.model || MODEL },
+    payload: { model, guardrail: { fired: guardrailFired, grounded: grounding.ok } },
   });
+
+  // Surface guardrail catches for audit (and a future "needs human" signal).
+  if (guardrailFired || grounding.warnings.length) {
+    await sb.from("events").insert({
+      tenant_id: tenantId,
+      contact_id: cvRow.contact_id,
+      conversation_id: conversationId,
+      type: "guardrail_flag",
+      payload: {
+        fired: guardrailFired,
+        resolved: grounding.ok,
+        blocking: grounding.blocking,
+        warnings: grounding.warnings,
+      },
+    });
+  }
 
   // Real delivery: if this conversation is on email, actually send the reply.
   if (channel === "email") {
