@@ -141,6 +141,51 @@
 .u-chip:focus-visible { outline: none; box-shadow: var(--ring); }
 .u-chip--on { background: var(--primary-dim); color: var(--primary); border-color: var(--primary-border); }
 
+/* ── Topbar recipe ── */
+.u-topbar {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);
+  height: var(--header-h); padding: 0 var(--space-10);
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+
+.topbar-btn {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+.topbar-btn:hover { background: var(--surface-2); color: var(--ink); }
+.topbar-btn:active { transform: scale(0.94); }
+.topbar-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.topbar-btn__dot { position: absolute; top: 8px; right: 8px; width: 5px; height: 5px; border-radius: var(--radius-pill); background: var(--primary); }
+.topbar-avatar {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: var(--primary); color: white; font-size: var(--text-sm); font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+}
+.menu-btn {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+.menu-btn:active { transform: scale(0.94); }
+
+/* ── Sidebar recipe ── */
+.app-sidebar {
+  position: fixed; left: 0; top: 0; width: var(--sidebar-w); height: 100dvh;
+  display: flex; flex-direction: column; z-index: var(--z-drawer);
+  background: oklch(0.105 0 0); border-right: 1px solid var(--border);
+}
+.sidebar-head { padding: var(--space-8) var(--space-7) var(--space-7); border-bottom: 1px solid var(--border); }
+.sidebar-status { padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm);
+  background: var(--success-dim); border: 1px solid var(--success-border); }
+.sidebar-nav { flex: 1; padding: var(--space-4) var(--space-3); overflow-y: auto; }
+.sidebar-foot { padding: var(--space-3) var(--space-3) var(--space-5); border-top: 1px solid var(--border); }
+.sidebar-user { padding: var(--space-4) var(--space-5); margin-top: var(--space-2); border-top: 1px solid var(--border); }
+
 /* ── Composer recipe ── */
 .u-composer { display: flex; flex-direction: column; gap: var(--space-4);
   border-top: 1px solid var(--border); padding: var(--space-5) var(--space-7); }

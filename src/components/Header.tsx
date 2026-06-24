@@ -2,140 +2,53 @@
 import { useState } from "react";
 import { Search, Bell, Menu } from "lucide-react";
 import { useSidebar } from "@/components/sidebar-context";
+import { Row, Stack, Text } from "@/ui";
 
 export default function Header({ title, subtitle }: { title: string; subtitle?: string }) {
   const [query, setQuery] = useState("");
   const { setOpen } = useSidebar();
 
   return (
-    <header className="header-pad" style={{
-      position: "sticky",
-      top: 0,
-      zIndex: 30,
-      background: "var(--bg)",
-      borderBottom: "1px solid var(--border)",
-      height: "var(--header-h)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 28px",
-      gap: 12,
-    }}>
-
+    <header className="header-pad u-topbar">
       {/* Title + mobile menu */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-        <button
-          className="menu-btn"
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-          style={{
-            width: 34, height: 34,
-            borderRadius: 8,
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-            color: "var(--muted)",
-            flexShrink: 0,
-          }}
-        >
+      <Row gap={5} style={{ minWidth: 0 }}>
+        <button className="menu-btn" onClick={() => setOpen(true)} aria-label="Open menu">
           <Menu size={17} strokeWidth={1.75} />
         </button>
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "var(--ink)",
-            lineHeight: 1,
-            letterSpacing: "-0.01em",
-            fontFamily: "var(--font-sans)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}>
-            {title}
-          </h1>
-          {subtitle && (
-            <p style={{
-              fontSize: 11,
-              color: "var(--dim)",
-              marginTop: 3,
-              fontFamily: "var(--font-sans)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}>
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
+        <Stack gap={1} style={{ minWidth: 0 }}>
+          <Text as="div" size="lg" weight="semibold" truncate style={{ lineHeight: 1, letterSpacing: "-0.01em" }}>{title}</Text>
+          {subtitle && <Text as="div" size="xs" tone="dim" truncate>{subtitle}</Text>}
+        </Stack>
+      </Row>
 
       {/* Right controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-
-        {/* Search */}
+      <Row gap={4}>
         <div className="header-search" style={{ position: "relative", display: "flex", alignItems: "center" }}>
-          <Search
-            size={12}
-            style={{
-              position: "absolute",
-              left: 11,
-              color: "var(--dim)",
-              pointerEvents: "none",
-            }}
-          />
+          <Search size={12} style={{ position: "absolute", left: "var(--space-5)", color: "var(--dim)", pointerEvents: "none" }} />
           <input
             className="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search leads, properties..."
-            style={{ width: 200, padding: "7px 12px 7px 30px" }}
+            style={{ width: 200, padding: "7px var(--space-5) 7px var(--space-10)" }}
           />
         </div>
 
-        {/* Notifications */}
-        <button style={{
-          width: 34, height: 34,
-          borderRadius: 8,
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-          position: "relative",
-          color: "var(--muted)",
-          transition: "background 0.15s ease",
-        }}>
+        <button className="topbar-btn" aria-label="Notifications">
           <Bell size={14} strokeWidth={1.5} />
-          <span style={{
-            position: "absolute",
-            top: 8, right: 8,
-            width: 5, height: 5,
-            borderRadius: "50%",
-            background: "var(--primary)",
-          }} />
+          <span className="topbar-btn__dot" />
         </button>
 
-        {/* Divider */}
         <div style={{ width: 1, height: 24, background: "var(--border)" }} />
 
-        {/* User */}
-        <div style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
-          <div style={{
-            width: 30, height: 30,
-            borderRadius: 7,
-            background: "var(--primary)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 700, color: "white",
-          }}>
-            R
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Simmer Properties</div>
-            <div style={{ fontSize: 10, color: "var(--dim)" }}>Admin</div>
-          </div>
-        </div>
-      </div>
+        <Row gap={3} style={{ cursor: "pointer" }}>
+          <div className="topbar-avatar">R</div>
+          <Stack gap={1}>
+            <Text as="div" size="base" weight="medium" style={{ lineHeight: 1.1 }}>Simmer Properties</Text>
+            <Text as="div" size="2xs" tone="dim">Admin</Text>
+          </Stack>
+        </Row>
+      </Row>
     </header>
   );
 }

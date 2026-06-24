@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { useSidebar } from "@/components/sidebar-context";
+import { Row, Stack, Text, StatusDot } from "@/ui";
 import {
   LayoutDashboard, Users, Building2, Calendar,
   FolderOpen, Settings, LogOut, Inbox, Bot, Layers,
@@ -19,12 +20,6 @@ const navItems = [
   { href: "/settings/agent", label: "Agent Setup",  icon: Bot },
 ];
 
-const agents = [
-  { name: "Alpha", delay: "0s" },
-  { name: "Beta",  delay: "0.4s" },
-  { name: "Gamma", delay: "0.8s" },
-];
-
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -38,70 +33,25 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className={`app-sidebar${open ? " open" : ""}`} style={{
-      position: "fixed",
-      left: 0, top: 0,
-      width: "var(--sidebar-w)",
-      height: "100dvh",
-      background: "oklch(0.105 0.000 0)",
-      borderRight: "1px solid var(--border)",
-      display: "flex",
-      flexDirection: "column",
-      zIndex: 40,
-    }}>
-
+    <aside className={`app-sidebar${open ? " open" : ""}`}>
       {/* App mark */}
-      <div style={{
-        padding: "20px 16px 16px",
-        borderBottom: "1px solid var(--border)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{
-            width: 30, height: 30,
-            background: "var(--primary)",
-            borderRadius: 7,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-            fontSize: 13, fontWeight: 700, color: "white",
-            fontFamily: "var(--font-sans)",
-            letterSpacing: "-0.01em",
-          }}>A</div>
-          <div>
-            <div style={{ color: "var(--ink)", fontWeight: 600, fontSize: 14, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
-              Acre
-            </div>
-            <div style={{ color: "var(--dim)", fontSize: 10, letterSpacing: "0.06em", marginTop: 2 }}>
-              Simmer Properties
-            </div>
-          </div>
-        </div>
-
-        {/* System status */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8,
-          padding: "7px 10px",
-          background: "var(--success-dim)",
-          border: "1px solid var(--success-border)",
-          borderRadius: 7,
-        }}>
-          <span className="live-dot live-dot-green" />
-          <span style={{ fontSize: 12, color: "var(--success)", fontWeight: 500 }}>Acre · online</span>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
-            {agents.map((a) => (
-              <div key={a.name} title={`Agent ${a.name}`} style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: "var(--success)",
-                animation: `live-pulse 2s ease-in-out ${a.delay} infinite`,
-                opacity: 0.8,
-              }} />
-            ))}
-          </div>
-        </div>
+      <div className="sidebar-head">
+        <Row gap={4} style={{ marginBottom: "var(--space-6)" }}>
+          <div className="topbar-avatar">A</div>
+          <Stack gap={1}>
+            <Text as="div" size="md" weight="semibold" style={{ lineHeight: 1.1, letterSpacing: "-0.01em" }}>Acre</Text>
+            <Text as="div" size="2xs" tone="dim" style={{ letterSpacing: "0.06em" }}>Simmer Properties</Text>
+          </Stack>
+        </Row>
+        <Row gap={3} className="sidebar-status">
+          <StatusDot state="online" />
+          <Text size="sm" weight="medium" tone="success">Acre · online</Text>
+        </Row>
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto" }}>
-        <div className="section-label" style={{ padding: "0 12px", marginBottom: 8 }}>
+      <nav className="sidebar-nav">
+        <div className="section-label" style={{ padding: "0 var(--space-5)", marginBottom: "var(--space-3)" }}>
           Navigation
         </div>
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -116,8 +66,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: "8px 8px 12px", borderTop: "1px solid var(--border)" }}>
-        <Link href="/settings/agent" className="nav-item" style={{ cursor: "pointer" }}>
+      <div className="sidebar-foot">
+        <Link href="/settings/agent" className="nav-item">
           <Settings size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Settings</span>
         </Link>
@@ -125,29 +75,19 @@ export default function Sidebar() {
           type="button"
           onClick={signOut}
           className="nav-item"
-          style={{ cursor: "pointer", width: "100%", background: "none", border: "none", textAlign: "left", font: "inherit", color: "inherit" }}
+          style={{ width: "100%", background: "none", border: "none", textAlign: "left", font: "inherit", color: "inherit", cursor: "pointer" }}
         >
           <LogOut size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} />
           <span>Sign out</span>
         </button>
 
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          padding: "10px 12px",
-          marginTop: 6,
-          borderTop: "1px solid var(--border)",
-        }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 7,
-            background: "var(--primary)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 700, color: "white", flexShrink: 0,
-          }}>R</div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.1 }}>Simmer Properties</div>
-            <div style={{ fontSize: 10, color: "var(--dim)" }}>Administrator</div>
-          </div>
-        </div>
+        <Row gap={4} className="sidebar-user">
+          <div className="topbar-avatar">R</div>
+          <Stack gap={1}>
+            <Text as="div" size="base" weight="medium" style={{ lineHeight: 1.1 }}>Simmer Properties</Text>
+            <Text as="div" size="2xs" tone="dim">Administrator</Text>
+          </Stack>
+        </Row>
       </div>
     </aside>
   );
