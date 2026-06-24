@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
+import { whatsappShareUrl } from "@/lib/share";
 import { MapPin, Bed, Square, TrendingUp, Send, Search } from "lucide-react";
 import { Stack, Row, Text, Card, Badge, Button, Input, Chip } from "@/ui";
 
@@ -24,9 +26,15 @@ const areaBg: Record<string, string> = {
 };
 
 export default function PropertiesClient({ properties }: { properties: Property[] }) {
+  const router = useRouter();
   const [devFilter,  setDevFilter]  = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [search,     setSearch]     = useState("");
+
+  function shareOnWhatsApp(p: Property) {
+    const url = `${window.location.origin}/properties/${p.id}`;
+    window.open(whatsappShareUrl(p, url), "_blank", "noopener,noreferrer");
+  }
 
   const developers = ["All", ...Array.from(new Set(properties.map(p => p.developer)))];
   const types = ["All", "Apartment", "Villa", "Townhouse"];
@@ -146,10 +154,10 @@ export default function PropertiesClient({ properties }: { properties: Property[
                   </Text>
 
                   <Row gap={3}>
-                    <Button variant="primary" size="sm" block style={{ flex: 1 }}>
+                    <Button variant="primary" size="sm" block style={{ flex: 1 }} onClick={() => router.push(`/properties/${p.id}`)}>
                       View details
                     </Button>
-                    <Button size="sm" icon={<Send size={11} />}>WA</Button>
+                    <Button size="sm" icon={<Send size={11} />} onClick={() => shareOnWhatsApp(p)}>WA</Button>
                   </Row>
                 </Stack>
               </Card>
