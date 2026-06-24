@@ -113,7 +113,10 @@ export default function PropertiesClient({ properties }: { properties: Property[
                 {/* Content */}
                 <Stack gap={5} style={{ padding: "var(--space-6) var(--space-7) var(--space-7)" }}>
                   <Stack gap={2}>
-                    <Text size="md" weight="semibold" tone="ink">{p.name}</Text>
+                    <Row between align="center" gap={3}>
+                      <Text size="md" weight="semibold" tone="ink">{p.name}</Text>
+                      {p.unitCount > 1 && <Badge tone="neutral">{p.unitCount} available</Badge>}
+                    </Row>
                     <Row gap={2}>
                       <MapPin size={11} style={{ color: "var(--dim)" }} />
                       <Text size="sm" tone="muted">{p.location}</Text>
@@ -169,7 +172,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
         </div>
 
         <Text size="sm" tone="dim">
-          {filtered.length} of {properties.length} properties
+          {filtered.length} of {properties.length} listings · {filtered.reduce((s, p) => s + p.unitCount, 0)} units available
         </Text>
       </Stack>
     </div>

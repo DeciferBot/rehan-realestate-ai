@@ -45,6 +45,7 @@ export type Property = {
   description: string;
   amenities: string[];
   floors: string;
+  unitCount: number; // how many available units share this listing (same project/type/beds/sqft/price)
 };
 
 export type Appointment = {
@@ -178,7 +179,22 @@ function rowToProperty(r: UnitRow, fallbackImage: string): Property {
     description: (p?.description as string) ?? "",
     amenities: r.amenities ?? [],
     floors: r.floors ?? "",
+    unitCount: 1,
   };
+}
+
+// Collapse units that are the same listing (same project/type/beds/sqft/price)
+// into one card carrying an availability count, so identical plots don't render
+// as a wall of duplicate cards. Insertion order (price asc) is preserved.
+function groupListings(props: Property[]): Property[] {
+  const groups = new Map<string, Property>();
+  for (const p of props) {
+    const key = `${p.name}|${p.type}|${p.bedrooms}|${p.sqft}|${p.price}`;
+    const existing = groups.get(key);
+    if (existing) existing.unitCount += 1;
+    else groups.set(key, { ...p });
+  }
+  return [...groups.values()];
 }
 
 export async function getProperties(): Promise<Property[]> {
@@ -191,9 +207,10 @@ export async function getProperties(): Promise<Property[]> {
     .order("price", { ascending: true });
   if (error) throw error;
 
-  return ((data ?? []) as unknown as UnitRow[]).map((r, i) =>
+  const props = ((data ?? []) as unknown as UnitRow[]).map((r, i) =>
     rowToProperty(r, FALLBACK_IMAGES[i % FALLBACK_IMAGES.length])
   );
+  return groupListings(props);
 }
 
 export async function getPropertyById(id: string): Promise<Property | null> {
