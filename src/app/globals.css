@@ -630,6 +630,11 @@ body {
   .inbox-grid .inbox-thread { min-height: 60dvh; }
   .inbox-back { display: inline-flex; }
 
+  /* Thread header: let the action buttons drop to their own full-width row
+     instead of overlapping the name + status badge on narrow screens. */
+  .inbox-thread-head { flex-wrap: wrap; row-gap: var(--space-3); }
+  .inbox-thread-actions { flex: 0 0 100%; justify-content: flex-end; }
+
   /* Any wide table scrolls horizontally inside its panel instead of overflowing */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .data-table { min-width: 600px; }
