@@ -4,6 +4,11 @@ import AgentConfigClient from "./AgentConfigClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Agent Settings",
+  description: "Configure how your AI sales agents speak, qualify, and escalate.",
+};
+
 export default async function AgentSettingsPage() {
   const [config, tenant] = await Promise.all([getAgentConfig(), getTenantInfo()]);
 

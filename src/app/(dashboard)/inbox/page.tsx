@@ -4,6 +4,11 @@ import InboxView from "./InboxView";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Inbox",
+  description: "Every lead conversation across voice, WhatsApp, and email in one thread.",
+};
+
 export default async function InboxPage({
   searchParams,
 }: {

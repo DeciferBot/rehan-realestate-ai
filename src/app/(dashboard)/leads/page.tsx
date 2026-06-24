@@ -3,6 +3,11 @@ import LeadsClient from "./LeadsClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Leads",
+  description: "Track and qualify every lead, with AI scoring and next-best actions.",
+};
+
 export default async function LeadsPage() {
   const leads = await getLeads();
   return <LeadsClient leads={leads} />;

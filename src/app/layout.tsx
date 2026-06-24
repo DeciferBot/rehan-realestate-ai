@@ -16,8 +16,14 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rehan Real Estate AI",
-  description: "AI-powered real estate sales command center",
+  metadataBase: new URL("https://acre.simmerproperties.com"),
+  title: {
+    default: "Acre — AI Sales Agents for Real Estate",
+    template: "%s · Acre",
+  },
+  description:
+    "Acre is the AI sales command center for real estate — engage every lead instantly across voice, WhatsApp, and email, grounded in your live inventory.",
+  applicationName: "Acre",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -3,8 +3,8 @@ import AitaasFooter from "@/components/AitaasFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://simmerproperties.com"),
-  title: "Acre — AI Sales Agents for Real Estate",
+  metadataBase: new URL("https://acre.simmerproperties.com"),
+  title: { absolute: "Acre — AI Sales Agents for Real Estate" },
   description:
     "Acre gives UAE developers, brokers, and institutional landlords a team of AI agents that call, WhatsApp, and email every lead in seconds — in their language, grounded in your live inventory — qualifying buyers and escalating the hot ones to your closers.",
   openGraph: {
