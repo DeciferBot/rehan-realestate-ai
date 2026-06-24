@@ -150,6 +150,17 @@ const UNIT_SELECT =
 
 const FALLBACK_IMAGES = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
 
+// The ingested payment-plan summary carries a raw installment-day list, e.g.
+// "...7 installments of 5% (at 30,210,390,570,750,930,1110 days), 60%...".
+// Strip that parenthetical for display — it's noise to a buyer.
+function cleanPaymentPlan(s: string): string {
+  return s
+    .replace(/\s*\(at[^)]*days?\)/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.])/g, "$1")
+    .trim();
+}
+
 function rowToProperty(r: UnitRow, fallbackImage: string): Property {
   const p = (Array.isArray(r.projects) ? r.projects[0] : r.projects) as Record<string, unknown>;
   const image = r.image || fallbackImage;
@@ -176,7 +187,7 @@ function rowToProperty(r: UnitRow, fallbackImage: string): Property {
     tags: r.tags ?? ["sale"],
     completion: (p?.completion as string) ?? "—",
     sqft,
-    description: (p?.description as string) ?? "",
+    description: cleanPaymentPlan((p?.description as string) ?? ""),
     amenities: r.amenities ?? [],
     floors: r.floors ?? "",
     unitCount: 1,

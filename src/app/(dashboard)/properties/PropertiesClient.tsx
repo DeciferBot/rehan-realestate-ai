@@ -81,7 +81,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
         </Row>
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--space-8)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: "var(--space-10)" }}>
           {filtered.map((p) => {
             const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
             const headerBg = p.heroImage
@@ -89,10 +89,10 @@ export default function PropertiesClient({ properties }: { properties: Property[
               : bgColor;
             const badgeTone = devBadgeTone[p.developer];
             return (
-              <Card key={p.id} flush>
+              <Card key={p.id} flush className="property-card">
 
                 {/* Hero render (or colored fallback) */}
-                <Stack between style={{ height: "156px", background: headerBg, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
+                <Stack between style={{ height: "210px", background: headerBg, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
                   <Row between align="flex-start">
                     <Badge tone={badgeTone}>{p.developer}</Badge>
                     <Row gap={1}>

@@ -493,18 +493,29 @@ body {
    PROPERTY CARD
 ───────────────────────────────────────────────── */
 
+/* Interaction layer applied on top of the .u-card component: gives listing
+   cards a resting elevation (so they read as cards against the near-white bg)
+   and an emerald-accented lift on hover. */
 .property-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
+  transition: transform var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
 }
 
 .property-card:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-pop);
+  border-color: var(--primary-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .property-card {
+    transition: box-shadow var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+  }
+  .property-card:hover { transform: none; }
 }
 
 /* ─────────────────────────────────────────────────
