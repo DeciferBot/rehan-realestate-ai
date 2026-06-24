@@ -7,15 +7,9 @@ import QualifyButton from "./QualifyButton";
 import Link from "next/link";
 import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge, ChevronLeft } from "lucide-react";
 import { Card, CardHeader, Row, Stack, Text, Badge, StatusDot } from "@/ui";
-
-function aed(n: number): string {
-  if (!n) return "—";
-  if (n >= 1_000_000) return `AED ${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 2)}M`;
-  return `AED ${Math.round(n / 1000)}K`;
-}
+import { LeadScoreGauge, BudgetFitBars, MortgageDonut } from "./DossierArtifacts";
 
 type BadgeTone = "neutral" | "primary" | "accent" | "success" | "warning" | "info" | "purple";
-const fitTone: Record<string, BadgeTone> = { "at-budget": "success", stretch: "warning", below: "info" };
 
 const statusTone: Record<string, BadgeTone> = {
   calling: "primary",
@@ -197,6 +191,13 @@ export default function InboxView({
                 <Text size="base" weight="semibold">Lead dossier</Text>
               </CardHeader>
 
+              <LeadScoreGauge
+                qualification={thread.contact.qualification as Record<string, unknown>}
+                budget={thread.contact.budget}
+                contactMessages={thread.messages.filter((m) => m.role === "contact").length}
+                hasBudgetFit={dossier.recommendations.some((r) => r.fit === "at-budget")}
+              />
+
               {thread.contact.assignedLabel?.startsWith("Human:") && (
                 <Row gap={3} align="center" style={{ margin: "var(--space-7)", marginBottom: 0, padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-md)", background: "var(--primary-dim)", border: "1px solid var(--primary-border)" }}>
                   <UserCog size={13} className="u-tone-primary" />
@@ -257,23 +258,7 @@ export default function InboxView({
                   <Text size="sm" weight="semibold">Best matches</Text>
                   <StatusDot state="online" style={{ marginLeft: "auto" }} />
                 </Row>
-                <Stack gap={2}>
-                  {dossier.recommendations.map((r) => (
-                    <Stack key={r.id} gap={1} style={{ padding: "9px 10px", borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                      <Row between align="center" gap={2}>
-                        <Text size="sm" weight="medium" truncate>{r.project}</Text>
-                        <Badge tone={fitTone[r.fit] ?? "neutral"} style={{ flexShrink: 0 }}>{r.fit === "at-budget" ? "fits" : r.fit}</Badge>
-                      </Row>
-                      <Row between align="center">
-                        <Text size="2xs" tone="dim">{r.bedrooms}BR · {r.location}</Text>
-                        <Text size="2xs" weight="semibold" tone="accent" mono>{aed(r.price)}</Text>
-                      </Row>
-                    </Stack>
-                  ))}
-                  {dossier.recommendations.length === 0 && (
-                    <Text size="xs" tone="dim">No matching inventory.</Text>
-                  )}
-                </Stack>
+                <BudgetFitBars recommendations={dossier.recommendations} budget={thread.contact.budget} />
               </Stack>
 
               {dossier.mortgage && (
@@ -283,24 +268,7 @@ export default function InboxView({
                     <Text size="sm" weight="semibold">Mortgage</Text>
                     <Text size="2xs" tone="dim" style={{ marginLeft: "auto" }}>on top match</Text>
                   </Row>
-                  <Stack gap={2}>
-                    {[
-                      { label: "Property value", value: aed(dossier.mortgage.value) },
-                      { label: "Down payment (20%)", value: aed(dossier.mortgage.downPayment) },
-                      { label: "Loan amount", value: aed(dossier.mortgage.loanAmount) },
-                      { label: "Rate (est.)", value: `${dossier.mortgage.ratePct}% p.a.` },
-                      { label: "Term", value: `${dossier.mortgage.years} years` },
-                    ].map(({ label, value }) => (
-                      <Row key={label} between>
-                        <Text size="sm" tone="dim">{label}</Text>
-                        <Text size="sm">{value}</Text>
-                      </Row>
-                    ))}
-                    <Row between style={{ paddingTop: "var(--space-3)", marginTop: 2, borderTop: "1px solid var(--border)" }}>
-                      <Text size="base" weight="medium">Monthly</Text>
-                      <Text size="md" weight="bold" tone="accent" mono>AED {dossier.mortgage.monthly.toLocaleString()}</Text>
-                    </Row>
-                  </Stack>
+                  <MortgageDonut mortgage={dossier.mortgage} />
                 </Stack>
               )}
             </Card>

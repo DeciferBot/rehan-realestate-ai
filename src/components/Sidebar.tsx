@@ -6,7 +6,7 @@ import { useSidebar } from "@/components/sidebar-context";
 import { Row, Stack, Text, StatusDot } from "@/ui";
 import {
   LayoutDashboard, Users, Building2, Calendar,
-  FolderOpen, Settings, LogOut, Inbox, Bot, Layers, Plug,
+  FolderOpen, Settings, LogOut, Inbox, Bot, Layers, Plug, ShieldCheck,
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/settings/inventory", label: "Inventory", icon: Layers },
   { href: "/settings/agent", label: "Agent Setup",  icon: Bot },
   { href: "/settings/integrations", label: "Integrations", icon: Plug },
+  { href: "/audit",         label: "Audit log",     icon: ShieldCheck },
 ];
 
 export default function Sidebar() {
