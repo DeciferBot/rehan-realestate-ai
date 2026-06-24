@@ -82,28 +82,28 @@ export default function PropertiesClient({ properties }: { properties: Property[
           <div style={{ width: "1px", alignSelf: "stretch", background: "var(--border)" }} />
 
           {developers.length > 1 && (
-            <Select value={devFilter} onChange={e => setDevFilter(e.target.value)} aria-label="Developer">
+            <Select value={devFilter} onChange={e => setDevFilter(e.target.value)} aria-label="Developer" style={{ width: 160, flexShrink: 0 }}>
               <option value="All">All developers</option>
               {developers.map(d => <option key={d} value={d}>{d}</option>)}
             </Select>
           )}
 
-          <Select value={communityFilter} onChange={e => setCommunityFilter(e.target.value)} aria-label="Community">
+          <Select value={communityFilter} onChange={e => setCommunityFilter(e.target.value)} aria-label="Community" style={{ width: 190, flexShrink: 0 }}>
             <option value="All">All communities</option>
             {communities.map(c => <option key={c} value={c}>{c}</option>)}
           </Select>
 
-          <Select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} aria-label="Property type">
+          <Select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} aria-label="Property type" style={{ width: 150, flexShrink: 0 }}>
             <option value="All">Any type</option>
             {types.map(t => <option key={t} value={t}>{t}</option>)}
           </Select>
 
-          <Select value={bedsFilter} onChange={e => setBedsFilter(e.target.value)} aria-label="Bedrooms">
+          <Select value={bedsFilter} onChange={e => setBedsFilter(e.target.value)} aria-label="Bedrooms" style={{ width: 130, flexShrink: 0 }}>
             <option value="All">Any beds</option>
             {bedOptions.map(b => <option key={b} value={b}>{b} BR</option>)}
           </Select>
 
-          <Select value={priceFilter} onChange={e => setPriceFilter(e.target.value)} aria-label="Price">
+          <Select value={priceFilter} onChange={e => setPriceFilter(e.target.value)} aria-label="Price" style={{ width: 150, flexShrink: 0 }}>
             <option value="All">Any price</option>
             {PRICE_BANDS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
           </Select>
