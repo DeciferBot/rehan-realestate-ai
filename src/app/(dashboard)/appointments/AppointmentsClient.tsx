@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Header from "@/components/Header";
 import type { Appointment } from "@/lib/data";
 import { Row, Stack, Text, Card, Badge, Button, Chip, EmptyState } from "@/ui";
@@ -15,6 +15,12 @@ const typeConfig: Record<string, { icon: React.ReactNode; label: string; tone: B
   "site-visit": { icon: <MapPin size={12} />, label: "Site visit", tone: "success", outline: "btn-outline-success" },
   "phone":      { icon: <Phone size={12} />,  label: "Phone call", tone: "accent",  outline: "btn-outline-accent"  },
 };
+
+// Fallback so an unexpected booking type degrades to a generic badge instead of crashing.
+const typeFallback: (typeof typeConfig)[string] = {
+  icon: <CalendarClock size={12} />, label: "Appointment", tone: "neutral", outline: "btn-outline-primary",
+};
+const typeOf = (t: string) => typeConfig[t] ?? typeFallback;
 
 const statusTone: Record<string, BadgeTone> = {
   confirmed: "success",
@@ -69,7 +75,7 @@ export default function AppointmentsClient({ appointments }: { appointments: App
               ) : (
                 <Stack gap={4}>
                   {today.map((apt) => {
-                    const tc = typeConfig[apt.type];
+                    const tc = typeOf(apt.type);
                     return (
                       <Card key={apt.id} style={{ padding: "var(--space-7)" }}>
                         <Row between align="flex-start" style={{ marginBottom: "var(--space-6)" }}>
@@ -131,7 +137,7 @@ export default function AppointmentsClient({ appointments }: { appointments: App
                 ) : (
                   <Stack gap={3}>
                     {upcoming.map((apt) => {
-                      const tc = typeConfig[apt.type];
+                      const tc = typeOf(apt.type);
                       const dateLabel = apt.date === "2026-06-08" ? "Tomorrow"
                         : new Date(apt.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
                       return (
@@ -214,7 +220,7 @@ export default function AppointmentsClient({ appointments }: { appointments: App
                 </div>
               ))}
               {hours.map(hour => (
-                <>
+                <Fragment key={hour}>
                   <div
                     key={`h-${hour}`}
                     style={{
@@ -233,7 +239,7 @@ export default function AppointmentsClient({ appointments }: { appointments: App
                         dayIdx === 3 ? a.date === "2026-06-10" : false
                       )
                     );
-                    const tc = apt ? typeConfig[apt.type] : null;
+                    const tc = apt ? typeOf(apt.type) : null;
                     return (
                       <div
                         key={`${hour}-${dayIdx}`}
@@ -260,7 +266,7 @@ export default function AppointmentsClient({ appointments }: { appointments: App
                       </div>
                     );
                   })}
-                </>
+                </Fragment>
               ))}
             </div>
           </Card>

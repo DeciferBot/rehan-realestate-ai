@@ -30,12 +30,13 @@ function TagInput({ tags, setTags, placeholder }: { tags: string[]; setTags: (t:
   return (
     <Row gap={3} wrap align="center">
       {tags.map((t) => (
-        <Chip key={t} on>
+        // Static tag (not a button) so the remove control can be a real button without nesting.
+        <span key={t} className="u-chip u-chip--on">
           <Text size="xs">{t}</Text>
           <IconButton label={`Remove ${t}`} onClick={() => setTags(tags.filter((x) => x !== t))}>
             <X size={11} />
           </IconButton>
-        </Chip>
+        </span>
       ))}
       <Row gap={2} align="center">
         <Input

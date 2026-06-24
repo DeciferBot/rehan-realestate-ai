@@ -24,7 +24,7 @@ const folders = ["Floor Plans", "Brochures", "Payment Plans", "Legal Documents",
 const folderCounts = [14, 8, 5, 12, 31];
 
 export default function DevelopersClient({ developers, properties }: { developers: Developer[]; properties: Property[] }) {
-  const [activeDev, setActiveDev] = useState<string>("D001");
+  const [activeDev, setActiveDev] = useState<string>(developers[0]?.id ?? "");
 
   const selectedDev   = developers.find(d => d.id === activeDev);
   const devProperties = selectedDev
