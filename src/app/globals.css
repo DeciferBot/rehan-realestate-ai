@@ -142,7 +142,7 @@ main {
   /* Typography — cool slate, near-neutral */
   --ink:            oklch(0.235 0.012 255);
   --muted:          oklch(0.470 0.012 255);
-  --dim:            oklch(0.610 0.012 255);
+  --dim:            oklch(0.550 0.013 255);  /* WCAG AA on white (4.85:1) and on --bg (4.64:1) */
 
   /* Primary: emerald — deeper for white content (AA on white) */
   --primary:        oklch(0.48 0.125 163);
@@ -174,12 +174,19 @@ main {
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
+html {
+  /* rem anchor. The type scale (--text-*) is authored in rem against a 16px root;
+     a non-16px root here silently rescales the entire system. */
+  font-size: 16px;
+  background-color: var(--bg);
+}
+
+body {
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 400;
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.5;
   min-height: 100dvh;
   overflow-x: hidden;
@@ -236,6 +243,7 @@ html, body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .btn:active, .filter-pill:active { transform: none; }
 }
 
 /* ─────────────────────────────────────────────────
@@ -340,11 +348,14 @@ html, body {
   font-family: var(--font-sans);
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+              transform var(--dur-instant) var(--ease-out);
   white-space: nowrap;
   line-height: 1;
   text-decoration: none;
 }
+
+.btn:active { transform: scale(0.97); }
 
 .btn-primary            { background: var(--primary); color: white; border-color: var(--primary); }
 .btn-primary:hover      { background: var(--primary-hover); border-color: var(--primary-hover); }
@@ -435,11 +446,13 @@ html, body {
   border: 1px solid var(--border);
   background: transparent;
   color: var(--muted);
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+              transform var(--dur-instant) var(--ease-out);
   white-space: nowrap;
 }
 
 .filter-pill:hover { background: var(--surface-2); color: var(--ink); }
+.filter-pill:active { transform: scale(0.97); }
 
 .filter-pill.active {
   background: var(--primary-dim);
