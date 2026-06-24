@@ -22,6 +22,7 @@ const APP_PAGE_PREFIXES = [
   "/appointments",
   "/developers",
   "/settings",
+  "/audit",
 ];
 
 // Gated admin APIs (called from the dashboard by a signed-in user).
