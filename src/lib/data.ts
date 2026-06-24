@@ -2,6 +2,7 @@ import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
 import { computeReturns, defaultInputs, round1 } from "./investment";
+import { heroForRef } from "./projectHero";
 
 /**
  * Server-side data access for the legacy console pages (Leads, Properties,
@@ -37,6 +38,7 @@ export type Property = {
   roi: number;
   rentalYield: number;
   image: string;
+  heroImage: string | null;
   tags: string[];
   completion: string;
   sqft: number;
@@ -143,7 +145,7 @@ type UnitRow = {
 
 const UNIT_SELECT =
   "id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
-  "projects(name,developer,location,completion,description)";
+  "projects(ref,name,developer,location,completion,description)";
 
 const FALLBACK_IMAGES = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
 
@@ -169,6 +171,7 @@ function rowToProperty(r: UnitRow, fallbackImage: string): Property {
     roi: dbRoi || round1(est.roiAnnualizedPct),
     rentalYield: dbYield || round1(est.grossYieldPct),
     image,
+    heroImage: heroForRef(p?.ref as string | undefined),
     tags: r.tags ?? ["sale"],
     completion: (p?.completion as string) ?? "—",
     sqft,

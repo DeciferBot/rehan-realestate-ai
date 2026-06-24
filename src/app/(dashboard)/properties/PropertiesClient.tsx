@@ -84,12 +84,15 @@ export default function PropertiesClient({ properties }: { properties: Property[
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--space-8)" }}>
           {filtered.map((p) => {
             const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
+            const headerBg = p.heroImage
+              ? `linear-gradient(180deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.78) 100%), url(${p.heroImage}) center/cover no-repeat`
+              : bgColor;
             const badgeTone = devBadgeTone[p.developer];
             return (
               <Card key={p.id} flush>
 
-                {/* Image placeholder */}
-                <Stack between style={{ height: "156px", background: bgColor, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
+                {/* Hero render (or colored fallback) */}
+                <Stack between style={{ height: "156px", background: headerBg, padding: "var(--space-6) var(--space-6) var(--space-5)" }}>
                   <Row between align="flex-start">
                     <Badge tone={badgeTone}>{p.developer}</Badge>
                     <Row gap={1}>

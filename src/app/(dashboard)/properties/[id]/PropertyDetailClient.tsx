@@ -60,6 +60,9 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
   const set = (patch: Partial<ReturnInputs>) => setInputs((prev) => ({ ...prev, ...patch }));
 
   const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
+  const heroBg = p.heroImage
+    ? `linear-gradient(180deg, rgba(15,23,42,0.18) 0%, rgba(15,23,42,0.74) 100%), url(${p.heroImage}) center/cover no-repeat`
+    : bgColor;
 
   function shareOnWhatsApp() {
     const url = typeof window !== "undefined" ? `${window.location.origin}/properties/${p.id}` : undefined;
@@ -84,7 +87,7 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
           {/* Left — listing facts */}
           <Stack gap={6}>
             <Card flush>
-              <Stack between style={{ minHeight: "180px", background: bgColor, padding: "var(--space-7)" }}>
+              <Stack between style={{ minHeight: "200px", background: heroBg, padding: "var(--space-7)" }}>
                 <Row between align="flex-start">
                   <Badge>{p.developer}</Badge>
                   <Row gap={1}>
