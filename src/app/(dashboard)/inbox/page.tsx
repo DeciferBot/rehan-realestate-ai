@@ -15,9 +15,14 @@ export default async function InboxPage({
   searchParams: Promise<{ c?: string }>;
 }) {
   const { c } = await searchParams;
-  const conversations = await getConversations();
+  // Fetch conversation list and the selected thread in parallel
+  const [conversations, threadEarly] = await Promise.all([
+    getConversations(),
+    c ? getConversationThread(c) : Promise.resolve(null),
+  ]);
   const selectedId = c ?? conversations[0]?.id ?? null;
-  const thread = selectedId ? await getConversationThread(selectedId) : null;
+  // If no ?c param, load the first conversation (already have it if c was set)
+  const thread = threadEarly ?? (selectedId && !c ? await getConversationThread(selectedId) : null);
   const dossier = thread ? await getContactDossier(thread.contact.budget) : null;
 
   return <InboxView conversations={conversations} thread={thread} dossier={dossier} selectedId={selectedId} c={c} />;

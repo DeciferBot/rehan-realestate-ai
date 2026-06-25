@@ -30,6 +30,14 @@ export default function Composer({
       if (!res.ok) throw new Error("send_failed");
       setBody("");
       router.refresh();
+      // Trigger agent reply in the background — don't await, refresh again when done
+      fetch("/api/agent/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId }),
+      }).then((r) => r.json()).then((json) => {
+        if (json.ok) router.refresh();
+      }).catch(() => {/* silent — agent may not be configured */});
     } catch {
       setError("Couldn't send — try again.");
     } finally {
