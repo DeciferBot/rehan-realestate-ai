@@ -227,11 +227,19 @@ export async function getConversationThread(
   };
 }
 
-/** Insert an operator (human take-over) message and bump the conversation. */
+/**
+ * Insert an operator (human take-over) message and bump the conversation.
+ *
+ * `deliver` controls real outbound delivery for email-channel conversations.
+ * It defaults to `false`: operator messages typed in the dashboard are logged
+ * to the thread but NOT emailed unless the operator explicitly opts in. This
+ * keeps testing the dashboard from emailing the contact a line at a time.
+ */
 export async function postHumanMessage(
   conversationId: string,
   body: string,
-  channel?: string
+  channel?: string,
+  deliver: boolean = false
 ): Promise<void> {
   const sb = getSupabaseAdmin();
   const tenantId = await getActiveTenantId();
@@ -279,8 +287,9 @@ export async function postHumanMessage(
     payload: { channel: ch },
   });
 
-  // Real delivery for operator take-over over email.
-  if (ch === "email") {
+  // Real delivery for operator take-over over email — only when the operator
+  // explicitly opted in. Dashboard/test replies stay internal to the thread.
+  if (ch === "email" && deliver) {
     const { data: idn } = await sb
       .from("contact_identities")
       .select("value")

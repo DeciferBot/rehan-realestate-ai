@@ -123,10 +123,20 @@ function buildSystemPrompt(
     .join("\n");
 }
 
-/** Generate the agent's next message in a conversation and persist it. */
+/**
+ * Generate the agent's next message in a conversation and persist it.
+ *
+ * `deliver` controls real outbound delivery (e.g. sending an email) for
+ * email-channel conversations. It defaults to `true` so genuine inbound-email
+ * and auto-engage paths keep replying to the lead. Dashboard/test surfaces
+ * (e.g. the operator composer's "AI respond") pass `deliver: false` so testing
+ * the agent never sends a real email per message.
+ */
 export async function generateAgentReply(
-  conversationId: string
+  conversationId: string,
+  opts: { deliver?: boolean } = {}
 ): Promise<{ text: string; messageId: string }> {
+  const deliver = opts.deliver ?? true;
   const sb = getSupabaseAdmin();
   const tenantId = await getActiveTenantId();
 
@@ -269,7 +279,9 @@ export async function generateAgentReply(
   }
 
   // Real delivery: if this conversation is on email, actually send the reply.
-  if (channel === "email") {
+  // Skipped for dashboard/test runs (deliver=false) so testing the agent never
+  // emails the lead one line at a time.
+  if (channel === "email" && deliver) {
     const { data: idn } = await sb
       .from("contact_identities")
       .select("value")
