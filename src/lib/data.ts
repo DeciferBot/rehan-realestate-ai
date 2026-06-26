@@ -3,7 +3,6 @@ import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
 import { computeReturns, defaultInputs, round1 } from "./investment";
 import { heroForRef, galleryForRef } from "./projectHero";
-import { PROJECT_IMAGE_BUCKET } from "./projectImages";
 
 /**
  * Server-side data access for the legacy console pages (Leads, Properties,
@@ -141,14 +140,14 @@ export async function getLeads(): Promise<Lead[]> {
 }
 
 type UnitRow = {
-  id: string; type: string | null; bedrooms: number | null; price: number | null;
+  id: string; project_id: string | null; type: string | null; bedrooms: number | null; price: number | null;
   roi: number | null; rental_yield: number | null; sqft: number | null; floors: string | null;
   amenities: string[] | null; tags: string[] | null; image: string | null;
   projects: Record<string, unknown> | Record<string, unknown>[];
 };
 
 const UNIT_SELECT =
-  "id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
+  "id,project_id,type,bedrooms,price,roi,rental_yield,sqft,floors,amenities,tags,image,status," +
   "projects(ref,name,developer,location,completion,description)";
 
 const FALLBACK_IMAGES = ["downtown", "harbour", "palm", "lamer", "hills", "valley"];
@@ -236,26 +235,31 @@ export async function getProperties(): Promise<Property[]> {
   return groupListings(props);
 }
 
-// The PDF-extracted page renders for a project live in the public storage
-// bucket under a folder named for the project `ref` (written at ingest time).
-// List them and resolve public URLs, sorted by the zero-padded page name so
-// the gallery order matches the sheet. Best-effort: any failure (bucket absent,
-// no imagery, storage error) yields an empty list and the caller falls back to
-// the curated hero.
-async function listIngestedImages(
+// At ingest time the PDF page renders are uploaded to storage and their public
+// URLs recorded on the project's availability document (`extracted.images`).
+// Read them back from there — a normal table read, so it needs no storage-list
+// policy (the anon role wouldn't have one) and works wherever the rest of the
+// app's reads do. Best-effort: any failure yields an empty list and the caller
+// falls back to the curated hero.
+async function ingestedImagesForProject(
   sb: ReturnType<typeof getSupabaseAdmin>,
-  ref?: string | null
+  tenantId: string,
+  projectId?: string | null
 ): Promise<string[]> {
-  if (!ref) return [];
+  if (!projectId) return [];
   try {
-    const folder = ref.toLowerCase();
-    const { data, error } = await sb.storage
-      .from(PROJECT_IMAGE_BUCKET)
-      .list(folder, { sortBy: { column: "name", order: "asc" } });
+    const { data, error } = await sb
+      .from("documents")
+      .select("extracted,created_at")
+      .eq("tenant_id", tenantId)
+      .eq("project_id", projectId)
+      .eq("kind", "availability")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (error || !data) return [];
-    return data
-      .filter((f) => /\.(png|jpe?g|webp)$/i.test(f.name))
-      .map((f) => sb.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(`${folder}/${f.name}`).data.publicUrl);
+    const imgs = (data as { extracted?: { images?: unknown } }).extracted?.images;
+    return Array.isArray(imgs) ? imgs.filter((u): u is string => typeof u === "string") : [];
   } catch {
     return [];
   }
@@ -275,8 +279,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 
   const row = data as unknown as UnitRow;
   const property = rowToProperty(row, "downtown");
-  const proj = (Array.isArray(row.projects) ? row.projects[0] : row.projects) as Record<string, unknown> | undefined;
-  const ingested = await listIngestedImages(sb, proj?.ref as string | undefined);
+  const ingested = await ingestedImagesForProject(sb, tenantId, row.project_id);
   // Curated hero first, then ingested page renders, de-duplicated.
   const gallery = Array.from(new Set([...property.gallery, ...ingested]));
   return { ...property, gallery, heroImage: gallery[0] ?? property.heroImage };

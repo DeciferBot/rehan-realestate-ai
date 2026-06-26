@@ -79,9 +79,12 @@ function slugify(s: string): string {
 
 /**
  * Upload a sheet's rendered pages into the project's gallery folder and return
- * their public URLs. Best-effort: the bucket is created on demand (idempotent)
- * and individual upload failures are skipped, never thrown — a project still
- * ingests its units even if imagery can't be stored.
+ * their public URLs. Best-effort throughout: individual failures are skipped,
+ * never thrown — a project still ingests its units even if imagery can't be
+ * stored. Note: the bucket is only auto-created when running with a privileged
+ * (secret/service-role) key; under the publishable key it must already exist
+ * (see supabase/project-images-setup.sql) and storage policies must permit the
+ * upload, otherwise the page renders are skipped and the gallery shows the hero.
  */
 async function uploadProjectImages(
   sb: SupabaseClient,
