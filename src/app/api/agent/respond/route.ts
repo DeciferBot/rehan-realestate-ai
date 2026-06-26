@@ -4,7 +4,7 @@ import { generateAgentReply } from "@/lib/agent";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  let data: { conversationId?: string };
+  let data: { conversationId?: string; deliver?: boolean };
   try {
     data = await req.json();
   } catch {
@@ -15,7 +15,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "missing_conversationId" }, { status: 400 });
   }
   try {
-    const { text } = await generateAgentReply(conversationId);
+    // Dashboard-triggered replies do not deliver a real email unless the
+    // operator explicitly opted in; testing the agent stays internal.
+    const { text } = await generateAgentReply(conversationId, { deliver: data.deliver === true });
     return NextResponse.json({ ok: true, text });
   } catch (e) {
     const message = e instanceof Error ? e.message : "server_error";

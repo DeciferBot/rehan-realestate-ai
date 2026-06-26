@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { postHumanMessage } from "@/lib/spine";
 
 export async function POST(req: Request) {
-  let data: { conversationId?: string; body?: string; channel?: string };
+  let data: { conversationId?: string; body?: string; channel?: string; deliver?: boolean };
   try {
     data = await req.json();
   } catch {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await postHumanMessage(conversationId, body, data.channel);
+    await postHumanMessage(conversationId, body, data.channel, data.deliver === true);
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("messages: failed to post", e);
