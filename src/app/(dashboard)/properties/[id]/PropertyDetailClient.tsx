@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
@@ -55,9 +55,17 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: "
 
 export default function PropertyDetailClient({ property: p }: { property: Property }) {
   const router = useRouter();
+  const [lightbox, setLightbox] = useState(false);
   const [inputs, setInputs] = useState<ReturnInputs>(() => defaultInputs(p));
   const r = useMemo(() => computeReturns(inputs), [inputs]);
   const set = (patch: Partial<ReturnInputs>) => setInputs((prev) => ({ ...prev, ...patch }));
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
   const heroBg = p.heroImage
@@ -72,7 +80,7 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
   return (
     <div>
       <Header title={p.name} subtitle={`${p.location} · ${p.developer}`} />
-      <Stack gap={7} style={{ padding: "var(--space-9) var(--space-10)" }}>
+      <Stack gap={7} className="page-pad" style={{ padding: "var(--space-9) var(--space-10)" }}>
         <Row between wrap gap={4}>
           <Button size="sm" icon={<ArrowLeft size={12} />} onClick={() => router.push("/properties")}>
             Back to listings
@@ -82,12 +90,18 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
           </Button>
         </Row>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 380px)", gap: "var(--space-8)", alignItems: "start" }}>
+        <div className="detail-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 380px)", gap: "var(--space-8)", alignItems: "start" }}>
 
           {/* Left — listing facts */}
           <Stack gap={6}>
             <Card flush>
-              <Stack between style={{ minHeight: "200px", background: heroBg, padding: "var(--space-7)" }}>
+              <Stack
+                between
+                className="property-hero"
+                onClick={p.heroImage ? () => setLightbox(true) : undefined}
+                title={p.heroImage ? "View full-size image" : undefined}
+                style={{ background: heroBg, padding: "var(--space-7)", cursor: p.heroImage ? "zoom-in" : undefined }}
+              >
                 <Row between align="flex-start">
                   <Badge>{p.developer}</Badge>
                   <Row gap={1}>
@@ -180,6 +194,19 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
           </Card>
         </div>
       </Stack>
+
+      {lightbox && p.heroImage && (
+        <div
+          className="hero-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${p.name} — full-size image`}
+          onClick={() => setLightbox(false)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={p.heroImage} alt={p.name} />
+        </div>
+      )}
     </div>
   );
 }

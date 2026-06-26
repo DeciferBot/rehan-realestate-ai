@@ -65,7 +65,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
   return (
     <div>
       <Header title="Property Listings" subtitle="Multi-developer portfolio — sale & rental inventory" />
-      <Stack gap={8} style={{ padding: "var(--space-9) var(--space-10)" }}>
+      <Stack gap={8} className="page-pad" style={{ padding: "var(--space-9) var(--space-10)" }}>
 
         {/* Filters */}
         <Row gap={3} wrap align="center">
@@ -110,7 +110,7 @@ export default function PropertiesClient({ properties }: { properties: Property[
         </Row>
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: "var(--space-10)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 330px), 1fr))", gap: "var(--space-10)" }}>
           {filtered.map((p) => {
             const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
             const headerBg = p.heroImage
