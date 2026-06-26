@@ -1,7 +1,10 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
+import { renderPdfPages, type RenderedPage } from "./pdfImages";
+import { PROJECT_IMAGE_BUCKET } from "./projectImages";
 
 /**
  * Automated inventory ingestion: an availability sheet (PDF or extracted text)
@@ -74,6 +77,33 @@ function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
 }
 
+/**
+ * Upload a sheet's rendered pages into the project's gallery folder and return
+ * their public URLs. Best-effort: the bucket is created on demand (idempotent)
+ * and individual upload failures are skipped, never thrown — a project still
+ * ingests its units even if imagery can't be stored.
+ */
+async function uploadProjectImages(
+  sb: SupabaseClient,
+  ref: string,
+  pages: RenderedPage[]
+): Promise<string[]> {
+  await sb.storage.createBucket(PROJECT_IMAGE_BUCKET, { public: true }).catch(() => {});
+  const urls: string[] = [];
+  for (const page of pages) {
+    const path = `${ref}/page-${String(page.index + 1).padStart(2, "0")}.png`;
+    const { error } = await sb.storage
+      .from(PROJECT_IMAGE_BUCKET)
+      .upload(path, Buffer.from(page.png), { contentType: "image/png", upsert: true });
+    if (error) {
+      console.error("ingest: image upload failed:", path, error.message);
+      continue;
+    }
+    urls.push(sb.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(path).data.publicUrl);
+  }
+  return urls;
+}
+
 export type IngestResult = {
   projects: { name: string; units: number }[];
   totalUnits: number;
@@ -116,6 +146,18 @@ export async function ingestAvailability(input: {
   const tenantId = await getActiveTenantId();
   const out: IngestResult = { projects: [], totalUnits: 0 };
 
+  // Render the sheet's pages once up front (best-effort) so each project parsed
+  // from it can be seeded with gallery imagery. A render failure must not abort
+  // the unit ingestion, so it's swallowed to an empty set.
+  let renderedPages: RenderedPage[] = [];
+  if (input.base64) {
+    try {
+      renderedPages = await renderPdfPages(input.base64);
+    } catch (e) {
+      console.error("ingest: pdf render failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
   for (const p of parsed.projects ?? []) {
     const ref = slugify(p.name);
     const { data: proj, error } = await sb
@@ -155,6 +197,16 @@ export async function ingestAvailability(input: {
       if (uErr) throw uErr;
     }
 
+    // Store the rendered pages as this project's gallery (best-effort).
+    let images: string[] = [];
+    if (renderedPages.length) {
+      try {
+        images = await uploadProjectImages(sb, ref, renderedPages);
+      } catch (e) {
+        console.error("ingest: image storage failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
     await sb.from("documents").insert({
       tenant_id: tenantId,
       project_id: projectId,
@@ -166,6 +218,7 @@ export async function ingestAvailability(input: {
         completion: p.completion,
         payment_plan: p.payment_plan,
         units: (p.units ?? []).length,
+        images,
       },
     });
 

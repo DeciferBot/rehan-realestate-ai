@@ -28,3 +28,14 @@ export function heroForRef(ref?: string | null): string | null {
   if (!ref) return null;
   return HERO_BY_REF[ref.toLowerCase()] ?? null;
 }
+
+/**
+ * The statically-known images for a project — currently just its hero render.
+ * The property gallery layers any PDF-extracted page renders (stored at ingest
+ * time) on top of this, so projects without ingested imagery still show their
+ * curated hero.
+ */
+export function galleryForRef(ref?: string | null): string[] {
+  const hero = heroForRef(ref);
+  return hero ? [hero] : [];
+}

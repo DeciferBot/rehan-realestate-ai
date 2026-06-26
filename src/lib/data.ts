@@ -2,7 +2,8 @@ import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
 import { getActiveTenantId } from "./spine";
 import { computeReturns, defaultInputs, round1 } from "./investment";
-import { heroForRef } from "./projectHero";
+import { heroForRef, galleryForRef } from "./projectHero";
+import { PROJECT_IMAGE_BUCKET } from "./projectImages";
 
 /**
  * Server-side data access for the legacy console pages (Leads, Properties,
@@ -39,6 +40,7 @@ export type Property = {
   rentalYield: number;
   image: string;
   heroImage: string | null;
+  gallery: string[]; // hero + any PDF-extracted page renders, in display order
   tags: string[];
   completion: string;
   sqft: number;
@@ -185,6 +187,7 @@ function rowToProperty(r: UnitRow, fallbackImage: string): Property {
     rentalYield: dbYield || round1(est.grossYieldPct),
     image,
     heroImage: heroForRef(p?.ref as string | undefined),
+    gallery: galleryForRef(p?.ref as string | undefined),
     tags: r.tags ?? ["sale"],
     completion: (p?.completion as string) ?? "—",
     sqft,
@@ -233,6 +236,31 @@ export async function getProperties(): Promise<Property[]> {
   return groupListings(props);
 }
 
+// The PDF-extracted page renders for a project live in the public storage
+// bucket under a folder named for the project `ref` (written at ingest time).
+// List them and resolve public URLs, sorted by the zero-padded page name so
+// the gallery order matches the sheet. Best-effort: any failure (bucket absent,
+// no imagery, storage error) yields an empty list and the caller falls back to
+// the curated hero.
+async function listIngestedImages(
+  sb: ReturnType<typeof getSupabaseAdmin>,
+  ref?: string | null
+): Promise<string[]> {
+  if (!ref) return [];
+  try {
+    const folder = ref.toLowerCase();
+    const { data, error } = await sb.storage
+      .from(PROJECT_IMAGE_BUCKET)
+      .list(folder, { sortBy: { column: "name", order: "asc" } });
+    if (error || !data) return [];
+    return data
+      .filter((f) => /\.(png|jpe?g|webp)$/i.test(f.name))
+      .map((f) => sb.storage.from(PROJECT_IMAGE_BUCKET).getPublicUrl(`${folder}/${f.name}`).data.publicUrl);
+  } catch {
+    return [];
+  }
+}
+
 export async function getPropertyById(id: string): Promise<Property | null> {
   const sb = getSupabaseAdmin();
   const tenantId = await getActiveTenantId();
@@ -244,7 +272,14 @@ export async function getPropertyById(id: string): Promise<Property | null> {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return rowToProperty(data as unknown as UnitRow, "downtown");
+
+  const row = data as unknown as UnitRow;
+  const property = rowToProperty(row, "downtown");
+  const proj = (Array.isArray(row.projects) ? row.projects[0] : row.projects) as Record<string, unknown> | undefined;
+  const ingested = await listIngestedImages(sb, proj?.ref as string | undefined);
+  // Curated hero first, then ingested page renders, de-duplicated.
+  const gallery = Array.from(new Set([...property.gallery, ...ingested]));
+  return { ...property, gallery, heroImage: gallery[0] ?? property.heroImage };
 }
 
 export async function getAppointments(): Promise<Appointment[]> {

@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import type { Property } from "@/lib/data";
 import { whatsappShareUrl } from "@/lib/share";
 import { computeReturns, defaultInputs, type ReturnInputs } from "@/lib/investment";
-import { ArrowLeft, MapPin, Bed, Square, Building2, CalendarClock, Send, TrendingUp } from "lucide-react";
+import { ArrowLeft, MapPin, Bed, Square, Building2, CalendarClock, Send, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Stack, Row, Text, Card, Badge, Button, Field, Input } from "@/ui";
 
 const areaBg: Record<string, string> = {
@@ -55,21 +55,32 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: "
 
 export default function PropertyDetailClient({ property: p }: { property: Property }) {
   const router = useRouter();
-  const [lightbox, setLightbox] = useState(false);
+  const gallery = p.gallery?.length ? p.gallery : p.heroImage ? [p.heroImage] : [];
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [inputs, setInputs] = useState<ReturnInputs>(() => defaultInputs(p));
   const r = useMemo(() => computeReturns(inputs), [inputs]);
   const set = (patch: Partial<ReturnInputs>) => setInputs((prev) => ({ ...prev, ...patch }));
 
+  const closeLightbox = () => setLightboxIndex(null);
+  const stepLightbox = (delta: number) =>
+    setLightboxIndex((i) => (i === null ? i : (i + delta + gallery.length) % gallery.length));
+
   useEffect(() => {
-    if (!lightbox) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(false); };
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowRight") stepLightbox(1);
+      else if (e.key === "ArrowLeft") stepLightbox(-1);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxIndex, gallery.length]);
 
   const bgColor = areaBg[p.image] || "oklch(0.22 0.010 55)";
-  const heroBg = p.heroImage
-    ? `linear-gradient(180deg, rgba(15,23,42,0.18) 0%, rgba(15,23,42,0.74) 100%), url(${p.heroImage}) center/cover no-repeat`
+  const heroImg = gallery[0] ?? null;
+  const heroBg = heroImg
+    ? `linear-gradient(180deg, rgba(15,23,42,0.18) 0%, rgba(15,23,42,0.74) 100%), url(${heroImg}) center/cover no-repeat`
     : bgColor;
 
   function shareOnWhatsApp() {
@@ -98,9 +109,9 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
               <Stack
                 between
                 className="property-hero"
-                onClick={p.heroImage ? () => setLightbox(true) : undefined}
-                title={p.heroImage ? "View full-size image" : undefined}
-                style={{ background: heroBg, padding: "var(--space-7)", cursor: p.heroImage ? "zoom-in" : undefined }}
+                onClick={heroImg ? () => setLightboxIndex(0) : undefined}
+                title={heroImg ? "View full-size image" : undefined}
+                style={{ background: heroBg, padding: "var(--space-7)", cursor: heroImg ? "zoom-in" : undefined }}
               >
                 <Row between align="flex-start">
                   <Badge>{p.developer}</Badge>
@@ -118,6 +129,22 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
                   </Text>
                 </Stack>
               </Stack>
+
+              {gallery.length > 1 && (
+                <Row gap={3} wrap style={{ padding: "var(--space-5) var(--space-7) 0" }}>
+                  {gallery.map((src, i) => (
+                    <button
+                      key={src}
+                      type="button"
+                      className="gallery-thumb"
+                      onClick={() => setLightboxIndex(i)}
+                      title={`View image ${i + 1} of ${gallery.length}`}
+                      style={{ backgroundImage: `url(${src})` }}
+                      aria-label={`View image ${i + 1} of ${gallery.length}`}
+                    />
+                  ))}
+                </Row>
+              )}
 
               <Stack gap={5} style={{ padding: "var(--space-7)" }}>
                 <Row gap={6} wrap>
@@ -195,16 +222,37 @@ export default function PropertyDetailClient({ property: p }: { property: Proper
         </div>
       </Stack>
 
-      {lightbox && p.heroImage && (
+      {lightboxIndex !== null && gallery[lightboxIndex] && (
         <div
           className="hero-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={`${p.name} — full-size image`}
-          onClick={() => setLightbox(false)}
+          aria-label={`${p.name} — image ${lightboxIndex + 1} of ${gallery.length}`}
+          onClick={closeLightbox}
         >
+          {gallery.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-nav--prev"
+                onClick={(e) => { e.stopPropagation(); stepLightbox(-1); }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-nav--next"
+                onClick={(e) => { e.stopPropagation(); stepLightbox(1); }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={22} />
+              </button>
+              <span className="lightbox-count">{lightboxIndex + 1} / {gallery.length}</span>
+            </>
+          )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.heroImage} alt={p.name} />
+          <img src={gallery[lightboxIndex]} alt={`${p.name} — image ${lightboxIndex + 1}`} onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>

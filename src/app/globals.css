@@ -679,7 +679,23 @@ body {
   .property-hero { aspect-ratio: 4 / 3; max-height: 320px; }
 }
 
-/* Full-size render lightbox — view the uncropped image. */
+/* Gallery thumbnail strip — page renders pulled from the ingested PDF. Sits
+   directly below the hero; clicking a thumbnail opens it in the lightbox. */
+.gallery-thumb {
+  width: 84px; height: 60px; flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--surface-2);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  cursor: zoom-in; padding: 0;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              transform var(--dur-instant) var(--ease-out);
+}
+.gallery-thumb:hover { border-color: var(--primary-border); }
+.gallery-thumb:active { transform: scale(0.97); }
+.gallery-thumb:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Full-size render lightbox — view the uncropped image, page through the set. */
 .hero-lightbox {
   position: fixed; inset: 0; z-index: var(--z-modal);
   display: flex; align-items: center; justify-content: center;
@@ -693,6 +709,25 @@ body {
   object-fit: contain;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-pop);
+  cursor: default;
+}
+.lightbox-nav {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--radius-pill);
+  background: oklch(1 0 0 / 0.12); color: white; border: none; cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+.lightbox-nav:hover { background: oklch(1 0 0 / 0.22); }
+.lightbox-nav:active { transform: translateY(-50%) scale(0.92); }
+.lightbox-nav:focus-visible { outline: none; box-shadow: var(--ring); }
+.lightbox-nav--prev { left: var(--space-8); }
+.lightbox-nav--next { right: var(--space-8); }
+.lightbox-count {
+  position: fixed; bottom: var(--space-9); left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: var(--text-sm);
+  color: white; background: oklch(0 0 0 / 0.45);
+  padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill);
 }
 
 /* Trim page gutters on small phones so content isn't pinched by 28px rails. */
