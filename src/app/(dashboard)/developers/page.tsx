@@ -1,4 +1,5 @@
 import { getDevelopers, getProperties } from "@/lib/data";
+import { getDocCountsByDeveloper } from "@/lib/documents";
 import DevelopersClient from "./DevelopersClient";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,12 @@ export const metadata = {
 };
 
 export default async function DevelopersPage() {
-  const [developers, properties] = await Promise.all([getDevelopers(), getProperties()]);
-  return <DevelopersClient developers={developers} properties={properties} />;
+  const [developers, properties, docCounts] = await Promise.all([
+    getDevelopers(),
+    getProperties(),
+    getDocCountsByDeveloper(),
+  ]);
+  return (
+    <DevelopersClient developers={developers} properties={properties} docCounts={docCounts} />
+  );
 }

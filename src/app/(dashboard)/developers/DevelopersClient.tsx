@@ -1,14 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Developer, Property } from "@/lib/data";
 import {
-  FolderOpen, RefreshCw, Plus, CheckCircle2, AlertCircle,
-  Upload, Building2, TrendingUp, MapPin, Bed, Square,
+  FolderOpen, Upload, Building2, TrendingUp, MapPin, Bed, Square,
+  ChevronRight, Download, FileText, Loader2,
 } from "lucide-react";
 import {
   Stack, Row, Text, Card, Badge, Button, EmptyState, cx,
 } from "@/ui";
+import { DOC_CATEGORIES, formatBytes, type DocItem } from "@/lib/documents-shared";
+import { listDocsAction, uploadDocAction } from "./actions";
 
 type BadgeTone = "neutral" | "primary" | "accent" | "success" | "warning" | "info" | "purple";
 
@@ -20,10 +23,15 @@ const devBadgeTone: Record<string, BadgeTone> = {
   "Meraas":           "warning",
 };
 
-const folders = ["Floor Plans", "Brochures", "Payment Plans", "Legal Documents", "Media Assets"];
-const folderCounts = [14, 8, 5, 12, 31];
-
-export default function DevelopersClient({ developers, properties }: { developers: Developer[]; properties: Property[] }) {
+export default function DevelopersClient({
+  developers,
+  properties,
+  docCounts,
+}: {
+  developers: Developer[];
+  properties: Property[];
+  docCounts: Record<string, Record<string, number>>;
+}) {
   const [activeDev, setActiveDev] = useState<string>(developers[0]?.id ?? "");
 
   const selectedDev   = developers.find(d => d.id === activeDev);
@@ -33,41 +41,8 @@ export default function DevelopersClient({ developers, properties }: { developer
 
   return (
     <div>
-      <Header title="Developer Portal" subtitle="Manage multi-developer portfolios & OneDrive sync" />
+      <Header title="Developer Portal" subtitle="Inventory and documents by developer" />
       <div style={{ padding: "var(--space-9) var(--space-10)" }}>
-
-        {/* OneDrive banner */}
-        <Card
-          className="u-row--between u-row--wrap"
-          style={{
-            marginBottom: "var(--space-8)",
-            padding: "var(--space-6) var(--space-7)",
-            background: "var(--info-dim)",
-            borderColor: "oklch(0.42 0.130 245 / 0.28)",
-            gap: "var(--space-6)",
-          }}
-        >
-          <Row gap={6}>
-            <div
-              className="u-row"
-              style={{
-                width: "36px", height: "36px", borderRadius: "var(--radius-sm)", flexShrink: 0,
-                background: "var(--info-dim)", border: "1px solid oklch(0.42 0.130 245 / 0.28)",
-                justifyContent: "center",
-              }}
-            >
-              <FolderOpen size={16} style={{ color: "var(--info)" }} />
-            </div>
-            <Stack gap={1}>
-              <Text size="sm" weight="semibold">OneDrive Integration Active</Text>
-              <Text size="xs" tone="muted">4 of 5 developers synced · Last sync: 10 minutes ago</Text>
-            </Stack>
-          </Row>
-          <Row gap={3}>
-            <Button variant="ghost" size="sm" icon={<RefreshCw size={13} />}>Sync all</Button>
-            <Button variant="primary" size="sm" icon={<Plus size={13} />}>Add developer</Button>
-          </Row>
-        </Card>
 
         <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "var(--space-8)" }}>
 
@@ -81,7 +56,7 @@ export default function DevelopersClient({ developers, properties }: { developer
             </Text>
             {developers.map(dev => {
               const isActive = activeDev === dev.id;
-              const tone = devBadgeTone[dev.name] || "neutral";
+              const tone = devBadgeTone[dev.name] ?? "neutral";
               return (
                 <button
                   key={dev.id}
@@ -89,28 +64,16 @@ export default function DevelopersClient({ developers, properties }: { developer
                   className="u-card"
                   style={{
                     display: "block", width: "100%", textAlign: "left",
-                    padding: "var(--space-6) var(--space-6)",
+                    padding: "var(--space-6)",
                     background: isActive ? "var(--primary-dim)" : "var(--surface)",
                     borderColor: isActive ? "var(--primary-border)" : "var(--border)",
                     cursor: "pointer",
+                    transition: "background 150ms ease, border-color 150ms ease",
                   }}
                 >
-                  <Row gap={3} style={{ marginBottom: "var(--space-4)" }}>
+                  <Row gap={3} style={{ marginBottom: "var(--space-3)" }}>
                     <Badge tone={tone}>{dev.logo}</Badge>
                     <Text size="sm" weight="medium" truncate className="u-grow">{dev.name}</Text>
-                  </Row>
-                  <Row gap={2} style={{ marginBottom: "var(--space-3)" }}>
-                    {dev.onedrive ? (
-                      <>
-                        <CheckCircle2 size={10} style={{ color: "var(--success)" }} />
-                        <Text size="2xs" tone="success">Synced</Text>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle size={10} style={{ color: "var(--warning)" }} />
-                        <Text size="2xs" style={{ color: "var(--warning)" }}>Manual</Text>
-                      </>
-                    )}
                   </Row>
                   <Row between>
                     <Text size="xs" tone="muted">{dev.activeListings} active</Text>
@@ -125,7 +88,7 @@ export default function DevelopersClient({ developers, properties }: { developer
           {selectedDev && (
             <Stack gap={7}>
 
-              {/* Header */}
+              {/* Developer header card */}
               <Card style={{ padding: "var(--space-8)" }}>
                 <Row between wrap gap={6} style={{ marginBottom: "var(--space-8)" }}>
                   <Row gap={6}>
@@ -141,29 +104,23 @@ export default function DevelopersClient({ developers, properties }: { developer
                     </div>
                     <Stack gap={1}>
                       <Text size="md" weight="semibold">{selectedDev.name}</Text>
-                      <Text size="xs" tone="muted">{selectedDev.properties} properties · {selectedDev.totalValue}</Text>
+                      <Text size="xs" tone="muted">{selectedDev.properties} {selectedDev.properties === 1 ? "project" : "projects"} · {selectedDev.totalValue}</Text>
                     </Stack>
-                  </Row>
-                  <Row gap={3}>
-                    <Button variant="ghost" size="sm" icon={<Upload size={13} />}>Upload brochure</Button>
-                    <Button variant="ghost" size="sm" icon={<RefreshCw size={13} />}>Sync now</Button>
-                    <Button variant="primary" size="sm" icon={<Plus size={13} />}>Add property</Button>
                   </Row>
                 </Row>
 
-                {/* Stats row */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
+                {/* Stats */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-4)", marginBottom: "var(--space-8)" }}>
                   {([
-                    { label: "Total listings",  value: String(selectedDev.properties),    tone: "ink"     as const },
+                    { label: "Projects",        value: String(selectedDev.properties),    tone: "ink"     as const },
                     { label: "Active listings", value: String(selectedDev.activeListings), tone: "success" as const },
                     { label: "Portfolio value", value: selectedDev.totalValue,             tone: "accent"  as const },
-                    { label: "Last synced",     value: selectedDev.lastSync,               tone: "muted"   as const },
                   ]).map(({ label, value, tone }) => (
                     <Stack
                       key={label}
                       gap={3}
                       style={{
-                        padding: "var(--space-6) var(--space-6)", borderRadius: "var(--radius-sm)",
+                        padding: "var(--space-6)", borderRadius: "var(--radius-sm)",
                         textAlign: "center", alignItems: "center",
                         background: "var(--surface-2)", border: "1px solid var(--border)",
                       }}
@@ -174,7 +131,7 @@ export default function DevelopersClient({ developers, properties }: { developer
                   ))}
                 </div>
 
-                {/* OneDrive folder tree */}
+                {/* Document library */}
                 <Stack
                   gap={3}
                   style={{
@@ -184,26 +141,21 @@ export default function DevelopersClient({ developers, properties }: { developer
                 >
                   <Row gap={3}>
                     <FolderOpen size={13} style={{ color: "var(--info)" }} />
-                    <Text size="xs" weight="medium">OneDrive / Rehan RE / {selectedDev.name}</Text>
+                    <Text size="xs" weight="medium">Documents / {selectedDev.name}</Text>
                   </Row>
-                  {folders.map((folder, i) => (
-                    <Row
-                      key={folder}
-                      gap={3}
-                      style={{
-                        padding: "var(--space-3) var(--space-4) var(--space-3) var(--space-8)",
-                        borderLeft: "1px solid var(--border)", cursor: "pointer",
-                      }}
-                    >
-                      <FolderOpen size={11} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                      <Text size="xs" tone="muted" className="u-grow">{folder}</Text>
-                      <Text size="2xs" tone="dim" mono>{folderCounts[i]} files</Text>
-                    </Row>
+                  {DOC_CATEGORIES.map((cat) => (
+                    <FolderRow
+                      key={cat.kind}
+                      developer={selectedDev.name}
+                      kind={cat.kind}
+                      label={cat.label}
+                      count={docCounts[selectedDev.name]?.[cat.kind] ?? 0}
+                    />
                   ))}
                 </Stack>
               </Card>
 
-              {/* Properties grid */}
+              {/* Properties */}
               <div>
                 <Row gap={3} style={{ marginBottom: "var(--space-7)" }}>
                   <Building2 size={14} style={{ color: "var(--dim)" }} />
@@ -263,7 +215,7 @@ export default function DevelopersClient({ developers, properties }: { developer
                 ) : (
                   <Card>
                     <EmptyState icon={<FolderOpen size={28} />} title="No properties listed">
-                      No properties listed for this developer. Upload from OneDrive or add manually.
+                      No properties listed for this developer yet.
                     </EmptyState>
                   </Card>
                 )}
@@ -273,5 +225,132 @@ export default function DevelopersClient({ developers, properties }: { developer
         </div>
       </div>
     </div>
+  );
+}
+
+function FolderRow({
+  developer, kind, label, count,
+}: { developer: string; kind: string; label: string; count: number }) {
+  const router = useRouter();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [docs, setDocs] = useState<DocItem[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, startUpload] = useTransition();
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      setDocs(await listDocsAction(developer, kind));
+    } catch {
+      setError("Couldn't load documents");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && docs === null) load();
+  }
+
+  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const fd = new FormData();
+    fd.set("developer", developer);
+    fd.set("kind", kind);
+    fd.set("file", file);
+    setError(null);
+    startUpload(async () => {
+      const res = await uploadDocAction(fd);
+      if (!res.ok) { setError(res.error ?? "Upload failed"); return; }
+      await load();
+      router.refresh();
+    });
+  }
+
+  return (
+    <Stack gap={1} style={{ borderLeft: "1px solid var(--border)" }}>
+      <Row
+        gap={3}
+        onClick={toggle}
+        style={{
+          padding: "var(--space-3) var(--space-4) var(--space-3) var(--space-8)",
+          cursor: "pointer",
+          borderRadius: "var(--radius-sm)",
+          transition: "background 120ms ease",
+        }}
+        className={cx("folder-row-trigger")}
+      >
+        <ChevronRight
+          size={11}
+          style={{
+            color: "var(--dim)", flexShrink: 0,
+            transform: open ? "rotate(90deg)" : "rotate(0deg)",
+            transition: "transform 150ms cubic-bezier(0.23, 1, 0.32, 1)",
+          }}
+        />
+        <FolderOpen size={11} style={{ color: "var(--accent)", flexShrink: 0 }} />
+        <Text size="xs" tone="muted" className="u-grow">{label}</Text>
+        <Text size="2xs" tone="dim" mono>{count} {count === 1 ? "file" : "files"}</Text>
+      </Row>
+
+      {open && (
+        <Stack gap={2} style={{ padding: "var(--space-2) var(--space-4) var(--space-4) var(--space-10)" }}>
+          {loading && (
+            <Row gap={2}>
+              <Loader2 size={12} className="u-spin" style={{ color: "var(--dim)" }} />
+              <Text size="2xs" tone="dim">Loading…</Text>
+            </Row>
+          )}
+          {error && (
+            <Text size="2xs" style={{ color: "var(--warning)" }}>{error}</Text>
+          )}
+          {!loading && docs && docs.length === 0 && (
+            <Text size="2xs" tone="dim">No files yet — upload one below.</Text>
+          )}
+          {!loading && docs && docs.map((d) => (
+            <Row key={d.id} gap={3} style={{ padding: "var(--space-2) 0" }}>
+              <FileText size={11} style={{ color: "var(--dim)", flexShrink: 0 }} />
+              <Stack gap={1} className="u-grow" style={{ minWidth: 0 }}>
+                <Text size="2xs" tone="muted" truncate>{d.title}</Text>
+                <Text size="2xs" tone="dim" mono>{formatBytes(d.sizeBytes)}</Text>
+              </Stack>
+              {d.downloadable && d.url ? (
+                <a
+                  href={d.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="u-row"
+                  style={{ gap: "var(--space-2)", color: "var(--accent)", fontSize: "var(--text-2xs)" }}
+                >
+                  <Download size={11} /> Download
+                </a>
+              ) : (
+                <Text size="2xs" tone="dim" title="No file stored — reference only">ref</Text>
+              )}
+            </Row>
+          ))}
+
+          <Row gap={3} style={{ marginTop: "var(--space-2)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={uploading ? <Loader2 size={12} className="u-spin" /> : <Upload size={12} />}
+              loading={uploading}
+              onClick={() => fileInput.current?.click()}
+            >
+              {uploading ? "Uploading…" : `Upload to ${label}`}
+            </Button>
+            <input ref={fileInput} type="file" hidden onChange={onPick} />
+          </Row>
+        </Stack>
+      )}
+    </Stack>
   );
 }

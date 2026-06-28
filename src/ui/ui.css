@@ -211,11 +211,17 @@
   display: flex; align-items: center; justify-content: center;
   background: var(--surface-2); border: 1px solid var(--border); color: var(--dim); }
 
+/* ── Folder row ── */
+@media (hover: hover) and (pointer: fine) {
+  .folder-row-trigger:hover { background: var(--surface-3); }
+}
+
 /* ── Skeleton ── */
 .u-skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
   background-size: 400% 100%; animation: u-shimmer 1.4s ease-in-out infinite; border-radius: var(--radius-sm); }
 
 /* ── Keyframes ── */
+.u-spin { animation: u-spin 0.6s linear infinite; }
 @keyframes u-spin { to { transform: rotate(360deg); } }
 @keyframes u-pulse { 0% { box-shadow: 0 0 0 0 var(--primary-border); } 70% { box-shadow: 0 0 0 5px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 @keyframes u-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
@@ -224,6 +230,6 @@
   .u-btn, .u-iconbtn, .u-chip { transition-duration: 0.01ms; }
   .u-btn:active, .u-iconbtn:active, .u-chip:active { transform: none; }
   .u-dot--live { animation: none; }
-  .u-skeleton, .u-btn__spin { animation-duration: 0.01ms; }
+  .u-skeleton, .u-btn__spin, .u-spin { animation-duration: 0.01ms; }
   .jump-link:hover .jump-link__chevron { transform: none; }
 }

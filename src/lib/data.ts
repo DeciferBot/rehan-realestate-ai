@@ -68,8 +68,6 @@ export type Developer = {
   properties: number;
   activeListings: number;
   totalValue: string;
-  onedrive: boolean;
-  lastSync: string;
 };
 
 function relativeTime(iso: string | null): string {
@@ -326,7 +324,5 @@ export async function getDevelopers(): Promise<Developer[]> {
       properties: agg.projects.size,
       activeListings: agg.active,
       totalValue: aed(agg.total),
-      onedrive: true,
-      lastSync: "synced",
     }));
 }
