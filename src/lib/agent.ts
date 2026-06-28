@@ -15,7 +15,7 @@ import { getSecret } from "./integrations";
  * WhatsApp, and email once each adapter feeds messages into the spine.
  */
 
-const MODEL = "claude-opus-4-8";
+const MODEL = "claude-sonnet-4-6";
 
 function getAnthropic(key?: string | null) {
   const apiKey = key || process.env.ANTHROPIC_API_KEY;
@@ -142,7 +142,7 @@ export async function generateAgentReply(
 
   const { data: cv, error: cvErr } = await sb
     .from("conversations")
-    .select("id,contact_id,last_channel,contacts(full_name,primary_language,budget,invest_type,status)")
+    .select("id,contact_id,last_channel,ai_paused,contacts(full_name,primary_language,budget,invest_type,status)")
     .eq("tenant_id", tenantId)
     .eq("id", conversationId)
     .single();
@@ -150,8 +150,10 @@ export async function generateAgentReply(
   const cvRow = cv as unknown as {
     contact_id: string;
     last_channel: string | null;
+    ai_paused: boolean;
     contacts: Record<string, unknown> | Record<string, unknown>[];
   };
+  if (cvRow.ai_paused) throw new Error("ai_paused");
   const contactRaw = (Array.isArray(cvRow.contacts) ? cvRow.contacts[0] : cvRow.contacts) as Record<string, unknown>;
   const contact = {
     full_name: contactRaw.full_name as string,

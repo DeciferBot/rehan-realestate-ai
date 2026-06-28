@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       name,
       persona: typeof data.persona === "string" ? data.persona : "",
       systemPrompt: typeof data.systemPrompt === "string" ? data.systemPrompt : "",
-      model: typeof data.model === "string" && data.model ? data.model : "claude-opus-4-8",
+      model: typeof data.model === "string" && data.model ? data.model : "claude-sonnet-4-6",
       languages: asStrArray(data.languages),
       channels: asStrArray(data.channels),
       capture: asStrArray(data.capture),

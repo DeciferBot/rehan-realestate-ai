@@ -10,7 +10,7 @@ import { getActiveTenantId } from "./spine";
  * extraction; it's what a "drop a developer's sheet" flow runs.
  */
 
-const MODEL = "claude-opus-4-8";
+const MODEL = "claude-sonnet-4-6";
 
 const SCHEMA = {
   type: "object",

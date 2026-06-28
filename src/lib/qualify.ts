@@ -14,7 +14,7 @@ const APP_URL = process.env.APP_URL || "https://simmerproperties.com";
  * tenant's programmable escalation_rules.
  */
 
-const MODEL = "claude-opus-4-8";
+const MODEL = "claude-sonnet-4-6";
 
 const SCHEMA = {
   type: "object",
