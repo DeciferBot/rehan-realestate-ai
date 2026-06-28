@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Webhook } from "svix";
 import { handleInboundEmail } from "@/lib/intake";
 
 export const maxDuration = 120;
@@ -36,9 +37,26 @@ function stripHtml(html: string): string {
 }
 
 export async function POST(req: Request) {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  const body = await req.text();
+
+  // Verify Resend/Svix signature when the secret is configured.
+  if (secret) {
+    const wh = new Webhook(secret);
+    try {
+      wh.verify(body, {
+        "svix-id": req.headers.get("svix-id") ?? "",
+        "svix-timestamp": req.headers.get("svix-timestamp") ?? "",
+        "svix-signature": req.headers.get("svix-signature") ?? "",
+      });
+    } catch {
+      return NextResponse.json({ ok: false, error: "invalid_signature" }, { status: 401 });
+    }
+  }
+
   let payload: Record<string, unknown>;
   try {
-    payload = await req.json();
+    payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }

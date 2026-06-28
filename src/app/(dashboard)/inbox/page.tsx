@@ -1,4 +1,4 @@
-import { getConversations, getConversationThread } from "@/lib/spine";
+import { getConversations, getConversationThread, getMembers } from "@/lib/spine";
 import { getContactDossier } from "@/lib/subagents";
 import InboxView from "./InboxView";
 
@@ -15,15 +15,14 @@ export default async function InboxPage({
   searchParams: Promise<{ c?: string }>;
 }) {
   const { c } = await searchParams;
-  // Fetch conversation list and the selected thread in parallel
-  const [conversations, threadEarly] = await Promise.all([
+  const [conversations, threadEarly, members] = await Promise.all([
     getConversations(),
     c ? getConversationThread(c) : Promise.resolve(null),
+    getMembers(),
   ]);
   const selectedId = c ?? conversations[0]?.id ?? null;
-  // If no ?c param, load the first conversation (already have it if c was set)
   const thread = threadEarly ?? (selectedId && !c ? await getConversationThread(selectedId) : null);
   const dossier = thread ? await getContactDossier(thread.contact.budget) : null;
 
-  return <InboxView conversations={conversations} thread={thread} dossier={dossier} selectedId={selectedId} c={c} />;
+  return <InboxView conversations={conversations} thread={thread} dossier={dossier} selectedId={selectedId} c={c} members={members} />;
 }

@@ -1,28 +1,68 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
+import { getSupabaseAuthServer } from "./supabase/server-auth";
 import { sendEmail, threadSubject, resolveEmailCreds } from "./email";
 
 /**
- * Server-side access to the multi-tenant platform spine
- * (tenants → contacts → conversations → messages → ...).
- *
- * Until tenant auth exists, the app operates as a single active tenant.
+ * Server-side access to the multi-tenant platform spine.
+ * Tenant is resolved from the signed-in user's membership row.
+ * Public webhook routes (no session) fall back to FALLBACK_TENANT_SLUG.
  */
-export const ACTIVE_TENANT_SLUG = "rehan";
+const FALLBACK_TENANT_SLUG = "rehan";
 
-let cachedTenantId: string | null = null;
+export type TenantContext = {
+  tenantId: string;
+  tenantName: string;
+  memberName: string | null;
+  memberRole: string | null;
+};
 
+/** Resolve tenant from the auth session, or throw "no_tenant" if signed-in user has no membership. */
 export async function getActiveTenantId(): Promise<string> {
-  if (cachedTenantId) return cachedTenantId;
+  return (await resolveTenantContext()).tenantId;
+}
+
+export async function resolveTenantContext(): Promise<TenantContext> {
   const sb = getSupabaseAdmin();
+
+  // Try session first.
+  try {
+    const authClient = await getSupabaseAuthServer();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (user?.email) {
+      const { data: member } = await sb
+        .from("members")
+        .select("tenant_id,name,role,tenants(id,name)")
+        .eq("email", user.email)
+        .limit(1)
+        .maybeSingle();
+      if (member) {
+        const m = member as unknown as {
+          tenant_id: string;
+          name: string;
+          role: string;
+          tenants: { id: string; name: string } | { id: string; name: string }[];
+        };
+        const t = Array.isArray(m.tenants) ? m.tenants[0] : m.tenants;
+        return { tenantId: m.tenant_id, tenantName: t?.name ?? "", memberName: m.name, memberRole: m.role };
+      }
+      // Signed in but no membership row → show the no-tenant screen.
+      throw Object.assign(new Error("no_tenant"), { code: "no_tenant" });
+    }
+  } catch (e) {
+    if ((e as { code?: string }).code === "no_tenant") throw e;
+    // No session (public webhook path) — fall through to slug fallback.
+  }
+
+  // Fallback for public routes (intake, webhook) — no user session.
   const { data, error } = await sb
     .from("tenants")
-    .select("id")
-    .eq("slug", ACTIVE_TENANT_SLUG)
+    .select("id,name")
+    .eq("slug", FALLBACK_TENANT_SLUG)
     .single();
   if (error) throw error;
-  cachedTenantId = data.id as string;
-  return cachedTenantId;
+  const t = data as { id: string; name: string };
+  return { tenantId: t.id, tenantName: t.name, memberName: null, memberRole: null };
 }
 
 export type ThreadMessage = {
@@ -48,6 +88,7 @@ export type ConversationContact = {
   investType: string | null;
   assignedLabel: string | null;
   qualification: Record<string, unknown>;
+  notes: string | null;
 };
 
 export type ConversationListItem = {
@@ -64,6 +105,7 @@ export type ConversationListItem = {
 export type ConversationThread = {
   id: string;
   status: string;
+  aiPaused: boolean;
   lastChannel: string | null;
   contact: ConversationContact;
   messages: ThreadMessage[];
@@ -81,6 +123,7 @@ function mapContact(c: Record<string, unknown>): ConversationContact {
     investType: (c.invest_type as string) ?? null,
     assignedLabel: (c.assigned_label as string) ?? null,
     qualification: (c.qualification as Record<string, unknown>) ?? {},
+    notes: (c.notes as string) ?? null,
   };
 }
 
@@ -171,8 +214,8 @@ export async function getConversationThread(
   const { data: cv, error } = await sb
     .from("conversations")
     .select(
-      "id,status,last_channel,contact_id," +
-        "contacts(id,full_name,flag,primary_language,status,source,budget,invest_type,assigned_label,qualification)"
+      "id,status,ai_paused,last_channel,contact_id," +
+        "contacts(id,full_name,flag,primary_language,status,source,budget,invest_type,assigned_label,qualification,notes)"
     )
     .eq("tenant_id", tenantId)
     .eq("id", conversationId)
@@ -202,6 +245,7 @@ export async function getConversationThread(
   const cvRow = cv as unknown as {
     id: string;
     status: string | null;
+    ai_paused: boolean;
     last_channel: string | null;
     contacts: Record<string, unknown> | Record<string, unknown>[];
   };
@@ -211,6 +255,7 @@ export async function getConversationThread(
   return {
     id: cvRow.id,
     status: cvRow.status ?? "open",
+    aiPaused: cvRow.ai_paused ?? false,
     lastChannel: cvRow.last_channel ?? null,
     contact: mapContact(contactRaw as Record<string, unknown>),
     messages: msgRows.map((m) => ({
@@ -227,13 +272,91 @@ export async function getConversationThread(
   };
 }
 
+export type QueueItem = {
+  conversationId: string;
+  contactId: string;
+  contactName: string;
+  flag: string | null;
+  status: string;
+  budget: string | null;
+  assignedLabel: string | null;
+  lastMessageAt: string | null;
+  aiPaused: boolean;
+  summary: string | null;
+};
+
+/** Leads that have been escalated or assigned — the human operator queue. */
+export async function getQueue(): Promise<QueueItem[]> {
+  const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
+
+  const { data: evts } = await sb
+    .from("events")
+    .select("contact_id")
+    .eq("tenant_id", tenantId)
+    .eq("type", "escalated");
+  const escalatedIds = [...new Set(((evts ?? []) as { contact_id: string }[]).map((e) => e.contact_id))];
+  if (!escalatedIds.length) return [];
+
+  const { data, error } = await sb
+    .from("contacts")
+    .select(
+      "id,full_name,flag,status,budget,assigned_label,assigned_member_id," +
+        "conversations(id,last_message_at,ai_paused)"
+    )
+    .eq("tenant_id", tenantId)
+    .in("id", escalatedIds)
+    .not("status", "in", '("closed","lost")');
+  if (error) throw error;
+
+  type QRow = {
+    id: string;
+    full_name: string;
+    flag: string | null;
+    status: string;
+    budget: string | null;
+    assigned_label: string | null;
+    conversations: { id: string; last_message_at: string | null; ai_paused: boolean }[];
+  };
+
+  const rows = (data ?? []) as unknown as QRow[];
+  const items: QueueItem[] = rows.flatMap((c) =>
+    (c.conversations ?? []).map((cv) => ({
+      conversationId: cv.id,
+      contactId: c.id,
+      contactName: c.full_name,
+      flag: c.flag,
+      status: c.status,
+      budget: c.budget,
+      assignedLabel: c.assigned_label,
+      lastMessageAt: cv.last_message_at,
+      aiPaused: cv.ai_paused ?? false,
+      summary: null,
+    }))
+  );
+  items.sort((a, b) => (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""));
+  return items;
+}
+
+export type Member = { id: string; name: string; email: string | null };
+
+export async function getMembers(): Promise<Member[]> {
+  const sb = getSupabaseAdmin();
+  const tenantId = await getActiveTenantId();
+  const { data } = await sb
+    .from("members")
+    .select("id,name,email")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: true });
+  return ((data ?? []) as unknown as Member[]);
+}
+
 /**
  * Insert an operator (human take-over) message and bump the conversation.
  *
  * `deliver` controls real outbound delivery for email-channel conversations.
  * It defaults to `false`: operator messages typed in the dashboard are logged
- * to the thread but NOT emailed unless the operator explicitly opts in. This
- * keeps testing the dashboard from emailing the contact a line at a time.
+ * to the thread but NOT emailed unless the operator explicitly opts in.
  */
 export async function postHumanMessage(
   conversationId: string,

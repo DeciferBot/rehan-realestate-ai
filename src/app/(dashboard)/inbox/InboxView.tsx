@@ -1,9 +1,11 @@
 import Header from "@/components/Header";
-import type { ConversationListItem, ConversationThread } from "@/lib/spine";
+import type { ConversationListItem, ConversationThread, Member } from "@/lib/spine";
 import type { Dossier } from "@/lib/subagents";
 import Composer from "./Composer";
 import AgentRespondButton from "./AgentRespondButton";
 import QualifyButton from "./QualifyButton";
+import PauseAIButton from "./PauseAIButton";
+import OperatorControls from "./OperatorControls";
 import Link from "next/link";
 import { Phone, MessageSquare, Mail, Bot, User, UserCog, Inbox as InboxIcon, Globe, Building2, Calculator, Gauge, ChevronLeft } from "lucide-react";
 import { Card, CardHeader, Row, Stack, Text, Badge, StatusDot } from "@/ui";
@@ -42,13 +44,14 @@ function roleIcon(role: string) {
 /** Presentational inbox. Data-source agnostic so it renders from the live spine
  *  or a fixture (preview / tests) without divergence. */
 export default function InboxView({
-  conversations, thread, dossier, selectedId, c,
+  conversations, thread, dossier, selectedId, c, members,
 }: {
   conversations: ConversationListItem[];
   thread: ConversationThread | null;
   dossier: Dossier | null;
   selectedId: string | null;
   c?: string;
+  members: Member[];
 }) {
   return (
     <div>
@@ -128,6 +131,7 @@ export default function InboxView({
                     {thread.contact.status}
                   </Badge>
                   <Row gap={2} className="inbox-thread-actions">
+                    <PauseAIButton conversationId={thread.id} aiPaused={thread.aiPaused} />
                     <QualifyButton conversationId={thread.id} />
                     <AgentRespondButton conversationId={thread.id} />
                   </Row>
@@ -204,6 +208,14 @@ export default function InboxView({
                   <Text size="sm" weight="semibold" tone="primary">Escalated · {thread.contact.assignedLabel.replace("Human: ", "")}</Text>
                 </Row>
               )}
+
+              <OperatorControls
+                contactId={thread.contact.id}
+                currentStatus={thread.contact.status}
+                currentNotes={thread.contact.notes}
+                currentAssignedLabel={thread.contact.assignedLabel}
+                members={members}
+              />
 
               <Stack gap={4} style={{ padding: "var(--space-7)", borderBottom: "1px solid var(--border)" }}>
                 <Row gap={2} align="center">

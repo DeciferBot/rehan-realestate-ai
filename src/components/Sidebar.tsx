@@ -6,12 +6,13 @@ import { useSidebar } from "@/components/sidebar-context";
 import { Row, Stack, Text, StatusDot } from "@/ui";
 import {
   LayoutDashboard, Users, Building2, Calendar,
-  FolderOpen, Settings, LogOut, Inbox, Bot, Layers, Plug, ShieldCheck,
+  FolderOpen, Settings, LogOut, Inbox, Bot, Layers, Plug, ShieldCheck, UserCog,
 } from "lucide-react";
 
 const navItems = [
   { href: "/console",       label: "Dashboard",     icon: LayoutDashboard },
   { href: "/inbox",         label: "Conversations", icon: Inbox },
+  { href: "/queue",         label: "Queue",         icon: UserCog },
   { href: "/leads",         label: "Leads",         icon: Users },
   { href: "/properties",    label: "Properties",    icon: Building2 },
   { href: "/appointments",  label: "Appointments",  icon: Calendar },
@@ -22,7 +23,15 @@ const navItems = [
   { href: "/audit",         label: "Audit log",     icon: ShieldCheck },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  tenantName,
+  memberName,
+  memberRole,
+}: {
+  tenantName: string;
+  memberName: string | null;
+  memberRole: string | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { open, setOpen } = useSidebar();
@@ -42,7 +51,7 @@ export default function Sidebar() {
           <div className="topbar-avatar">A</div>
           <Stack gap={1}>
             <Text as="div" size="md" weight="semibold" style={{ lineHeight: 1.1, letterSpacing: "-0.01em" }}>Acre</Text>
-            <Text as="div" size="2xs" tone="dim" style={{ letterSpacing: "0.06em" }}>Simmer Properties</Text>
+            <Text as="div" size="2xs" tone="dim" style={{ letterSpacing: "0.06em" }}>{tenantName}</Text>
           </Stack>
         </Row>
         <Row gap={3} className="sidebar-status">
@@ -84,10 +93,10 @@ export default function Sidebar() {
         </button>
 
         <Row gap={4} className="sidebar-user">
-          <div className="topbar-avatar">R</div>
+          <div className="topbar-avatar">{(memberName ?? tenantName).charAt(0).toUpperCase()}</div>
           <Stack gap={1}>
-            <Text as="div" size="base" weight="medium" style={{ lineHeight: 1.1 }}>Simmer Properties</Text>
-            <Text as="div" size="2xs" tone="dim">Administrator</Text>
+            <Text as="div" size="base" weight="medium" style={{ lineHeight: 1.1 }}>{memberName ?? tenantName}</Text>
+            <Text as="div" size="2xs" tone="dim" style={{ textTransform: "capitalize" }}>{memberRole ?? "member"}</Text>
           </Stack>
         </Row>
       </div>

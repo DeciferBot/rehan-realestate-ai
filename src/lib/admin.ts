@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-server";
-import { getActiveTenantId, ACTIVE_TENANT_SLUG } from "./spine";
+import { getActiveTenantId } from "./spine";
 
 /** Tenant + agent-config administration (the "program your agent" surface). */
 
@@ -173,4 +173,3 @@ export async function getInventoryProjects(): Promise<InventoryProject[]> {
   });
 }
 
-export { ACTIVE_TENANT_SLUG };

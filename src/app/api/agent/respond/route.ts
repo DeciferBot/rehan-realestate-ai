@@ -23,9 +23,10 @@ export async function POST(req: Request) {
     const message = e instanceof Error ? e.message : "server_error";
     console.error("agent/respond failed:", message);
     const notConfigured = message.includes("ANTHROPIC_API_KEY");
+    const paused = message === "ai_paused";
     return NextResponse.json(
-      { ok: false, error: notConfigured ? "not_configured" : "server_error", detail: message },
-      { status: notConfigured ? 503 : 500 }
+      { ok: false, error: paused ? "ai_paused" : notConfigured ? "not_configured" : "server_error", detail: message },
+      { status: paused ? 409 : notConfigured ? 503 : 500 }
     );
   }
 }

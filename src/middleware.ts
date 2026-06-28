@@ -17,6 +17,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const APP_PAGE_PREFIXES = [
   "/console",
   "/inbox",
+  "/queue",
   "/leads",
   "/properties",
   "/appointments",
@@ -33,6 +34,8 @@ const APP_API_PREFIXES = [
   "/api/agent/qualify",
   "/api/ingest",
   "/api/integrations",
+  "/api/conversations",
+  "/api/contacts",
 ];
 
 function isProtected(pathname: string): boolean {

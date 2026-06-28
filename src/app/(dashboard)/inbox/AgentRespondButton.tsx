@@ -21,7 +21,9 @@ export default function AgentRespondButton({ conversationId }: { conversationId:
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        setError(json.error === "not_configured" ? "Claude key not set" : "Agent failed");
+        if (json.error === "ai_paused") setError("AI is paused — resume to respond");
+        else if (json.error === "not_configured") setError("Claude key not set");
+        else setError("Agent failed");
         return;
       }
       router.refresh();
