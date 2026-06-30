@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { intakeLead } from "@/lib/intake";
+import { checkIntakeRequest } from "@/lib/intake-guard";
 
 export const maxDuration = 120;
 
 export async function POST(req: Request) {
+  const blocked = checkIntakeRequest(req);
+  if (blocked) return blocked;
+
   let data: Record<string, unknown>;
   try {
     data = await req.json();

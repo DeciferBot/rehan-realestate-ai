@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { checkIntakeRequest } from "@/lib/intake-guard";
 
 export async function POST(req: Request) {
+  const blocked = checkIntakeRequest(req);
+  if (blocked) return blocked;
+
   let data: Record<string, string>;
   try {
     data = await req.json();

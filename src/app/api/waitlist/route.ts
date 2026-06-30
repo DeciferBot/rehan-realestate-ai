@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { Resend } from "resend";
+import { checkIntakeRequest } from "@/lib/intake-guard";
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY ?? "noop");
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = checkIntakeRequest(req);
+  if (blocked) return blocked;
+
   try {
     const { email } = await req.json();
     if (!email || !email.includes("@")) {
